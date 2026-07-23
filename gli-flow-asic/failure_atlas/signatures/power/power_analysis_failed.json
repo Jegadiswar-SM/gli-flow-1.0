@@ -1,0 +1,13 @@
+{
+  "description": "Power analysis simulation failure (PSM-0010).",
+  "investigation_checklist": [
+    "Check power.log for structural singularity messages",
+    "Inspect DEF for floating power pins",
+    "Verify PDN setup in manifest"
+  ],
+  "known_causes": [
+    "Structurally singular matrix (missing net connections)",
+    "PDK power rail configuration error"
+  ],
+  "references": ["docs/reliability/gcd_certification_audit.md"]
+}

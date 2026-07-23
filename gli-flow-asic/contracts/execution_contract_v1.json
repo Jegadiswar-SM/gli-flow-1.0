@@ -1,0 +1,36 @@
+{
+    "contract_version": "1.0",
+
+    "execution_requirements": {
+
+        "environment_validation_required": true,
+
+        "telemetry_required": true,
+
+        "manifest_required": true,
+
+        "snapshot_required": true,
+
+        "reproducibility_verification_required": true
+    },
+
+    "toolchain_constraints": {
+
+        "yosys": ">=0.40",
+
+        "verilator": ">=5.026",
+
+        "python": ">=3.10"
+    },
+
+    "execution_invariants": [
+
+        "All runs must generate manifests",
+
+        "All runs must generate telemetry",
+
+        "All runs must pass governance checks",
+
+        "All runs must support deterministic replay"
+    ]
+}

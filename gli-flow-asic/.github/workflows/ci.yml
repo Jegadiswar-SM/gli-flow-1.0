@@ -1,0 +1,325 @@
+name: GLI-FLOW CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        python-version: ["3.10", "3.11"]
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq git cmake
+
+      - name: Install Package
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install -e .
+
+      - name: Lint with flake8
+        run: |
+          pip3 install flake8
+          flake8 . --count --max-complexity=15 --max-line-length=127 --statistics
+
+      - name: Run Infrastructure Tests
+        run: |
+          pip3 install pytest
+          python3 -m pytest tests/test_environment_infrastructure.py -v --tb=short
+
+      - name: Run Installer Tests
+        run: |
+          python3 -m pytest tests/test_installer.py -v --tb=short
+
+      - name: Run Core Unit Tests
+        run: |
+          python3 -m pytest tests/ -v --tb=short \
+            --ignore=tests/test_environment_infrastructure.py \
+            --ignore=tests/test_installer.py \
+            --ignore=tests/test_failure_atlas.py \
+            --ignore=tests/e2e \
+            --ignore=tests/integration
+
+      - name: Verify Import Chain
+        run: |
+          python3 -c "
+from gli_flow.core.orchestrator import FlowOrchestrator
+from gli_flow.provenance.manifest import generate_reproducibility_manifest
+from gli_flow.regression.detector import detect_regression
+from gli_flow.telemetry.parser import TelemetryParser
+from gli_flow.analytics.qor_score import calculate_qor_score
+from gli_flow.ci import CIConfig, CIRunner, CIReport
+from gli_flow.ci.reporter import generate_junit_xml, generate_markdown_report
+from gli_flow.cloud import CloudStorageConfig, CloudStorageManager, CloudProvider
+from gli_flow.scheduler.remote import RemoteWorker, RemoteWorkerConfig, RemoteWorkerResult
+from gli_flow.testing.mock_adapter import MockEDAAdapter
+print('All imports OK')
+"
+
+      - name: Validate CI Module
+        run: |
+          python3 -c "
+from gli_flow.ci.reporter import CIReport, generate_junit_xml, generate_markdown_report
+r = CIReport(True, 'ci_test', 'counter', {'qor_score': 85.0}, None, [], 10.0)
+xml = generate_junit_xml(r)
+md = generate_markdown_report(r)
+assert 'failures=\"0\"' in xml
+assert '85.0' in md
+print('CI module validation OK')
+"
+
+      - name: Validate Mock Adapter
+        run: |
+          python3 -c "
+from gli_flow.testing.mock_adapter import MockEDAAdapter
+a = MockEDAAdapter()
+assert a.platform == 'mock'
+assert a.validate_environment() == []
+print('Mock adapter validation OK')
+"
+
+      - name: Verify Hardening Module Imports
+        run: |
+          python3 -c "
+import tests.failure_corpus
+print('failure_corpus module OK')
+from tests.golden_designs import baseline
+print('golden_designs.baseline module OK')
+from gli_flow.doctor import run_doctor
+print('doctor module OK')
+from gli_flow.install_certification import generate_install_certification
+print('install_certification module OK')
+from gli_flow.core.error_experience import GliFlowError, resolve_error
+print('error_experience module OK')
+"
+
+  # WSL2 tests cannot run on GitHub-hosted runners natively;
+  # the tests are designed and verified to work on WSL2 environments.
+  # Run manually on a WSL2 machine:
+  #   python3 -m pytest tests/test_environment_infrastructure.py -v --tb=short
+  #   python3 -m pytest tests/test_installer.py -v --tb=short
+  wsl2:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Package
+        run: |
+          pip3 install -e .
+
+      - name: Verify WSL2 Detection Code
+        run: |
+          python3 -c "
+from gli_flow.installer.system import is_wsl
+from pathlib import Path
+import tempfile, os
+tf = tempfile.NamedTemporaryFile(mode='w', suffix='_version', delete=False)
+tf.write('Linux version 5.15.167.4-microsoft-standard-WSL2')
+tf.close()
+import builtins
+_orig_open = builtins.open
+def mock_open(p, *a, **kw):
+    if p == '/proc/version':
+        return _orig_open(tf.name, *a, **kw)
+    return _orig_open(p, *a, **kw)
+builtins.open = mock_open
+assert is_wsl() is True
+builtins.open = _orig_open
+os.unlink(tf.name)
+print('WSL2 detection code verified OK')
+"
+
+  failure-corpus:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Package
+        run: |
+          pip3 install -e .
+
+      - name: Install Test Dependencies
+        run: |
+          pip3 install pytest
+
+      - name: Run Error Experience Tests
+        run: |
+          python3 -m pytest tests/test_error_experience.py -x -q
+
+  doctor-validation:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Package
+        run: |
+          pip3 install -e .
+
+      - name: Install Test Dependencies
+        run: |
+          pip3 install pytest
+
+      - name: Run Hardening Tests
+        run: |
+          python3 -m pytest tests/test_not_run_hardening.py -q --tb=line -k "test_signoff_no_shell_true or test_encryption"
+
+  release-validation:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Package
+        run: |
+          pip3 install -e .
+
+      - name: Verify Version
+        run: |
+          python3 -c "
+import sys
+sys.path.insert(0, '.')
+from gli_flow.version import VERSION
+print(f'Version: {VERSION}')
+assert VERSION.startswith('v'), 'Version must start with v'
+print('Version check passed')
+"
+
+      - name: Verify Release Assets
+        run: |
+          errors=0
+          if [ -f pyproject.toml ] || [ -f setup.py ]; then
+            echo "setup.py or pyproject.toml found"
+          else
+            echo "MISSING: pyproject.toml or setup.py"
+            errors=$((errors+1))
+          fi
+          for f in MANIFEST.in CHANGELOG.md RELEASE_CHECKLIST.md SECURITY.md; do
+            if [ -f "$f" ]; then
+              echo "$f found"
+            else
+              echo "MISSING: $f"
+              errors=$((errors+1))
+            fi
+          done
+          if [ -d docs/guides ]; then
+            echo "docs/guides/ found"
+          else
+            echo "MISSING: docs/guides/"
+            errors=$((errors+1))
+          fi
+          if [ $errors -ne 0 ]; then
+            echo "FAILED: $errors release asset(s) missing"
+            exit 1
+          fi
+          echo "All release assets present"
+
+  lvs-integrity:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Package
+        run: |
+          pip3 install -e .
+
+      - name: Install Test Dependencies
+        run: |
+          pip3 install pytest
+
+      - name: Run LVS False-Clean Prevention Tests
+        run: |
+          python3 -m pytest tests/reliability/test_lvs_false_clean_prevention.py -v --tb=short
+
+      - name: Run LVS Gate Integrity Tests
+        run: |
+          python3 -m pytest tests/signoff/test_lvs_gate_integrity.py -v --tb=short
+
+      - name: Run Adversarial LVS Tests
+        run: |
+          python3 -m pytest tests/adversarial/lvs/test_lvs_adversarial.py -v --tb=short
+
+      - name: Run Netgen Argument Construction Regression Tests
+        run: |
+          python3 -m pytest tests/regressions/test_netgen_argument_construction.py -v --tb=short
+
+      - name: Run LVS Integrity Invariant Checks
+        run: |
+          python3 release/validate_lvs_integrity.py
+
+  notify:
+    if: failure()
+    needs:
+      - test
+      - wsl2
+      - failure-corpus
+      - doctor-validation
+      - release-validation
+      - lvs-integrity
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - name: Job Failure Notification
+        run: |
+          echo "One or more CI jobs failed. Check the workflow run for details."
+          exit 1
+

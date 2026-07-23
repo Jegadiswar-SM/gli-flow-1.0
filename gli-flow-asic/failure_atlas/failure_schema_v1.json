@@ -1,0 +1,20 @@
+{
+  "failure_id": "",
+  "title": "",
+  "category": "",
+  "severity": "",
+  "symptoms": [],
+  "root_cause": "",
+  "environment": {
+    "yosys": "",
+    "verilator": "",
+    "python": "",
+    "docker": "",
+    "librelane": ""
+  },
+  "reproduction_steps": [],
+  "resolution_steps": [],
+  "prevention": "",
+  "related_logs": [],
+  "timestamp": ""
+}

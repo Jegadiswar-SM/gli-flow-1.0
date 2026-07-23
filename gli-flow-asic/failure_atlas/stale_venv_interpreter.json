@@ -1,0 +1,42 @@
+{
+  "failure_id": "TOOLCHAIN-0004",
+  "title": "Stale Virtual Environment Interpreter",
+  "category": "Environment Divergence",
+  "severity": "HIGH",
+
+  "symptoms": [
+    "librelane: command not found",
+    "bad interpreter: No such file or directory"
+  ],
+
+  "root_cause": "Virtual environment executable referenced outdated python interpreter path after environment relocation.",
+
+  "environment": {
+    "yosys": "0.40",
+    "verilator": "5.026",
+    "python": "3.10.12",
+    "docker": "29.4.3",
+    "librelane": "3.0.3"
+  },
+
+  "reproduction_steps": [
+    "Move or recreate virtual environment improperly",
+    "Attempt to execute stale wrapper executable",
+    "Interpreter path no longer exists"
+  ],
+
+  "resolution_steps": [
+    "Delete broken venv",
+    "Recreate venv using python3 -m venv venv",
+    "Activate venv",
+    "Reinstall LibreLane using pip install -e ."
+  ],
+
+  "prevention": "Environment validator should verify executable shebang integrity before execution.",
+
+  "related_logs": [
+    "bad interpreter: No such file or directory"
+  ],
+
+  "timestamp": "2026-05-10"
+}

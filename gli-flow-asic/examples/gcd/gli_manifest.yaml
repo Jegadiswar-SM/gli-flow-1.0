@@ -1,0 +1,13 @@
+design_name: gcd
+rtl_files:
+  - examples/gcd/gcd.v
+top_module: gcd
+backend: openroad
+pdk: sky130
+clock_port: clk
+clock_period_ns: 10.0
+core_utilization: 15
+die_padding: 20
+constraints:
+  - examples/gcd/gcd.sdc
+run_mode: educational_demo

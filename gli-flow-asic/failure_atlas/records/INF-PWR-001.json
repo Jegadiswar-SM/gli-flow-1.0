@@ -1,0 +1,20 @@
+{
+  "run_id": null,
+  "failure_id": "INF-PWR-001",
+  "failure_type": "POWER_ ANALYSIS_ERROR",
+  "severity": "HIGH",
+  "title": "Invalid Power Corner Configuration",
+  "description": "Power analysis failed because the requested process corner 'typical' is not recognized by OpenROAD.",
+  "recommended_fix": "Map GLI-FLOW corner names to valid OpenROAD process corner names defined in the PDK configuration.",
+  "confidence": 0.9,
+  "signature": "power_invalid_corner_config_sta0102",
+  "domain": "INFRASTRUCTURE",
+  "category": "EXECUTION_ERROR",
+  "evidence": {
+    "report_path": "/home/gli/GLI/tapeitout.com/gli-flow-asic/outputs/runs/run_1781071281_a259da5f_uart_top/power_report.txt",
+    "error_code": "STA-0102",
+    "error_message": "typical is not the name of process corner."
+  },
+  "origin_stage": "POWER",
+  "detection_stage": "POWER"
+}

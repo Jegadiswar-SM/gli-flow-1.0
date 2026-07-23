@@ -1,0 +1,22 @@
+{
+  "runtime_version": "1.0",
+  "name": "default",
+  "logging": {
+    "level": "INFO",
+    "file": "gli_flow.log",
+    "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  },
+  "parallelism": {
+    "max_threads": 4,
+    "max_memory_mb": 8192
+  },
+  "telemetry": {
+    "enabled": true,
+    "reports_dir": "reports",
+    "metrics_csv": "metrics.csv"
+  },
+  "cache": {
+    "enabled": true,
+    "dir": ".cache"
+  }
+}

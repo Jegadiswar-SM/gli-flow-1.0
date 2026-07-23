@@ -1,0 +1,20 @@
+{
+  "rule_id": "density_violation",
+  "title": "Metal density violation detected",
+  "description": "Metal density is outside the required foundry range (min/max), impacting chemical-mechanical polishing (CMP) uniformity.",
+  "severity": "HIGH",
+  "investigation_checklist": [
+    "Check density report for affected layers",
+    "Identify regions with excessively high or low density",
+    "Inspect for local areas of congestion or sparse routing",
+    "Evaluate need for metal fill insertion or placement adjustments"
+  ],
+  "known_causes": [
+    "Imbalanced placement density",
+    "Area with high block-level routing congestion",
+    "Absence of metal fill/dummy metal in sparse regions"
+  ],
+  "references": [
+    "PDK Design Rules Manual - Metal Density Requirements"
+  ]
+}

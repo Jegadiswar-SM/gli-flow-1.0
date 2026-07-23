@@ -1,0 +1,103 @@
+design_name: soc_top
+top_module: soc_top
+backend: openroad
+pdk: sky130
+pdk_variant: sky130A
+clock_port: clk
+clock_period_ns: 20.0
+threads: 4
+constraints:
+  - examples/mini_mac/constraints/soc.sdc
+include_dirs:
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim/rtl
+  - examples/mini_mac/rtl/inc
+rtl_files:
+  # ── SoC top + infra (plain Verilog) ──────────────────────────
+  - examples/mini_mac/rtl/soc_top.v
+  - examples/mini_mac/rtl/core/mem_subsystem.v
+  - examples/mini_mac/rtl/core/boot_rom.v
+  - examples/mini_mac/rtl/core/dma_master.v
+  - examples/mini_mac/rtl/core/dma_regs.v
+  - examples/mini_mac/rtl/bus/apb_bus.v
+  - examples/mini_mac/rtl/bus/obi_to_apb.v
+  - examples/mini_mac/rtl/macros/sram_wrapper.v
+
+  # ── MAC accelerator (plain Verilog) ──────────────────────────
+  - examples/mini_mac/rtl/accel/mac_top.v
+  - examples/mini_mac/rtl/accel/mac_counters.v
+  - examples/mini_mac/rtl/accel/mac_regs.v
+  - examples/mini_mac/rtl/accel/pe.v
+  - examples/mini_mac/rtl/accel/systolic_array.v
+
+  # ── Synthesis overrides (plain Verilog, listed last) ─────────
+  - examples/mini_mac/rtl/core/ibex/syn/rtl/prim_clock_gating.v
+  - examples/mini_mac/rtl/core/ibex/syn/rtl/latch_map.v
+
+  # ── Ibex core RTL (SystemVerilog — sv2v batch) ───────────────
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_top.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_pkg.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_core.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_alu.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_branch_predict.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_compressed_decoder.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_controller.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_counter.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_cs_registers.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_csr.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_decoder.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_dummy_instr.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_ex_block.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_fetch_fifo.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_icache.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_id_stage.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_if_stage.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_load_store_unit.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_multdiv_fast.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_multdiv_slow.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_pmp.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_prefetch_buffer.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_register_file_ff.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_register_file_fpga.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_register_file_latch.sv
+  - examples/mini_mac/rtl/core/ibex/rtl/ibex_wb_stage.sv
+
+  # ── Ibex shared RTL (SystemVerilog) ──────────────────────────
+  - examples/mini_mac/rtl/core/ibex/shared/rtl/ram_1p.sv
+  - examples/mini_mac/rtl/core/ibex/shared/rtl/ram_2p.sv
+  - examples/mini_mac/rtl/core/ibex/shared/rtl/bus.sv
+  - examples/mini_mac/rtl/core/ibex/shared/rtl/timer.sv
+
+  # ── lowRISC IP: packages (SystemVerilog) ─────────────────────
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim/rtl/prim_secded_pkg.sv
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_ram_1p_pkg.sv
+
+  # ── lowRISC IP: primitives unconditionally used by Ibex ──────
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_buf.sv
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_flop.sv
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_flop_en.sv
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim/rtl/prim_secded_inv_39_32_dec.sv
+
+  # ── lowRISC IP: primitives conditionally used (included for
+  #    compilation safety, not instantiated at ICache=0) ────────
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim/rtl/prim_secded_inv_39_32_enc.sv
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim/rtl/prim_secded_inv_28_22_dec.sv
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim/rtl/prim_secded_inv_28_22_enc.sv
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim/rtl/prim_ram_1p_scr.sv
+  - examples/mini_mac/rtl/core/ibex/vendor/lowrisc_ip/ip/prim_generic/rtl/prim_ram_1p.sv
+
+corners:
+  - name: worst
+    type: worst
+    process: slow
+    voltage: 1.62
+    temperature: 125
+  - name: typical
+    type: typical
+    process: typical
+    voltage: 1.80
+    temperature: 25
+  - name: best
+    type: best
+    process: fast
+    voltage: 1.95
+    temperature: -40

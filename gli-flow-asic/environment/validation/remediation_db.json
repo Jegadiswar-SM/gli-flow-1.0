@@ -1,0 +1,31 @@
+{
+  "Python": {
+    "missing": [
+      "Install Python 3.10 or newer",
+      "Verify python3 exists in PATH"
+    ]
+  },
+
+  "Docker": {
+    "missing": [
+      "Install Docker Desktop",
+      "Enable WSL integration",
+      "Restart terminal after installation"
+    ]
+  },
+
+  "Git": {
+    "missing": [
+      "Install Git",
+      "Verify git exists in PATH"
+    ]
+  },
+
+  "LibreLane": {
+    "missing": [
+      "Activate LibreLane virtual environment",
+      "Verify librelane CLI exists in PATH",
+      "Install LibreLane according to setup documentation"
+    ]
+  }
+}

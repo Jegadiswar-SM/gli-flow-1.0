@@ -1,0 +1,23 @@
+{
+    "minimum_requirements": {
+        "python": "3.10",
+        "yosys": "0.40",
+        "verilator": "5.026"
+    },
+
+    "required_directories": [
+        "manifests",
+        "analytics",
+        "telemetry",
+        "failure_atlas",
+        "execution_history",
+        "snapshots"
+    ],
+
+    "required_files": [
+        "analytics/reliability_report.json",
+        "analytics/execution_report.json"
+    ],
+
+    "reproducibility_required": true
+}

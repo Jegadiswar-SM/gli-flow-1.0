@@ -1,0 +1,23 @@
+{
+  "rule_id": "licon.8a",
+  "title": "Poly contact enclosure violation",
+  "description": "Magic detected a contact overlap smaller than required design rule.",
+  "severity": "HIGH",
+  "investigation_checklist": [
+    "Check violation coordinates in the layout",
+    "Determine whether violation lies inside a standard cell boundary",
+    "Check neighboring cell abutment for potential spacing issues",
+    "Inspect router-generated geometry for off-grid violations",
+    "Verify PDK rule interpretation against the design guide"
+  ],
+  "known_causes": [
+    "Cell abutment issue",
+    "Router geometry issue",
+    "Macro boundary issue",
+    "PDK/library geometry issue"
+  ],
+  "references": [
+    "PDK Design Rules Manual - Contact Spacing",
+    "Magic DRC Documentation"
+  ]
+}

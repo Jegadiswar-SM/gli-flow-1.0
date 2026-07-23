@@ -1,0 +1,38 @@
+design_name: picorv32
+rtl_files:
+  - examples/picorv32/rtl/picorv32.v
+top_module: picorv32
+backend: openroad
+pdk: sky130
+pdk_variant: sky130A
+clock_port: clk
+clock_period_ns: 20.0
+constraints:
+  - examples/picorv32/constraints/picorv32.sdc
+threads: 4
+corners:
+  - name: worst
+    type: worst
+    process: slow
+    voltage: 1.62
+    temperature: 125
+  - name: typical
+    type: typical
+    process: typical
+    voltage: 1.80
+    temperature: 25
+  - name: best
+    type: best
+    process: fast
+    voltage: 1.95
+    temperature: -40
+parameters:
+  ENABLE_COUNTERS: 1
+  ENABLE_COUNTERS64: 1
+  ENABLE_REGS_16_31: 1
+  ENABLE_REGS_DUALPORT: 1
+  ENABLE_MUL: 0
+  ENABLE_DIV: 0
+  ENABLE_IRQ: 0
+  COMPRESSED_ISA: 0
+  PROGADDR_RESET: 0

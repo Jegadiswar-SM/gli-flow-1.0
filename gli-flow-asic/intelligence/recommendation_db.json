@@ -1,0 +1,21 @@
+[
+    {
+        "category": "GENERAL_WARNING",
+        "recommendation": "Review synthesis warnings and optimize RTL quality"
+    },
+
+    {
+        "category": "LATCH_INFERENCE",
+        "recommendation": "Ensure all combinational always blocks assign outputs completely"
+    },
+
+    {
+        "category": "DRIVER_CONFLICT",
+        "recommendation": "Check for multiple assignments driving the same signal"
+    },
+
+    {
+        "category": "EXECUTION_ERROR",
+        "recommendation": "Inspect synthesis logs and validate toolchain configuration"
+    }
+]

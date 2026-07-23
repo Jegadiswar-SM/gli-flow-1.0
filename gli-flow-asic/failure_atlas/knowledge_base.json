@@ -1,0 +1,201 @@
+{
+  "SETUP_VIOLATION": {
+    "description": "Setup timing violation occurs when a signal arrives at a flip-flop input too late relative to the clock edge.",
+    "common_causes": ["Excessive combinational logic depth", "High fanout nets causing slow transition", "Poor floorplan causing long wire delays", "Insufficient clock period for target frequency", "Inadequate buffer insertion on long paths"],
+    "remediation_strategies": [
+      {"technique": "Pipeline insertion", "description": "Insert register stages to break long combinational paths", "expected_effect": "Reduces logic depth, improves WNS by 0.5-2.0ns", "tradeoffs": "Increases latency, adds area and power"},
+      {"technique": "Retiming", "description": "Move registers across combinational logic to balance path delays", "expected_effect": "10-30% timing improvement without latency change", "tradeoffs": "Requires tool support"},
+      {"technique": "Logic restructuring", "description": "Re-synthesize combinational logic to reduce path depth", "expected_effect": "10-20% path delay reduction", "tradeoffs": "May increase area"},
+      {"technique": "Buffer insertion", "description": "Insert buffers along long wires to reduce RC delay", "expected_effect": "15-25% transition improvement", "tradeoffs": "Adds buffer area and power"},
+      {"technique": "Floorplan optimization", "description": "Place critical cells closer together", "expected_effect": "20-40% wire delay reduction", "tradeoffs": "May increase congestion elsewhere"},
+      {"technique": "Clock tree optimization", "description": "Balance clock tree to reduce skew", "expected_effect": "Recovers 5-15% of clock period", "tradeoffs": "May increase clock power"}
+    ],
+    "verification_steps": ["Re-run STA", "Verify WNS > 0 for all corners", "Verify TNS = 0"],
+    "references": ["ICC2 Timing Closure Guide"],
+    "confidence": "HIGH"
+  },
+  "HOLD_VIOLATION": {
+    "description": "Hold timing violation: signal arrives at flip-flop input too early relative to clock edge.",
+    "common_causes": ["Short data paths with fast cells", "Clock skew", "Low drive strength clock cells", "Process variation at fast corner"],
+    "remediation_strategies": [
+      {"technique": "Delay buffer insertion", "description": "Insert delay buffers on short data paths", "expected_effect": "0.1-0.5ns delay increase per buffer", "tradeoffs": "Area and power increase"},
+      {"technique": "Clock path balancing", "description": "Add delay to capture clock path", "expected_effect": "Reduces hold requirement", "tradeoffs": "May affect setup timing"},
+      {"technique": "Cell resizing", "description": "Use smaller drive strength cells", "expected_effect": "10-30% delay increase", "tradeoffs": "May create transition violations"}
+    ],
+    "verification_steps": ["Re-run hold STA", "Verify WHS > 0", "Verify THS = 0"],
+    "references": ["STA Fundamentals"],
+    "confidence": "HIGH"
+  },
+  "ROUTING_OVERFLOW": {
+    "description": "Router cannot find sufficient tracks to route all nets in a region.",
+    "common_causes": ["High cell density", "Large macros blocking routing layers", "Insufficient routing layers", "Poor floorplan"],
+    "remediation_strategies": [
+      {"technique": "Reduce utilization", "description": "Lower core utilization", "expected_effect": "5-15% overflow reduction per 5% util drop", "tradeoffs": "Increases die area"},
+      {"technique": "Increase die area", "description": "Increase die dimensions", "expected_effect": "10-30% overflow reduction", "tradeoffs": "Increases die cost"},
+      {"technique": "Macro relocation", "description": "Move large macros to reduce blockage", "expected_effect": "20-40% local congestion reduction", "tradeoffs": "May affect timing"},
+      {"technique": "Placement density reduction", "description": "Add blockages, spread cells", "expected_effect": "10-20% congestion improvement", "tradeoffs": "Increases wirelength"}
+    ],
+    "verification_steps": ["Re-run global routing", "Check overflow per GCELL", "Verify peak overflow < 5%"],
+    "references": ["Physical Design Essentials"],
+    "confidence": "HIGH"
+  },
+  "CONGESTION": {
+    "description": "Routing demand exceeds available resources in a region.",
+    "common_causes": ["High cell density hot spots", "Multiple macros creating channels", "High pin density blocks", "Insufficient routing layers"],
+    "remediation_strategies": [
+      {"technique": "Congestion-driven placement", "description": "Use congestion-aware placement", "expected_effect": "15-25% congestion reduction", "tradeoffs": "5-10% wirelength increase"},
+      {"technique": "Cell spread factor", "description": "Increase cell spreading", "expected_effect": "10-20% congestion reduction", "tradeoffs": "Increases die area"},
+      {"technique": "Guide creation", "description": "Create routing guides for congested nets", "expected_effect": "5-10% improvement", "tradeoffs": "Manual effort"}
+    ],
+    "verification_steps": ["Check congestion map", "Verify no GCELL exceeds 95%", "Compare pre/post DRC count"],
+    "references": ["Congestion Analysis and Optimization"],
+    "confidence": "HIGH"
+  },
+  "MACRO_PLACEMENT_FAILURE": {
+    "description": "Large IP blocks cannot be legally placed in the floorplan.",
+    "common_causes": ["Insufficient die area", "Aspect ratio incompatibility", "Pin alignment constraints", "Keepout margins too large"],
+    "remediation_strategies": [
+      {"technique": "Die area increase", "description": "Increase die dimensions", "expected_effect": "Allows legal placement", "tradeoffs": "Increases cost"},
+      {"technique": "Macro rotation", "description": "Rotate macros for better fit", "expected_effect": "10-30% better utilization", "tradeoffs": "Changes pin orientation"},
+      {"technique": "Keepout reduction", "description": "Reduce keepout margins", "expected_effect": "5-15% more usable area", "tradeoffs": "DRC risk near macros"}
+    ],
+    "verification_steps": ["Verify all macros placed legally", "Check pin accessibility", "Verify no overlap"],
+    "references": ["Floorplanning for SoCs"],
+    "confidence": "HIGH"
+  },
+  "LVS_MISMATCH": {
+    "description": "Layout does not match the reference netlist.",
+    "common_causes": ["Incorrect power/ground connections", "Missing devices", "Net name mismatches", "Shorts or opens"],
+    "remediation_strategies": [
+      {"technique": "Short isolation", "description": "Identify and fix short circuits", "expected_effect": "Resolves LVS failures", "tradeoffs": "Manual layout editing"},
+      {"technique": "Open net repair", "description": "Route open connections", "expected_effect": "Fixes open violations", "tradeoffs": "Multiple iterations"},
+      {"technique": "Port label verification", "description": "Verify port labels match", "expected_effect": "Resolves port mismatches", "tradeoffs": "Simple fix"}
+    ],
+    "verification_steps": ["Re-run LVS", "Verify all nets match", "Check device count"],
+    "references": ["Physical Verification Flow"],
+    "confidence": "HIGH"
+  },
+  "SRAM_INTEGRATION_ERRORS": {
+    "description": "SRAM macro integration failures including pin access and connectivity issues.",
+    "common_causes": ["SRAM pin blocked by nearby cells", "Power not connected to SRAM", "Incorrect SRAM timing model", "Halo/keepout violation"],
+    "remediation_strategies": [
+      {"technique": "Adjust SRAM halo", "description": "Increase keepout margin around SRAM", "expected_effect": "Clear pin access", "tradeoffs": "Area increase"},
+      {"technique": "Power strap connection", "description": "Verify SRAM power connected to PDN", "expected_effect": "Resolves power issues", "tradeoffs": "May require PDN modification"},
+      {"technique": "SRAM relocation", "description": "Move SRAM to better location", "expected_effect": "Better integration", "tradeoffs": "Floorplan change"}
+    ],
+    "verification_steps": ["Check SRAM pin accessibility", "Verify power connectivity", "Run LVS"],
+    "references": ["Memory Compiler User Guide"],
+    "confidence": "HIGH"
+  },
+  "ANTENNA_VIOLATIONS": {
+    "description": "Antenna effect from charge collection during plasma etching.",
+    "common_causes": ["Long metal wires to transistor gates", "High antenna ratio", "Missing antenna diodes"],
+    "remediation_strategies": [
+      {"technique": "Antenna diode insertion", "description": "Insert diodes on long nets", "expected_effect": "Eliminates violations", "tradeoffs": "Leakage increase"},
+      {"technique": "Layer jumping", "description": "Via to higher metal layer", "expected_effect": "40-60% ratio reduction", "tradeoffs": "Routing modification"},
+      {"technique": "Metal jumper cells", "description": "Use protection cells", "expected_effect": "Clean antenna DRC", "tradeoffs": "Overhead"}
+    ],
+    "verification_steps": ["Re-run antenna check", "Verify ratio below limit"],
+    "references": ["Antenna Effect Guidelines"],
+    "confidence": "HIGH"
+  },
+  "MISSING_MODULE": {
+    "description": "Required module not found in library or RTL files during synthesis.",
+    "common_causes": ["Missing RTL file in manifest", "Typo in module name", "Missing library path", "Unresolved IP"],
+    "remediation_strategies": [
+      {"technique": "Add RTL files", "description": "Include all required RTL in manifest", "expected_effect": "Resolves missing module", "tradeoffs": "None"},
+      {"technique": "Check module name", "description": "Verify spelling matches definition", "expected_effect": "Finds the module", "tradeoffs": "None"},
+      {"technique": "Add library path", "description": "Include library search paths", "expected_effect": "Resolves library modules", "tradeoffs": "None"}
+    ],
+    "verification_steps": ["Re-run synthesis", "Verify all modules resolved"],
+    "references": ["Yosys Synthesis Guide"],
+    "confidence": "HIGH"
+  },
+  "OOM": {
+    "description": "Out of memory error during tool execution.",
+    "common_causes": ["Design too large for allocated memory", "Memory leak in EDA tool", "Too many threads", "Insufficient system RAM"],
+    "remediation_strategies": [
+      {"technique": "Increase memory allocation", "description": "Allocate more memory to the tool", "expected_effect": "Prevents OOM", "tradeoffs": "May exhaust system resources"},
+      {"technique": "Reduce thread count", "description": "Use fewer parallel threads", "expected_effect": "Lower memory per thread", "tradeoffs": "Longer runtime"},
+      {"technique": "Hierarchical flow", "description": "Partition design into smaller blocks", "expected_effect": "Each block uses less memory", "tradeoffs": "Integration complexity"}
+    ],
+    "verification_steps": ["Monitor memory usage", "Check tool logs for OOM", "Run with increased memory"],
+    "references": ["Tool Memory Requirements"],
+    "confidence": "HIGH"
+  },
+  "TOOL_CRASHES": {
+    "description": "EDA tool crashes or exits with non-zero return code.",
+    "common_causes": ["Incompatible tool version", "License issue", "Corrupt input files", "PDK incompatibility"],
+    "remediation_strategies": [
+      {"technique": "Version verification", "description": "Check tool version compatibility", "expected_effect": "Resolves compatibility", "tradeoffs": "May need tool update"},
+      {"technique": "License check", "description": "Verify license availability", "expected_effect": "Enables tool execution", "tradeoffs": "License cost"},
+      {"technique": "Input validation", "description": "Validate all input files", "expected_effect": "Prevents corrupt input crashes", "tradeoffs": "None"}
+    ],
+    "verification_steps": ["Check version compatibility", "Verify licenses", "Validate input files"],
+    "references": ["Tool Installation Guide"],
+    "confidence": "HIGH"
+  },
+  "INF_MAGIC_002": {
+    "description": "Magic DRC false-positive: licon.8a violations proven invalid via ORFS baseline validation. Reproduces identically on native ORFS GCD, confirming not GLI-FLOW-specific. KLayout lacks licon.8a category in report — rule may not execute. Magic 8.3.659 requires DISPLAY=:0; silent 0-violation false negative without X display.",
+    "classification": "tool_false_positive",
+    "drc_rule": "licon.8a",
+    "magic_version": "8.3.659",
+    "pdk_commit": "bdc9412b3e468c102d01b7cf6337be06ec6e9c9a",
+    "design": ["gcd", "uart_top"],
+    "citation": "inf_magic_002",
+    "validated_designs": [
+      {
+        "design": "gcd",
+        "run_id": "run_1781163051_11a3ab91_gcd",
+        "orfs_validated": true,
+        "magic_violations": 2,
+        "klayout_violations": 0,
+        "bounding_boxes": ["(13459,6826)-(13461,6842)", "(12171,5738)-(12173,5754)", "(14287,5738)-(14289,5754)"],
+        "fa_incident_id": "8f25d3a5-51fa-404e-bf1b-e23387b4c638"
+      },
+      {
+        "design": "uart_top",
+        "run_id": "run_1781246066_3c483cb5_uart_top",
+        "orfs_validated": false,
+        "magic_violations": 2,
+        "klayout_violations": 0,
+        "bounding_boxes": ["(18703,9002)-(18705,9018)"],
+        "fa_incident_id": "872e87a3-9ed1-4a87-a5b8-2e6bf1806ff6"
+      }
+    ],
+    "common_causes": [
+      "Magic DRC rule interpretation differs from KLayout for fill cells",
+      "Edge-effect at cell boundary: violation rect resides ~58nm outside cell bounding box",
+      "Only boundary layer (235/4) present at violation coordinates — no underlying poly or licon geometry",
+      "Magic 8.3.659 requires DISPLAY=:0 for Tk initialization; silent 0-violation report without it",
+      "KLayout sky130A.lydrc defines licon.8a but does NOT produce a licon.8a category in XML report",
+      "Design-independent — reproduces on both gcd and uart_top with identical rule/count pattern"
+    ],
+    "remediation_strategies": [
+      {"technique": "Cross-tool validation", "description": "Run both Magic and KLayout DRC; flag disagreements for review", "expected_effect": "Tool false-positives detected automatically", "tradeoffs": "Adds analysis step"},
+      {"technique": "Rule-level comparison", "description": "Compare per-rule violation counts between tools", "expected_effect": "Pinpoints specific rule mismatches", "tradeoffs": "Requires structured output"},
+      {"technique": "Failure Atlas incident", "description": "Log disagreement incidents with audit trail", "expected_effect": "Knowledge base enrichment", "tradeoffs": "Requires database access"},
+      {"technique": "DISPLAY=:0 guard", "description": "Verify X display is available before running Magic DRC", "expected_effect": "Prevents silent false negatives", "tradeoffs": "Minimal"},
+      {"technique": "KLayout licon.8a rule audit", "description": "Investigate why KLayout DRC does not produce licon.8a category in XML output", "expected_effect": "Clarifies whether rule is truly executed", "tradeoffs": "Requires KLayout scripting expertise"}
+    ],
+    "verification_steps": [
+      "Run KLayout DRC on same GDS — must report 0 violations",
+      "Run Magic DRC with DISPLAY=:0 — reports 2 licon.8a violations on same GDS",
+      "Run Magic DRC without DISPLAY — reports 0 violations (false negative)",
+      "Inspect each violation coordinate in GDS viewer",
+      "Check cell type at violation location — fill cells expected",
+      "Verify boundary layer presence (235/4) at all violation coords",
+      "Cross-check with a second design using same flow",
+      "Cross-design validation confirmed — same licon.8a pattern on uart_top (design-independent)"
+    ],
+    "references": [
+      "docs/reliability/gcd_drc_forensic_audit.md",
+      "docs/reliability/inf_magic_002_architecture_audit.md",
+      "docs/reliability/gcd_orfs_baseline_validation.md",
+      "docs/reliability/gcd_orfs_environment_audit.md",
+      "docs/reliability/uart_cross_tool_drc_audit.md",
+      "docs/reliability/inf_magic_002_validation_update.md"
+    ],
+    "confidence": "HIGH"
+  }
+}

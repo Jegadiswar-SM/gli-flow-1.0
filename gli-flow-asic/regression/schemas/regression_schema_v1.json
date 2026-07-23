@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+
+  "required_fields": [
+
+    "baseline_run",
+    "comparison_run",
+    "metric",
+    "baseline_value",
+    "comparison_value",
+    "delta",
+    "regression_status"
+  ],
+
+  "supported_metrics": [
+
+    "reliability_score",
+    "confidence",
+    "health"
+  ],
+
+  "regression_status_types": [
+
+    "IMPROVED",
+    "UNCHANGED",
+    "REGRESSED",
+    "UNKNOWN"
+  ]
+}

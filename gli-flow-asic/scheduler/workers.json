@@ -1,0 +1,22 @@
+{
+    "workers": [
+
+        {
+            "worker_id": "worker_1",
+            "status": "IDLE",
+            "capabilities": [
+                "synthesis",
+                "floorplan"
+            ]
+        },
+
+        {
+            "worker_id": "worker_2",
+            "status": "IDLE",
+            "capabilities": [
+                "routing",
+                "signoff"
+            ]
+        }
+    ]
+}

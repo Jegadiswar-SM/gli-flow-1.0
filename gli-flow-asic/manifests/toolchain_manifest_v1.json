@@ -1,0 +1,16 @@
+\{
+  "schema_version": "1.0",
+  "environment_name": "GLI-WSL-UBUNTU",
+  "toolchain": {
+    "yosys": "0.40",
+    "verilator": "5.026",
+    "python": "3.10.12",
+    "docker": "29.4.3",
+    "librelane": "3.0.3"
+  },
+  "execution": {
+    "os": "Ubuntu 22.04 WSL2",
+    "container_runtime": "Docker",
+    "reproducibility_mode": true
+  }
+}

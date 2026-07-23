@@ -1,0 +1,23 @@
+{
+  "policy_version": "1.0",
+  "name": "default",
+  "rules": {
+    "max_wns": -0.2,
+    "max_tns": -10.0,
+    "max_utilization": 75.0,
+    "min_qor_score": 0.6,
+    "max_drc_violations": 50,
+    "max_antenna_violations": 5,
+    "max_fanout": 20,
+    "hold_margin_ns": 0.05,
+    "setup_margin_ns": 0.1
+  },
+  "required_checks": [
+    "setup_timing",
+    "hold_timing",
+    "drc",
+    "antenna",
+    "metal_density"
+  ],
+  "description": "Default quality and signoff policy for GLI-FLOW-ASIC"
+}

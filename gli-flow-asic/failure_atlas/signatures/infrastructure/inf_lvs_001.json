@@ -1,0 +1,20 @@
+{
+  "rule_id": "inf_lvs_001",
+  "title": "LVS Device Mismatch",
+  "description": "The netlist generated from the layout does not match the expected schematic.",
+  "severity": "TAPEOUT_BLOCKING",
+  "investigation_checklist": [
+    "Review LVS report for unmatched devices",
+    "Compare layout extracted netlist with reference schematic",
+    "Verify PDK setup and LVS deck configuration",
+    "Ensure standard cell library models are correctly linked"
+  ],
+  "known_causes": [
+    "Incorrect cell library setup",
+    "Physical extraction errors",
+    "Missing netlist or layout files"
+  ],
+  "references": [
+    "LVS Tool Documentation"
+  ]
+}

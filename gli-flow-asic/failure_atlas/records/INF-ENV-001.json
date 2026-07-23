@@ -1,0 +1,27 @@
+{
+  "atlas_id": "INF-ENV-001",
+  "category": "ENVIRONMENT",
+  "severity": "MEDIUM",
+  "title": "Broken Local Binary Shadows Valid System Binary",
+  "observed_symptom": "Doctor reports invalid Magic installation. Tool version reports '0'. Flow fails to execute despite valid system binary existing.",
+  "environment": "Any POSIX system where ~/.local/bin/magic exists as a broken wrapper (e.g., referencing /usr/local/lib/magic/tcl/wrapper.tcl which does not exist) while /usr/bin/magic is a valid installation. PATH precedence causes the broken local binary to be discovered first.",
+  "tool_version": "magic version 0 (unparseable)",
+  "root_cause": "Multi-candidate tool discovery was not implemented. Discovery used single-candidate resolution (first found wins). When ~/.local/bin/magic (broken wrapper) appeared before /usr/bin/magic (valid) on PATH, the broken binary was selected. The wrapper referenced a non-existent Tcl file, causing all downstream validation to fail.",
+  "evidence": "Runtime trace: tool_discovery._resolve_candidate returned ~/.local/bin/magic (broken) instead of /usr/bin/magic (valid). `magic --version` returned exit code 1 with no output. Doctor check_magic() reported 'Invalid Magic installation'. Valid /usr/bin/magic existed but was never considered as an alternative.",
+  "resolution": "Implemented multi-candidate tool discovery pipeline: discover all candidates, validate each functionally, rank by validation status + version + source priority, select best. Added validate_magic_candidate() with executable, launch, TCL, and DRC smoke tests. Added rank_tool_candidates() sorting: functional > version_known > source_priority. Doctor repair framework detects broken local wrapper and offers disable-repair.",
+  "functional_validation": {
+    "multi_candidate_discovery": "PASS (both ~/.local/bin/magic and /usr/bin/magic discovered)",
+    "candidate_ranking": "PASS (valid /usr/bin/magic ranked above broken ~/.local/bin/magic)",
+    "broken_wrapper_detection": "PASS (validate_magic_candidate fails on non-existent wrapper.tcl)",
+    "doctor_repair_detection": "PASS (path shadowing detected, repair offered)"
+  },
+  "regression_coverage": "tests/regressions/test_path_shadowing_prefers_functional_binary.py",
+  "historical_context": "Before multi-candidate discovery was implemented, _find_candidate() returned the first resolvable path. This was a single-candidate architecture. The fix introduced discover_*_binaries(), validate_*_candidate(), and rank_tool_candidates() functions.",
+  "recommendation": "All tool discovery must use multi-candidate pipeline. Never use single-candidate resolution. Doctor must detect path shadowing and offer repair.",
+  "confirmed_by_runs": 0,
+  "pdk": "sky130A",
+  "backend": "magic",
+  "remediation": "Run `gli-flow doctor --fix` to detect and disable broken local binaries. Or manually remove ~/.local/bin/magic if it is a broken wrapper.",
+  "confidence": 0.95,
+  "public": true
+}

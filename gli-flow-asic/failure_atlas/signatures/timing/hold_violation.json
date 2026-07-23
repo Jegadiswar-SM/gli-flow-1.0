@@ -1,0 +1,18 @@
+{
+  "rule_id": "hold_violation",
+  "title": "Hold timing violation",
+  "description": "Hold slack is negative, meaning data arrives too quickly at a register.",
+  "severity": "HIGH",
+  "investigation_checklist": [
+    "Check hold slack in timing reports",
+    "Identify registers involved in the violation",
+    "Check for clock skew issues",
+    "Verify if cell delay is insufficient"
+  ],
+  "known_causes": [
+    "Clock skew imbalances",
+    "Insufficient data path delay",
+    "Cell characterization issues"
+  ],
+  "references": ["PDK Timing Rules"]
+}

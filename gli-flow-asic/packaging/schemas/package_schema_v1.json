@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+
+  "required_fields": [
+
+    "package_id",
+    "generated_at",
+    "package_type",
+    "included_components",
+    "artifact_count",
+    "distribution_status"
+  ],
+
+  "distribution_status_types": [
+
+    "READY",
+    "WARNING",
+    "INVALID"
+  ]
+}

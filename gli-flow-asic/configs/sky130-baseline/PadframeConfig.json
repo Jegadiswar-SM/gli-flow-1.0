@@ -1,0 +1,9 @@
+{
+  "padframe_enabled": false,
+  "pad_count": 0,
+  "pad_size_um": 100.0,
+  "pad_pitch_um": 150.0,
+  "pad_layers": ["met5"],
+  "io_direction": "surround",
+  "esd_cells": "sky130_fd_io__top_xres4v2"
+}

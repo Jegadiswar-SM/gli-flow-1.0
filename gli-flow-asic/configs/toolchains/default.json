@@ -1,0 +1,26 @@
+{
+  "toolchain_version": "1.0",
+  "name": "default",
+  "yosys": {
+    "version": "0.40",
+    "script": "scripts/synth.tcl"
+  },
+  "openroad": {
+    "version": "2.0-17598",
+    "scripts": {
+      "floorplan": "scripts/floorplan.tcl",
+      "placement": "scripts/global_place.tcl",
+      "cts": "scripts/cts.tcl",
+      "route": "scripts/route.tcl",
+      "finish": "scripts/final_report.tcl"
+    }
+  },
+  "pdk": {
+    "default": "sky130hd",
+    "sky130hd": {
+      "libs": ["sky130_fd_sc_hd__tt_025C_1v80.lib"],
+      "lef": ["sky130_fd_sc_hd.lef"],
+      "gds": ["sky130_fd_sc_hd.gds"]
+    }
+  }
+}

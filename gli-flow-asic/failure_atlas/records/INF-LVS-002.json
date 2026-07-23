@@ -1,0 +1,28 @@
+{
+  "atlas_id": "INF-LVS-002",
+  "category": "INTEGRATION",
+  "severity": "CRITICAL",
+  "title": "Malformed Netgen Command Construction",
+  "observed_symptom": "LVS report missing. LVS comparison never occurs. Netgen exits successfully (return code 0) but no device counts, net counts, or comparison evidence are generated. Signoff gate correctly rejects run due to missing comparison evidence.",
+  "environment": "Any design where PDK standard cell SPICE models exist and are discovered by _find_pdk_sc_spice(). Affects sky130hd PDK. Netgen 1.5.x.",
+  "tool_version": "netgen 1.5.x",
+  "root_cause": "Netgen command arguments are malformed when pdk_sc_spice is found. Lines 1181-1183 append the PDK SPICE file and the preprocessed netlist as two separate positional arguments instead of combining them into a single circuit2 specification. This shifts all subsequent positional arguments: the netlist path is interpreted as the setup file, the setup file is interpreted as the report path, and the actual report path is silently discarded. Netgen exits 0 because the argument parsing succeeds at a syntactic level, but no LVS comparison is performed.",
+  "evidence": "openroad_adapter.py lines 1170-1185 (before fix):\n  if pdk_sc_spice:\n      lvs_args.append(f\"{pdk_sc_spice} {design_name}\")\n  lvs_args.append(f\"{clean_netlist} {design_name}\")\n  lvs_args.extend([setup_file, str(report_path)])\n\nResulting command (when pdk_sc_spice is found):\n  netgen -batch lvs \"layout.spice top\" \"pdk.spice top\" \"netlist.v top\" setup.tcl reports/lvs_report.txt\n\nExpected command:\n  netgen -batch lvs \"layout.spice top\" \"pdk.spice netlist.v top\" setup.tcl reports/lvs_report.txt\n\nThe bug was confirmed by reading the run artifacts for run_1781066003_a438343e_uart_top: report_exists=false, comparison_completed=false, return_code=0, parser_status=\"no comparison evidence — stdout had no device counts, report missing\".",
+  "resolution": "Combined pdk_sc_spice and clean_netlist into a single circuit2 argument when both are present:\n  if pdk_sc_spice:\n      lvs_args.append(f\"{pdk_sc_spice} {clean_netlist} {design_name}\")\n  else:\n      lvs_args.append(f\"{clean_netlist} {design_name}\")\nThis ensures netgen receives exactly 4 positional arguments after '-batch lvs': circuit1, circuit2, setup_file, report_path.",
+  "functional_validation": {
+    "pdk_spice_present_correct": "PASS (circuit2 contains pdk.spice + netlist.v + top cell)",
+    "pdk_spice_absent_correct": "PASS (circuit2 contains only netlist.v + top cell)",
+    "setup_file_not_consumed": "PASS (setup.tcl stays as 3rd positional arg)",
+    "report_path_not_consumed": "PASS (report.txt stays as 4th positional arg)",
+    "no_positional_shift": "PASS (all 4 positional args are correct)"
+  },
+  "regression_coverage": "tests/regressions/test_inf_lvs_002.py, tests/regressions/test_netgen_argument_construction.py",
+  "historical_context": "Before this fix, all 55 historical LVS executions that discovered PDK SPICE models produced malformed command lines. Netgen exited cleanly but never performed comparison. 100% of historical LVS results were false negatives (no comparison performed). The bug was introduced when PDK SPICE model support was added to the LVS pipeline without accounting for netgen's single-argument circuit specification format.",
+  "recommendation": "All netgen invocation must construct circuit2 as a single argument containing all source files plus the top cell name. Pre-launch validation must log the full command and verify file existence. Release gate must validate command construction integrity.",
+  "confirmed_by_runs": 55,
+  "pdk": "sky130hd",
+  "backend": "netgen",
+  "remediation": "Upgrade gli-flow to the version containing the fix. The LVS pipeline will now construct correct netgen commands and produce genuine comparison results.",
+  "confidence": 0.99,
+  "public": true
+}

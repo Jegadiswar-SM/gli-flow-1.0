@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+
+  "required_fields": [
+
+    "failure_id",
+    "failure_type",
+    "severity",
+    "signature",
+    "description",
+    "possible_causes",
+    "recommended_actions"
+  ],
+
+  "severity_levels": [
+
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "CRITICAL"
+  ],
+
+  "supported_failure_types": [
+
+    "ENVIRONMENT",
+    "DEPENDENCY",
+    "EXECUTION",
+    "PERMISSION",
+    "CONFIGURATION",
+    "TOOLCHAIN",
+    "REPRODUCIBILITY"
+  ]
+}

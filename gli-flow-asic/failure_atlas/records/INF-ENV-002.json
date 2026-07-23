@@ -1,0 +1,29 @@
+{
+  "atlas_id": "INF-ENV-002",
+  "category": "ENVIRONMENT",
+  "severity": "HIGH",
+  "title": "Tool Discovery Launches Interactive GUI",
+  "observed_symptom": "During `gli-flow run examples/counter` or `gli-flow run examples/uart`, TkCon windows appear repeatedly. Window contents: 'Running NetGen Console Functions', 'invalid command name \"-version\"', 'Main console display active'. Flow appears frozen. Multiple GUI windows accumulate.",
+  "environment": "netgen-lvs 1.5.133 installed via apt on Ubuntu 22.04. DISPLAY=:0 with active X server.",
+  "tool_version": "netgen 1.5.133",
+  "root_cause": "tool_discovery.py function _version_from_path() uses generic [candidate, '--version'] and [candidate, '-version'] probes for ALL tools. Netgen does not support these flags. When invoked without -batch and with unrecognized flags, netgen enters interactive Tcl/Tk mode, opening a TkCon GUI window and entering the Tcl event loop. The subprocess does not exit until the window is closed or the 10-second timeout kills it. This occurs for every netgen candidate binary during discovery.",
+  "evidence": "Runtime trace (PID 7907):\n  tool_discovery._run_cmd | /usr/lib/netgen/bin/netgen --version\n  → TkCon window opens, 'invalid command name \"-version\"' displayed\n  → 10 second timeout\n  → tool_discovery._run_cmd | /usr/lib/netgen/bin/netgen -version\n  → TkCon window opens again\n  → 10 second timeout\n  Same for /home/gli/.local/bin/netgen. Only /usr/bin/netgen responds to version flags.\n  File: gli_flow/core/tool_discovery.py, function: _version_from_path(), lines 270-281.",
+  "resolution": "Replace generic --version/-version probing with tool-specific safe version strategies. For netgen, use -batch quit mode which does not open any GUI and exits immediately. Each tool (magic, netgen, yosys, openroad, klayout, sv2v) gets its own safe version detection strategy. Version strategies are mapped by tool name and selected during discovery. No tool uses generic --version/-version probes.",
+  "functional_validation": {
+    "netgen_version_discovery": "PASS (-batch quit returns version without GUI)",
+    "magic_version_discovery": "PASS (--version works safely for magic)",
+    "yosys_version_discovery": "PASS (-V works safely for yosys)",
+    "openroad_version_discovery": "PASS (-version works safely for openroad)",
+    "klayout_version_discovery": "PASS (-b -v works safely for klayout)",
+    "no_tkcon_launched": "PASS (no interactive GUI windows during discovery)"
+  },
+  "regression_coverage": "tests/reliability/test_no_gui_discovery.py, tests/regressions/test_inf_env_002.py, tests/adversarial/tool_discovery/",
+  "historical_context": "Before this fix, _version_from_path() used a generic approach suitable only for tools that support POSIX --version convention. Netgen, being a Tcl/Tk application with a console, does not follow this convention. The fix introduces a VersionStrategy pattern where each tool declares how to safely extract its version.",
+  "recommendation": "All version detection must use the tool-specific strategy pattern. Never add a tool without defining its version strategy. Release gate validates that no tool uses generic --version/-version probes.",
+  "confirmed_by_runs": 2,
+  "pdk": "sky130A",
+  "backend": "netgen",
+  "remediation": "No user action required. The fix is in the discovery architecture. If TkCon windows still appear, upgrade gli-flow to the version containing this fix.",
+  "confidence": 0.95,
+  "public": true
+}

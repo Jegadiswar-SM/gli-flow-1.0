@@ -1,0 +1,7 @@
+{
+  "DESIGN_NAME": "top_module",
+  "VERILOG_FILES": ["src/design.v"],
+  "CLOCK_PORT": "clk",
+  "CLOCK_PERIOD": 10,
+  "DESIGN_DIR": "."
+}

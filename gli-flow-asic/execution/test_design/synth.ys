@@ -1,0 +1,17 @@
+read_verilog counter.v
+
+hierarchy -check -top counter
+
+proc
+opt
+fsm
+opt
+memory
+opt
+
+techmap
+opt
+
+stat
+
+write_json counter_netlist.json

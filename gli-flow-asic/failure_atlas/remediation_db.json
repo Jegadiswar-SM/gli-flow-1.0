@@ -1,0 +1,162 @@
+[
+  {
+    "atlas_id": "FA-0001",
+    "recommended_fix": [
+      "Increase clock period by 10-20%",
+      "Reduce critical path logic depth by pipelining",
+      "Retime or restructure high-fanout enable logic"
+    ]
+  },
+  {
+    "atlas_id": "FA-0002",
+    "recommended_fix": [
+      "Insert hold buffer cells on short paths",
+      "Reduce clock tree skew with better CTS balancing",
+      "Increase minimum delay constraint for data paths"
+    ]
+  },
+  {
+    "atlas_id": "FA-0003",
+    "recommended_fix": [
+      "Increase routing wire spread factor",
+      "Tighten routing grid constraints",
+      "Add routing blockages over congested areas"
+    ]
+  },
+  {
+    "atlas_id": "FA-0004",
+    "recommended_fix": [
+      "Insert antenna diodes on all long metal nets",
+      "Use layer jumping to reduce antenna ratio",
+      "Add metal jumper cells during routing"
+    ]
+  },
+  {
+    "atlas_id": "FA-0005",
+    "recommended_fix": [
+      "Increase die area to lower cell density",
+      "Add placement keepout margins around macros",
+      "Use higher metal layers for global routing"
+    ]
+  },
+  {
+    "atlas_id": "FA-0006",
+    "recommended_fix": [
+      "Widen power grid straps to lower resistance",
+      "Add additional VDD/VSS pad pairs",
+      "Use upper metal layers for power distribution"
+    ]
+  },
+  {
+    "atlas_id": "FA-0007",
+    "recommended_fix": [
+      "Balance H-tree clock distribution",
+      "Reduce OCV derating factor",
+      "Use clock mesh for high-performance designs"
+    ]
+  },
+  {
+    "atlas_id": "FA-0008",
+    "recommended_fix": [
+      "Add default assignments to all signals in always blocks",
+      "Cover all branches in case statements",
+      "Use full_case parallel_case synthesis pragmas"
+    ]
+  },
+  {
+    "atlas_id": "FA-0009",
+    "recommended_fix": [
+      "Break feedback paths with pipeline registers",
+      "Check async reset and clear logic",
+      "Verify combinatorial signal dependency graphs"
+    ]
+  },
+  {
+    "atlas_id": "FA-0010",
+    "recommended_fix": [
+      "Add missing RTL or library files to manifest",
+      "Check module name spelling in instantiation",
+      "Add library search path to Yosys synthesis script"
+    ]
+  },
+  {
+    "atlas_id": "FA-0011",
+    "recommended_fix": [
+      "Install complete PDK liberty timing files",
+      "Check PDK version compatibility",
+      "Use correct PVT corner liberty file"
+    ]
+  },
+  {
+    "atlas_id": "FA-0012",
+    "recommended_fix": [
+      "Set PDK_ROOT environment variable correctly",
+      "Install PDK technology LEF files",
+      "Check LEF file paths in configuration"
+    ]
+  },
+  {
+    "atlas_id": "FA-0013",
+    "recommended_fix": [
+      "Adjust die aspect ratio in floorplan config",
+      "Decrease core utilization target",
+      "Increase die area to accommodate design"
+    ]
+  },
+  {
+    "atlas_id": "FA-0014",
+    "recommended_fix": [
+      "Adjust I/O pin constraints to fit die boundary",
+      "Check die area dimensions in floorplan",
+      "Regenerate floorplan with correct aspect ratio"
+    ]
+  },
+  {
+    "atlas_id": "FA-0015",
+    "recommended_fix": [
+      "Increase routing effort level",
+      "Add routing guides for critical nets",
+      "Check PDK via stacking rules"
+    ]
+  },
+  {
+    "atlas_id": "FA-0016",
+    "recommended_fix": [
+      "Run detailed routing with soft spacing constraints",
+      "Increase minimum wire spacing",
+      "Add routing blockages between congested nets"
+    ]
+  },
+  {
+    "atlas_id": "FA-0017",
+    "recommended_fix": [
+      "Buffer high-fanout nets",
+      "Upsize output drivers on long wires",
+      "Insert repeater chains on global signals"
+    ]
+  },
+  {
+    "atlas_id": "FA-0018",
+    "recommended_fix": [
+      "Split high-fanout nets into multiple drivers",
+      "Insert buffers along long RC chains",
+      "Reduce wire load by re-placing distant cells"
+    ]
+  },
+  {
+    "atlas_id": "FA-0019",
+    "recommended_fix": [
+      "Increase die area to reduce cell density",
+      "Add placement blockages to distribute cells",
+      "Use smaller drive-strength cells where possible"
+    ]
+  },
+  {
+    "atlas_id": "FA-0020",
+    "recommended_fix": [
+      "Align layer naming convention across all PDK files",
+      "Check technology LEF vs RC extraction layer names",
+      "Set correct layer map in OpenROAD configuration"
+    ]
+  }
+]

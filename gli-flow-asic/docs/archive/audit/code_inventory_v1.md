@@ -1,0 +1,164 @@
+# GLI-FLOW Code Inventory v1
+
+## 1. CLI Commands (from `gli_flow/cli/main.py`)
+- `db`: Database management
+- `reset_runs`: Reset run data
+- `dashboard`: Launch dashboard
+- `run`: Run a design
+- `history`: Show run history
+- `status`: Show run status
+- `batch`: Batch run designs
+- `install`: Install GLI-FLOW
+- `report`: Generate reports
+- `ci`: CI integration
+- `doctor`: System diagnosis
+- `remote`: Remote execution management
+- `cloud`: Cloud ingestion management
+- `init`: Initialize design directory
+- `quickstart`: Quickstart guide/init
+- `diagnose`: Diagnose failed runs
+- `investigate`: Run AI investigation
+- `investigate_migrate`: Migrate investigations
+- `show_telemetry`: Display telemetry data
+- `setup`: Setup environment
+- `support_bundle`: Generate support bundles
+- `upgrade_check`: Check for upgrades
+- `config`: Configuration management
+- `ai_assist`: AI assistant interface
+- `escalate`: Community escalation
+- `warehouse`: Warehouse management
+- `telemetry`: Telemetry management
+- `predict`: Run prediction engine
+
+## 2. API Endpoints (from `backend/server.py`)
+- `/runs`: List/create runs
+- `/runs/count`: Run count
+- `/live_runs`: Live run list
+- `/trends`: System trends
+- `/runs/{run_id}`: Run details
+- `/runs/{run_id}/drc`: DRC report
+- `/runs/{run_id}/image/{image_name:path}`: Artifact images
+- `/runs/{run_id}/report/{report_type:path}`: Run reports
+- `/runs/{run_id}/artifacts`: Artifacts list
+- `/runs/{run_id}/artifact`: Single artifact
+- `/runs/{run_id}/artifact/preview`: Artifact preview
+- `/releases`: Releases list
+- `/health`: System health
+- `/runs/{run_id}/trust-score`: Run trust score
+- `/failures`: Failure list
+- `/failures/{failure_id}`: Failure details
+- `/failures/{failure_id}/resolution`: Record resolution
+- `/analytics/summary`: Analytics summary
+- `/analytics/common-failures`: Common failures
+- `/analytics/fix-effectiveness`: Fix effectiveness
+- `/analytics/qor-improvements`: QoR improvements
+- `/analytics/failure-trends`: Failure trends
+- `/analytics/resolution-confidence`: Resolution confidence
+- `/analytics/mttr`: Mean time to resolve
+- `/regressions`: Regression events
+- `/similar-failures/{failure_type}`: Similar failures
+- `/runs/{run_id}/diff/{previous_run_id}`: Run diff
+- `/runs/{run_id}/important`: Set importance
+- `/knowledge/failures`: Knowledge base failures
+- `/knowledge/failures/{identifier}`: Knowledge base failure details
+- `/knowledge/search`: Knowledge base search
+- `/knowledge/qor`: Knowledge base QoR
+- `/reliability/summary`: Reliability summary
+- `/reliability/health`: Reliability health
+- `/reliability/trends`: Reliability trends
+- `/provenance/summary`: Provenance summary
+- `/provenance/manifests`: Provenance manifests
+- `/provenance/graph`: Provenance graph
+- `/failures/{failure_id}/run`: Failure run mapping
+- `/failure-atlas`: Failure Atlas root
+- `/failures/correlation/{failure_type}`: Failure correlation
+- `/analytics/coverage`: Analytics coverage
+- `/telemetry/events`: Telemetry events
+- `/telemetry/event`: Record telemetry event
+- `/telemetry/export`: Telemetry export
+- `/telemetry/health`: Telemetry health
+- `/telemetry/audit-log`: Telemetry audit log
+- `/telemetry/replay`: Telemetry replay
+- `/telemetry/snapshot`: Telemetry snapshot
+- `/telemetry/privacy-validate`: Privacy validation
+- `/ai/health`: AI service health
+- `/ai/trigger`: Trigger AI process
+- `/ai/investigate`: Run investigation
+- `/ai/investigate/failure`: AI failure investigation
+- `/ai/feedback`: AI investigation feedback
+- `/ai/feedback/{investigation_id}`: Feedback details
+- `/ai/feedback-summary`: Feedback summary
+- `/ai/resolution`: AI resolution suggestion
+- `/ai/resolutions`: AI resolutions list
+- `/resolutions/patterns`: Resolution patterns
+- `/resolutions/patterns/{fingerprint}/timeline`: Pattern timeline
+- `/resolutions/capture`: Capture resolution
+- `/resolutions/feedback`: Resolution feedback
+- `/resolutions/summary`: Resolution summary
+- `/resolutions/trust-summary`: Resolution trust summary
+- `/resolutions/candidates`: Resolution candidates
+- `/resolutions/promote`: Promote resolution
+- `/runs/{run_id}/compare/{other_run_id}`: Compare runs
+- `/resolutions/top-resolved`: Top resolved failures
+- `/resolutions/top-unresolved`: Top unresolved failures
+- `/community/escalate`: Community escalation
+- `/community/escalations`: Escalations list
+- `/community/escalation/{escalation_id}`: Escalation details
+- `/community/escalation/{escalation_id}/response`: Response to escalation
+- `/community/stats`: Community stats
+- `/community/unknown-dataset`: Unknown dataset
+- `/community/dataset`: Community dataset
+- `/community/knowledge-gaps`: Knowledge gaps
+- `/runs/{run_id}/investigation`: Investigation details
+- `/feedback`: Feedback list
+- `/feedback/{feedback_id}`: Update feedback
+- `/feedback/stats`: Feedback stats
+- `/support-bundle/generate`: Generate support bundle
+- `/analytics/event`: Record analytics event
+- `/analytics/product`: Product analytics
+- `/journey/event`: Record journey event
+- `/journey`: User journey
+- `/journey/report`: Journey report
+- `/atlas/trust-summary`: Atlas trust summary
+- `/atlas/metrics`: Atlas metrics
+- `/resolutions/metrics`: Resolution metrics
+- `/beta/dashboard`: Beta dashboard data
+- `/feedback/{feedback_id}/prioritize`: Prioritize feedback
+- `/beta/report`: Beta report
+- `/record-event`: Record system event
+
+## 3. Database Tables (from `gli_flow/database/migrations.py`)
+- `runs`
+- `failure_atlas_entries`
+- `resolution_patterns`
+- `resolution_feedback`
+- `feedback_records`
+- `user_journey_events`
+- `resolution_tracking`
+- `execution_intelligence`
+
+## 4. Dashboard Pages (from `dashboard/src/`)
+- `RunsPage`: List runs
+- `RunDetail`: Run details
+- `FailureAtlasPage`: Failure Atlas UI
+- `EngineeringDashboardPage`: Engineering dashboard
+- `BetaDashboardPage`: Beta operations
+- `RunDesignPage`: Run a design
+- `RunMatrixPage`: Run matrix
+- `RunMonitorPage`: Monitor runs
+- `ArtifactsPage`: Artifacts management
+- `QoRAnalyticsPage`: QoR analytics
+- `RegressionDetectorPage`: Regression detector
+- `TrendsReportsPage`: Trends and reports
+- `ProvenancePage`: Provenance graph
+- `ReleaseValidationPage`: Release validation
+- `PolicySuitePage`: Policy suite
+- `FeedbackCenterPage`: Feedback center
+- `ProductAnalyticsPage`: Product analytics
+- `UserJourneyPage`: User journey
+- `TelemetryPage`: Telemetry management
+- `TelemetryHealthPage`: Telemetry health
+- `TelemetryReplayPage`: Telemetry replay
+- `InfrastructurePage`: Infrastructure overview
+- `SettingsPage`: Settings
+- `HelpPage`: Help

@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+
+  "required_fields": [
+
+    "release_id",
+    "generated_at",
+    "repository_state",
+    "tracked_components",
+    "artifact_count",
+    "validation_status"
+  ],
+
+  "validation_status_types": [
+
+    "VALID",
+    "WARNING",
+    "INVALID"
+  ]
+}

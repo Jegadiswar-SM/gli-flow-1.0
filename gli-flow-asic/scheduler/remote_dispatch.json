@@ -1,0 +1,22 @@
+{
+    "dispatch_log": [
+        {
+            "task": "synthesis",
+            "worker": "worker_1",
+            "timestamp": "2026-05-12T13:36:31.307204",
+            "status": "DISPATCHED"
+        },
+        {
+            "task": "routing",
+            "worker": "worker_2",
+            "timestamp": "2026-05-12T13:36:31.307213",
+            "status": "DISPATCHED"
+        },
+        {
+            "task": "signoff",
+            "worker": "worker_2",
+            "timestamp": "2026-05-12T13:36:31.307214",
+            "status": "DISPATCHED"
+        }
+    ]
+}

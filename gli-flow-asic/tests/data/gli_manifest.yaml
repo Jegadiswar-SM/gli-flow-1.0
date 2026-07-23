@@ -1,0 +1,10 @@
+backend: openroad
+clock_period_ns: 10.0
+clock_port: clk
+design_name: test_design
+pdk: sky130
+pdk_variant: sky130A
+rtl_files:
+- rtl/test_design.sv
+threads: 4
+top_module: test_design

@@ -1,0 +1,589 @@
+{
+  "phase1": {
+    "before_empty": 0,
+    "after_empty": 0,
+    "total": 908,
+    "updated_from_runs": 0,
+    "updated_from_inference": 0,
+    "coverage_pct": 100.0,
+    "designs_found": [
+      "aes_cipher",
+      "counter",
+      "fir",
+      "fir_top",
+      "gcd",
+      "gpio",
+      "ibex",
+      "picorv32",
+      "serv",
+      "sram_controller",
+      "tiny_or",
+      "tinyml_accel",
+      "uart",
+      "uart_top"
+    ]
+  },
+  "phase2": {
+    "total_profiles": 15,
+    "profiles": [
+      {
+        "design_name": "aes_cipher",
+        "design_type": "medium",
+        "expected_cell_count": 3500,
+        "memory_ratio": 0.02,
+        "control_ratio": 0.25,
+        "compute_ratio": 0.73
+      },
+      {
+        "design_name": "counter",
+        "design_type": "tiny",
+        "expected_cell_count": 100,
+        "memory_ratio": 0.02,
+        "control_ratio": 0.1,
+        "compute_ratio": 0.88
+      },
+      {
+        "design_name": "fir",
+        "design_type": "medium",
+        "expected_cell_count": 2000,
+        "memory_ratio": 0.05,
+        "control_ratio": 0.15,
+        "compute_ratio": 0.8
+      },
+      {
+        "design_name": "fir_top",
+        "design_type": "tiny",
+        "expected_cell_count": 20,
+        "memory_ratio": 0.1,
+        "control_ratio": 0.3,
+        "compute_ratio": 0.6
+      },
+      {
+        "design_name": "gcd",
+        "design_type": "tiny",
+        "expected_cell_count": 200,
+        "memory_ratio": 0.02,
+        "control_ratio": 0.1,
+        "compute_ratio": 0.88
+      },
+      {
+        "design_name": "gpio",
+        "design_type": "medium",
+        "expected_cell_count": 400,
+        "memory_ratio": 0.02,
+        "control_ratio": 0.25,
+        "compute_ratio": 0.73
+      },
+      {
+        "design_name": "ibex",
+        "design_type": "large",
+        "expected_cell_count": 20000,
+        "memory_ratio": 0.15,
+        "control_ratio": 0.35,
+        "compute_ratio": 0.5
+      },
+      {
+        "design_name": "opentitan_ibex",
+        "design_type": "large",
+        "expected_cell_count": 50000,
+        "memory_ratio": 0.15,
+        "control_ratio": 0.25,
+        "compute_ratio": 0.6
+      },
+      {
+        "design_name": "picorv32",
+        "design_type": "large",
+        "expected_cell_count": 15000,
+        "memory_ratio": 0.02,
+        "control_ratio": 0.35,
+        "compute_ratio": 0.63
+      },
+      {
+        "design_name": "serv",
+        "design_type": "medium",
+        "expected_cell_count": 3000,
+        "memory_ratio": 0.02,
+        "control_ratio": 0.35,
+        "compute_ratio": 0.63
+      },
+      {
+        "design_name": "sram_controller",
+        "design_type": "medium",
+        "expected_cell_count": 2000,
+        "memory_ratio": 0.45,
+        "control_ratio": 0.25,
+        "compute_ratio": 0.3
+      },
+      {
+        "design_name": "tiny_or",
+        "design_type": "tiny",
+        "expected_cell_count": 100,
+        "memory_ratio": 0.1,
+        "control_ratio": 0.3,
+        "compute_ratio": 0.6
+      },
+      {
+        "design_name": "tinyml_accel",
+        "design_type": "medium",
+        "expected_cell_count": 5000,
+        "memory_ratio": 0.15,
+        "control_ratio": 0.15,
+        "compute_ratio": 0.7
+      },
+      {
+        "design_name": "uart",
+        "design_type": "medium",
+        "expected_cell_count": 800,
+        "memory_ratio": 0.02,
+        "control_ratio": 0.25,
+        "compute_ratio": 0.73
+      },
+      {
+        "design_name": "uart_top",
+        "design_type": "tiny",
+        "expected_cell_count": 52,
+        "memory_ratio": 0.1,
+        "control_ratio": 0.3,
+        "compute_ratio": 0.6
+      }
+    ]
+  },
+  "phase3": {
+    "total_features": 15,
+    "features": [
+      {
+        "design_name": "aes_cipher",
+        "logic_depth": 47,
+        "register_density": 0.3,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "counter",
+        "logic_depth": 13,
+        "register_density": 0.08,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "fir",
+        "logic_depth": 54,
+        "register_density": 0.25,
+        "memory_density": 0.02,
+        "dsp_density": 0.15
+      },
+      {
+        "design_name": "fir_top",
+        "logic_depth": 8,
+        "register_density": 0.2,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "gcd",
+        "logic_depth": 15,
+        "register_density": 0.08,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "gpio",
+        "logic_depth": 17,
+        "register_density": 0.2,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "ibex",
+        "logic_depth": 42,
+        "register_density": 0.35,
+        "memory_density": 0.2,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "opentitan_ibex",
+        "logic_depth": 31,
+        "register_density": 0.2,
+        "memory_density": 0.2,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "picorv32",
+        "logic_depth": 41,
+        "register_density": 0.35,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "serv",
+        "logic_depth": 34,
+        "register_density": 0.35,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "sram_controller",
+        "logic_depth": 10,
+        "register_density": 0.1,
+        "memory_density": 0.5,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "tiny_or",
+        "logic_depth": 13,
+        "register_density": 0.2,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "tinyml_accel",
+        "logic_depth": 61,
+        "register_density": 0.25,
+        "memory_density": 0.2,
+        "dsp_density": 0.25
+      },
+      {
+        "design_name": "uart",
+        "logic_depth": 19,
+        "register_density": 0.45,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      },
+      {
+        "design_name": "uart_top",
+        "logic_depth": 11,
+        "register_density": 0.2,
+        "memory_density": 0.02,
+        "dsp_density": 0.01
+      }
+    ]
+  },
+  "phase4": {
+    "classifications": {
+      "aes_cipher": "Controller",
+      "counter": "Controller",
+      "fir": "DSP",
+      "fir_top": "Controller",
+      "gcd": "Controller",
+      "gpio": "Interconnect",
+      "ibex": "CPU",
+      "opentitan_ibex": "Memory-heavy",
+      "picorv32": "CPU",
+      "serv": "CPU",
+      "sram_controller": "Memory-heavy",
+      "tiny_or": "Controller",
+      "tinyml_accel": "Accelerator",
+      "uart": "Controller",
+      "uart_top": "Controller"
+    },
+    "distribution": {
+      "Controller": 7,
+      "CPU": 3,
+      "Memory-heavy": 2,
+      "Interconnect": 1,
+      "DSP": 1,
+      "Accelerator": 1
+    }
+  },
+  "phase5": {
+    "matrix": {
+      "aes_cipher": {
+        "serv": 11.5559,
+        "uart": 11.213,
+        "fir": 10.3883,
+        "tinyml_accel": 10.1315,
+        "tiny_or": 9.6605,
+        "uart_top": 9.497,
+        "fir_top": 9.2993,
+        "gcd": 9.186,
+        "counter": 8.9605,
+        "picorv32": 8.8837
+      },
+      "counter": {
+        "tiny_or": 14.6667,
+        "gcd": 14.25,
+        "uart_top": 12.2821,
+        "fir_top": 10.3718,
+        "uart": 9.8147,
+        "aes_cipher": 8.9605,
+        "gpio": 7.9241,
+        "sram_controller": 5.5377,
+        "fir": 5.4722,
+        "opentitan_ibex": 4.8681
+      },
+      "fir": {
+        "aes_cipher": 10.3883,
+        "tinyml_accel": 10.0557,
+        "serv": 9.2422,
+        "sram_controller": 8.0556,
+        "uart": 7.0756,
+        "picorv32": 6.9644,
+        "gpio": 6.8644,
+        "ibex": 6.4333,
+        "opentitan_ibex": 6.4222,
+        "gcd": 5.8333
+      },
+      "fir_top": {
+        "uart_top": 13.4207,
+        "tiny_or": 12.3718,
+        "counter": 10.3718,
+        "gcd": 9.75,
+        "aes_cipher": 9.2993,
+        "uart": 9.2568,
+        "gpio": 6.8818,
+        "opentitan_ibex": 6.1762,
+        "sram_controller": 5.55,
+        "ibex": 5.0764
+      },
+      "gcd": {
+        "counter": 14.25,
+        "tiny_or": 12.25,
+        "uart_top": 10.9167,
+        "uart": 10.5987,
+        "fir_top": 9.75,
+        "gpio": 9.5271,
+        "aes_cipher": 9.186,
+        "fir": 5.8333,
+        "sram_controller": 5.48,
+        "opentitan_ibex": 5.0716
+      },
+      "gpio": {
+        "uart": 9.6842,
+        "gcd": 9.5271,
+        "tiny_or": 8.7641,
+        "counter": 7.9241,
+        "uart_top": 7.8112,
+        "aes_cipher": 7.0565,
+        "opentitan_ibex": 6.9052,
+        "fir_top": 6.8818,
+        "fir": 6.8644,
+        "serv": 6.6667
+      },
+      "ibex": {
+        "picorv32": 14.9155,
+        "serv": 11.9988,
+        "opentitan_ibex": 8.7143,
+        "aes_cipher": 7.8759,
+        "tinyml_accel": 7.5156,
+        "fir": 6.4333,
+        "uart": 5.5771,
+        "tiny_or": 5.4536,
+        "uart_top": 5.2987,
+        "fir_top": 5.0764
+      },
+      "opentitan_ibex": {
+        "sram_controller": 8.9731,
+        "ibex": 8.7143,
+        "picorv32": 7.4883,
+        "tinyml_accel": 7.1246,
+        "aes_cipher": 6.9487,
+        "gpio": 6.9052,
+        "serv": 6.7553,
+        "tiny_or": 6.6681,
+        "uart_top": 6.4697,
+        "fir": 6.4222
+      },
+      "picorv32": {
+        "ibex": 14.9155,
+        "serv": 12.9065,
+        "aes_cipher": 8.8837,
+        "opentitan_ibex": 7.4883,
+        "tinyml_accel": 7.1031,
+        "fir": 6.9644,
+        "uart": 6.4569,
+        "gpio": 5.8772,
+        "tiny_or": 5.3046,
+        "uart_top": 5.1422
+      },
+      "serv": {
+        "picorv32": 12.9065,
+        "ibex": 11.9988,
+        "aes_cipher": 11.5559,
+        "fir": 9.2422,
+        "tinyml_accel": 8.0921,
+        "uart": 7.8098,
+        "opentitan_ibex": 6.7553,
+        "gpio": 6.6667,
+        "sram_controller": 6.1157,
+        "tiny_or": 5.6337
+      },
+      "sram_controller": {
+        "opentitan_ibex": 8.9731,
+        "fir": 8.0556,
+        "aes_cipher": 6.2954,
+        "gpio": 6.1647,
+        "serv": 6.1157,
+        "uart_top": 5.9573,
+        "tiny_or": 5.6577,
+        "uart": 5.5789,
+        "fir_top": 5.55,
+        "counter": 5.5377
+      },
+      "tiny_or": {
+        "counter": 14.6667,
+        "uart_top": 14.2821,
+        "fir_top": 12.3718,
+        "gcd": 12.25,
+        "uart": 10.3314,
+        "aes_cipher": 9.6605,
+        "gpio": 8.7641,
+        "opentitan_ibex": 6.6681,
+        "sram_controller": 5.6577,
+        "serv": 5.6337
+      },
+      "tinyml_accel": {
+        "aes_cipher": 10.1315,
+        "fir": 10.0557,
+        "serv": 8.0921,
+        "ibex": 7.5156,
+        "opentitan_ibex": 7.1246,
+        "picorv32": 7.1031,
+        "gpio": 5.5561,
+        "tiny_or": 5.2393,
+        "sram_controller": 5.1918,
+        "uart": 5.1544
+      },
+      "uart": {
+        "aes_cipher": 11.213,
+        "gcd": 10.5987,
+        "tiny_or": 10.3314,
+        "uart_top": 9.8182,
+        "counter": 9.8147,
+        "gpio": 9.6842,
+        "fir_top": 9.2568,
+        "serv": 7.8098,
+        "fir": 7.0756,
+        "picorv32": 6.4569
+      },
+      "uart_top": {
+        "tiny_or": 14.2821,
+        "fir_top": 13.4207,
+        "counter": 12.2821,
+        "gcd": 10.9167,
+        "uart": 9.8182,
+        "aes_cipher": 9.497,
+        "gpio": 7.8112,
+        "opentitan_ibex": 6.4697,
+        "sram_controller": 5.9573,
+        "serv": 5.3773
+      }
+    },
+    "design_count": 15
+  },
+  "phase6": {
+    "profiles_loaded": 15,
+    "features_loaded": 15,
+    "classes_loaded": 15,
+    "entries_with_features": 12
+  },
+  "phase7": {
+    "recommendations_by_class": {
+      "CPU": [
+        "Optimize clock frequency for critical control paths",
+        "Check branch predictor and pipeline stall logic",
+        "Review register file power and timing"
+      ],
+      "DSP": [
+        "Optimize multiply-accumulate chain timing",
+        "Check bit-width truncation for area savings",
+        "Review pipeline balancing in datapath"
+      ],
+      "Accelerator": [
+        "Optimize data movement between compute and memory",
+        "Check weight stationary vs. dataflow architecture",
+        "Review systolic array timing closure"
+      ],
+      "Memory-heavy": [
+        "Check SRAM macro placement and aspect ratio",
+        "Review memory BIST and repair logic",
+        "Optimize memory power gating"
+      ],
+      "Controller": [
+        "Optimize FSM encoding for area",
+        "Check reset and enable tree timing",
+        "Review control path vs. datapath partitioning"
+      ],
+      "Interconnect": [
+        "Optimize bus width for throughput",
+        "Check crossbar arbitration logic",
+        "Review I/O pad placement and ESD protection"
+      ]
+    }
+  },
+  "phase8": {
+    "entities": 15,
+    "relationships": 12
+  },
+  "phase9": {
+    "by_type": {
+      "large": 2,
+      "medium": 7,
+      "tiny": 3
+    },
+    "by_class": {
+      "Accelerator": 1,
+      "CPU": 3,
+      "Controller": 5,
+      "DSP": 1,
+      "Interconnect": 1,
+      "Memory-heavy": 1
+    },
+    "total_entries": 908,
+    "covered_entries": 908,
+    "coverage_pct": 100.0,
+    "gaps": [
+      "fir_top",
+      "opentitan_ibex",
+      "tiny_or"
+    ]
+  },
+  "phase10": {
+    "failure_atlas": {
+      "table": "failure_atlas_entries",
+      "total_records": 908,
+      "with_design_name": 908,
+      "design_name_pct": 100.0,
+      "with_failure_type": 908,
+      "failure_type_pct": 100.0,
+      "with_severity": 908,
+      "with_signature": 908,
+      "distinct_designs": 12
+    },
+    "runs": {
+      "table": "runs",
+      "total_records": 28,
+      "with_design_name": 28,
+      "design_name_pct": 100.0,
+      "with_cell_count": 27,
+      "with_wns": 27,
+      "distinct_designs": 6
+    },
+    "design_profiles": {
+      "table": "design_profiles",
+      "total_records": 15,
+      "with_design_type": 15,
+      "with_classification": 15,
+      "with_cell_count": 15
+    },
+    "design_features": {
+      "table": "design_features",
+      "total_records": 15,
+      "with_fanout_histogram": 15,
+      "with_logic_depth": 15
+    },
+    "execution_records": {
+      "execution_intelligence_count": 872,
+      "telemetry_execution_count": 0
+    },
+    "all_have_design_identity": true,
+    "all_have_feature_vector": true
+  },
+  "phase11": {
+    "identity_coverage_pct": 100.0,
+    "profiles_built": 15,
+    "feature_vectors": 15,
+    "classifications": 15,
+    "score": 100.0,
+    "level": "PRODUCTION_READY"
+  }
+}

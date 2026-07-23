@@ -1,0 +1,37 @@
+{
+  "environment_name": "gli-flow-v0.1-alpha",
+  "supported_platforms": [
+    "Ubuntu 22.04",
+    "WSL2 Ubuntu"
+  ],
+  "required_tools": {
+    "python": {
+      "minimum_version": "3.10"
+    },
+    "docker": {
+      "minimum_version": "24.0"
+    },
+    "git": {
+      "minimum_version": "2.30"
+    }
+  },
+  "optional_tools": {
+    "librelane": {
+      "required_for_execution": true
+    }
+  },
+  "validated_with": {
+    "python": "3.10.12",
+    "docker": "29.4.3",
+    "git": "2.34.1"
+  },
+  "execution_environment": {
+    "containerized_execution": true,
+    "wsl_supported": true
+  },
+  "known_limitations": [
+    "Windows native execution unsupported",
+    "Docker Desktop required for WSL workflows",
+    "LibreLane installation currently manual"
+  ]
+}

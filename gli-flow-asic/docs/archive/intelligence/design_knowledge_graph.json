@@ -1,0 +1,228 @@
+{
+  "entities": [
+    {
+      "entity_type": "Design",
+      "design_name": "aes_cipher",
+      "design_type": "medium",
+      "classification": "Controller",
+      "cell_count": 3500,
+      "logic_depth": 47,
+      "register_density": 0.3,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "counter",
+      "design_type": "tiny",
+      "classification": "Controller",
+      "cell_count": 100,
+      "logic_depth": 13,
+      "register_density": 0.08,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "fir",
+      "design_type": "medium",
+      "classification": "DSP",
+      "cell_count": 2000,
+      "logic_depth": 54,
+      "register_density": 0.25,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "fir_top",
+      "design_type": "tiny",
+      "classification": "Controller",
+      "cell_count": 20,
+      "logic_depth": 8,
+      "register_density": 0.2,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "gcd",
+      "design_type": "tiny",
+      "classification": "Controller",
+      "cell_count": 200,
+      "logic_depth": 15,
+      "register_density": 0.08,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "gpio",
+      "design_type": "medium",
+      "classification": "Interconnect",
+      "cell_count": 400,
+      "logic_depth": 17,
+      "register_density": 0.2,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "ibex",
+      "design_type": "large",
+      "classification": "CPU",
+      "cell_count": 20000,
+      "logic_depth": 42,
+      "register_density": 0.35,
+      "memory_density": 0.2
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "opentitan_ibex",
+      "design_type": "large",
+      "classification": "Memory-heavy",
+      "cell_count": 50000,
+      "logic_depth": 31,
+      "register_density": 0.2,
+      "memory_density": 0.2
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "picorv32",
+      "design_type": "large",
+      "classification": "CPU",
+      "cell_count": 15000,
+      "logic_depth": 41,
+      "register_density": 0.35,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "serv",
+      "design_type": "medium",
+      "classification": "CPU",
+      "cell_count": 3000,
+      "logic_depth": 34,
+      "register_density": 0.35,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "sram_controller",
+      "design_type": "medium",
+      "classification": "Memory-heavy",
+      "cell_count": 2000,
+      "logic_depth": 10,
+      "register_density": 0.1,
+      "memory_density": 0.5
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "tiny_or",
+      "design_type": "tiny",
+      "classification": "Controller",
+      "cell_count": 100,
+      "logic_depth": 13,
+      "register_density": 0.2,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "tinyml_accel",
+      "design_type": "medium",
+      "classification": "Accelerator",
+      "cell_count": 5000,
+      "logic_depth": 61,
+      "register_density": 0.25,
+      "memory_density": 0.2
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "uart",
+      "design_type": "medium",
+      "classification": "Controller",
+      "cell_count": 800,
+      "logic_depth": 19,
+      "register_density": 0.45,
+      "memory_density": 0.02
+    },
+    {
+      "entity_type": "Design",
+      "design_name": "uart_top",
+      "design_type": "tiny",
+      "classification": "Controller",
+      "cell_count": 52,
+      "logic_depth": 11,
+      "register_density": 0.2,
+      "memory_density": 0.02
+    }
+  ],
+  "relationships": [
+    {
+      "from": "aes_cipher",
+      "to": "counter",
+      "type": "same_class",
+      "class": "Controller"
+    },
+    {
+      "from": "aes_cipher",
+      "to": "fir_top",
+      "type": "same_class",
+      "class": "Controller"
+    },
+    {
+      "from": "counter",
+      "to": "fir_top",
+      "type": "same_class",
+      "class": "Controller"
+    },
+    {
+      "from": "counter",
+      "to": "gcd",
+      "type": "same_class",
+      "class": "Controller"
+    },
+    {
+      "from": "fir_top",
+      "to": "gcd",
+      "type": "same_class",
+      "class": "Controller"
+    },
+    {
+      "from": "ibex",
+      "to": "picorv32",
+      "type": "same_class",
+      "class": "CPU"
+    },
+    {
+      "from": "ibex",
+      "to": "serv",
+      "type": "same_class",
+      "class": "CPU"
+    },
+    {
+      "from": "opentitan_ibex",
+      "to": "sram_controller",
+      "type": "same_class",
+      "class": "Memory-heavy"
+    },
+    {
+      "from": "picorv32",
+      "to": "serv",
+      "type": "same_class",
+      "class": "CPU"
+    },
+    {
+      "from": "tiny_or",
+      "to": "uart",
+      "type": "same_class",
+      "class": "Controller"
+    },
+    {
+      "from": "tiny_or",
+      "to": "uart_top",
+      "type": "same_class",
+      "class": "Controller"
+    },
+    {
+      "from": "uart",
+      "to": "uart_top",
+      "type": "same_class",
+      "class": "Controller"
+    }
+  ]
+}

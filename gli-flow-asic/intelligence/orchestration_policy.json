@@ -1,0 +1,15 @@
+{
+    "stable_execution_threshold": 80,
+
+    "preferred_classifications": [
+        "HIGH_CONFIDENCE",
+        "MODERATE_CONFIDENCE"
+    ],
+
+    "optimization_policies": {
+        "HIGH_CONFIDENCE": "PRIORITIZE",
+        "MODERATE_CONFIDENCE": "ALLOW",
+        "LOW_CONFIDENCE": "MONITOR",
+        "UNSTABLE_EXECUTION": "DEPRIORITIZE"
+    }
+}

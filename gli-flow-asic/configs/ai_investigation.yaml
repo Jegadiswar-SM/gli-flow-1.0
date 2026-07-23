@@ -1,0 +1,40 @@
+# AI Investigation Layer Configuration
+# Tier 2 (Experimental) — Hypothesis generation only
+# Never overrides Tier 1 (Trusted) deterministic results
+
+enabled: true
+
+# Automatically trigger investigation for unknown failures
+auto_trigger_unknown_failures: true
+
+# Minimum confidence from Root Cause Engine to skip auto-trigger
+confidence_threshold: 0.60
+
+# Provider configuration
+provider:
+  name: bharatcode
+  endpoint: "https://bharatcode.ai/api/model/v1/chat/completions"
+  model: "bharatcode:qwen36-35b-q6-256k-vision"
+  max_tokens: 8192
+  temperature: 0.01
+  timeout_sec: 180
+  retry_attempts: 2
+  retry_delay_sec: 5
+
+# Privacy — never upload these file types
+blocked_extensions:
+  - .v
+  - .vh
+  - .sv
+  - .gds
+  - .def
+  - .lef
+  - .lib
+  - .db
+  - .sdc
+  - .spice
+  - .cdl
+  - .lvs.v
+  - .bitstream
+  - .bin
+  - .elf

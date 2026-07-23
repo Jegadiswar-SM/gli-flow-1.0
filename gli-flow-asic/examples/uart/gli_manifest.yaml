@@ -1,0 +1,20 @@
+design_name: uart_top
+rtl_files:
+  - examples/uart/rtl/uart_tx.sv
+  - examples/uart/rtl/uart_rx.sv
+  - examples/uart/rtl/uart_top.sv
+top_module: uart_top
+backend: openroad
+pdk: sky130
+pdk_variant: sky130A
+clock_port: clk
+clock_period_ns: 10.0
+constraints:
+  - examples/uart/constraints/top.sdc
+threads: 4
+corners:
+  - name: typical
+    type: typical
+    process: typical
+    voltage: 1.80
+    temperature: 25

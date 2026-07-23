@@ -1,0 +1,27 @@
+design_name: gpio_top
+rtl_files:
+  - examples/gpio/rtl/gpio.v
+top_module: gpio_top
+backend: openroad
+pdk: sky130
+pdk_variant: sky130A
+clock_port: clk
+clock_period_ns: 10.0
+threads: 4
+run_mode: educational_demo
+corners:
+  - name: worst
+    type: worst
+    process: slow
+    voltage: 1.62
+    temperature: 125
+  - name: typical
+    type: typical
+    process: typical
+    voltage: 1.80
+    temperature: 25
+  - name: best
+    type: best
+    process: fast
+    voltage: 1.95
+    temperature: -40

@@ -1,0 +1,19 @@
+{
+  "platform": "sky130hd",
+  "pdk": "sky130A",
+  "pdk_variant": "sky130A",
+  "lib": "sky130_fd_sc_hd__tt_025C_1v80.lib",
+  "lef": [
+    "sky130_fd_sc_hd.lef"
+  ],
+  "techlef": "sky130_fd_sc_hd.tlef",
+  "tap_cells": "sky130_fd_sc_hd__tap_1",
+  "decap_cells": "sky130_fd_sc_hd__decap_4",
+  "fill_cells": "sky130_fd_sc_hd__fill_4",
+  "antenna_cells": "sky130_fd_sc_hd__diode_2",
+  "cell_site": "unithd",
+  "min_layer": "li1",
+  "max_layer": "met5",
+  "track_width": 0.46,
+  "track_height": 0.34
+}

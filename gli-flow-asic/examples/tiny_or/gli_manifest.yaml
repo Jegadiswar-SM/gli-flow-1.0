@@ -1,0 +1,11 @@
+design_name: tiny_or
+rtl_files:
+  - examples/tiny_or/rtl/tiny_or.v
+top_module: tiny_or
+backend: openroad
+pdk: sky130
+pdk_variant: sky130A
+clock_port: clk
+clock_period_ns: 10.0
+threads: 1
+run_mode: educational_demo

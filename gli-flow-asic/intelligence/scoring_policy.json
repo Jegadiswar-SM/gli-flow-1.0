@@ -1,0 +1,11 @@
+{
+    "severity_weights": {
+        "LOW": 5,
+        "MEDIUM": 15,
+        "HIGH": 30
+    },
+
+    "anomaly_penalty": 10,
+
+    "base_score": 100
+}

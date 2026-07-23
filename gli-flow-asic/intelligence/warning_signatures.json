@@ -1,0 +1,25 @@
+[
+    {
+        "signature": "Warning:",
+        "category": "GENERAL_WARNING",
+        "severity": "LOW"
+    },
+
+    {
+        "signature": "ERROR",
+        "category": "EXECUTION_ERROR",
+        "severity": "HIGH"
+    },
+
+    {
+        "signature": "Latch inferred",
+        "category": "LATCH_INFERENCE",
+        "severity": "MEDIUM"
+    },
+
+    {
+        "signature": "multiple conflicting drivers",
+        "category": "DRIVER_CONFLICT",
+        "severity": "HIGH"
+    }
+]

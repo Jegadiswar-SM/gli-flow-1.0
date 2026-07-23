@@ -1,0 +1,39 @@
+{
+    "stages": [
+
+        {
+            "name": "rtl",
+            "depends_on": []
+        },
+
+        {
+            "name": "synthesis",
+            "depends_on": ["rtl"]
+        },
+
+        {
+            "name": "floorplan",
+            "depends_on": ["synthesis"]
+        },
+
+        {
+            "name": "placement",
+            "depends_on": ["floorplan"]
+        },
+
+        {
+            "name": "cts",
+            "depends_on": ["placement"]
+        },
+
+        {
+            "name": "routing",
+            "depends_on": ["cts"]
+        },
+
+        {
+            "name": "signoff",
+            "depends_on": ["routing"]
+        }
+    ]
+}

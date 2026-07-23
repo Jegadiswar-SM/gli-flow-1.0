@@ -1,0 +1,80 @@
+{
+  "audit": "Failure Atlas Certification Verification v1",
+  "date": "2026-06-16",
+  "certification_claim": "Failure Atlas is TRUSTED (97.9% Verified, 889/908 entries)",
+  "verdict": "PARTIAL",
+  "summary": "Aggregate data is trustworthy (verified by random sample audit, heuristic audit, attack simulation). Infrastructure has enforcement gaps (5/7 entry paths, no DB constraint, most consumers don't filter).",
+
+  "dimensions": [
+    {
+      "id": "classification_enforcement",
+      "score": 28,
+      "status": "FAIL",
+      "finding": "5 of 7 entry creation paths do not set detection_classification explicitly. They rely on insert_entry() DEFAULT 'UNVERIFIED'. Vulnerable paths: orchestrator.py:835-848 (pipeline failures), orchestrator.py:860-882 (root causes), orchestrator.py:907-931 (signoff failures), cross_tool_drc.py:186 (cross-tool DRC), candidate.py:42 (resolution candidates).",
+      "evidence": "orchestrator.py:835-931, cross_tool_drc.py:186, candidate.py:42"
+    },
+    {
+      "id": "database_constraint",
+      "score": 30,
+      "status": "FAIL",
+      "finding": "detection_classification has notnull=0 — no NOT NULL constraint at SQLite level. DEFAULT 'UNVERIFIED' provides partial protection but explicit NULL insertion is allowed.",
+      "evidence": "migrations.py:343-345"
+    },
+    {
+      "id": "consumer_filtering",
+      "score": 33,
+      "status": "FAIL",
+      "finding": "Only failure_coverage_matrix.py and readiness_engine.py filter by classification. growth_tracker.py, dashboard.py, quality_audit.py, profile_engine.py, resolution_intelligence/repository.py, and backend/server.py (30+ queries) do NOT filter.",
+      "evidence": "server.py, growth_tracker.py, dashboard.py, quality_audit.py, profile_engine.py, resolution_intelligence/repository.py"
+    },
+    {
+      "id": "historical_counts",
+      "score": 100,
+      "status": "PASS",
+      "finding": "VERIFIED=889, HEURISTIC=19, TOTAL=908. Distribution matches certification claim exactly.",
+      "evidence": "classification_distribution.json, DB query"
+    },
+    {
+      "id": "false_verification_rate",
+      "score": 100,
+      "status": "PASS",
+      "finding": "20 random VERIFIED entries examined: all have metric evidence (wns, tns, drc_violations, lvs_status, area, stage/error). 0 false verifications (0% false verification rate).",
+      "evidence": "Phase 5 random sample audit"
+    },
+    {
+      "id": "heuristic_misclassification",
+      "score": 100,
+      "status": "PASS",
+      "finding": "19 HEURISTIC entries examined: all have log_file + atlas_id in evidence (keyword-fallback pattern) and title starting with 'Log signature:'. 0 misclassified.",
+      "evidence": "Phase 6 heuristic entry audit"
+    },
+    {
+      "id": "unverified_entries",
+      "score": 100,
+      "status": "PASS",
+      "finding": "0 entries with classification=NULL, '', 'unknown', or any value other than VERIFIED or HEURISTIC.",
+      "evidence": "Phase 7 unverified search"
+    },
+    {
+      "id": "regression_test_quality",
+      "score": 100,
+      "status": "PASS",
+      "finding": "9 mutation-sensitive tests. Forcing KEYWORD_FALLBACK→EXACT_MATCH causes 2 test failures. Forcing EXACT_MATCH→KEYWORD_FALLBACK would cause 1 test failure.",
+      "evidence": "Phase 8 regression test mutation audit"
+    },
+    {
+      "id": "attack_resistance",
+      "score": 100,
+      "status": "PASS",
+      "finding": "Log with only EDA keywords produces _detection_method=KEYWORD_FALLBACK, which maps to detection_classification=HEURISTIC. Keyword-only logs cannot become VERIFIED.",
+      "evidence": "Phase 9 attack simulation"
+    },
+    {
+      "id": "dataset_readiness",
+      "score": 100,
+      "status": "PASS",
+      "finding": "failure_coverage_matrix.py and readiness_engine.py both filter by detection_classification. Coverage engine uses min_classification param with WHERE clause. Readiness engine uses same pattern.",
+      "evidence": "Phase 10 dataset readiness audit, failure_coverage_matrix.py:42-54, readiness_engine.py:27-61"
+    }
+  ]
+}

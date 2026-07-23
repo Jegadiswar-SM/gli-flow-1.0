@@ -1,0 +1,10 @@
+design_name: counter
+rtl_files:
+  - src/counter.v
+top_module: counter
+backend: openroad
+pdk: sky130
+pdk_variant: sky130A
+clock_port: clk
+clock_period_ns: 10.0
+threads: 4

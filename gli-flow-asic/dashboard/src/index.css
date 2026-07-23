@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-abyss-ink: #0F172A;
+  --color-canvas-bone: #F3F2ED;
+  --color-stone-ridge: #D1D5DB;
+  --color-meridian-gold: #D4AF37;
+  --color-topography-rust: #C2410C;
+  --color-surface-dark: #1E293B;
+  --color-surface-mid: #334155;
+  --color-gold-muted: #92751A;
+  --color-rust-muted: #9A3412;
+
+  --font-eczar: "Eczar", serif;
+  --font-playfair: "Playfair Display", serif;
+  --font-work-sans: "Work Sans", sans-serif;
+  --font-cascadia: "Cascadia Code", monospace;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family: "Work Sans", sans-serif;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}

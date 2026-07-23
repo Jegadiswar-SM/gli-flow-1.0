@@ -1,0 +1,39 @@
+{
+  "TIMING_IMPROVEMENT": {
+    "description": "Techniques to improve timing slack across the design.",
+    "techniques": [
+      {"name": "Pipeline insertion", "effort": "Architecture", "impact": "HIGH", "risk": "Low", "description": "Add register stages on critical paths"},
+      {"name": "Retiming", "effort": "Tool flow", "impact": "MEDIUM", "risk": "Medium", "description": "Balance register positions across logic"},
+      {"name": "Clock period adjustment", "effort": "Constraints", "impact": "HIGH", "risk": "Low", "description": "Relax clock period for critical paths"},
+      {"name": "High-fanout synthesis", "effort": "Tool flow", "impact": "MEDIUM", "risk": "Low", "description": "Optimize high-fanout net distribution"},
+      {"name": "Multi-corner optimization", "effort": "Tool flow", "impact": "MEDIUM", "risk": "Medium", "description": "Optimize across all PVT corners"}
+    ]
+  },
+  "AREA_OPTIMIZATION": {
+    "description": "Techniques to reduce die area and cell count.",
+    "techniques": [
+      {"name": "Logic optimization", "effort": "Tool flow", "impact": "MEDIUM", "risk": "Low", "description": "Run area-driven synthesis"},
+      {"name": "Cell downsizing", "effort": "Tool flow", "impact": "MEDIUM", "risk": "Medium", "description": "Replace with smaller drive strength cells"},
+      {"name": "Hierarchical partitioning", "effort": "Architecture", "impact": "HIGH", "risk": "High", "description": "Partition design for better area utilization"},
+      {"name": "Datapath optimization", "effort": "RTL", "impact": "HIGH", "risk": "Medium", "description": "Optimize datapath logic and operators"}
+    ]
+  },
+  "POWER_OPTIMIZATION": {
+    "description": "Techniques to reduce dynamic and static power.",
+    "techniques": [
+      {"name": "Clock gating", "effort": "RTL", "impact": "HIGH", "risk": "Low", "description": "Gate clocks to inactive register banks"},
+      {"name": "Power gating", "effort": "Architecture", "impact": "HIGH", "risk": "High", "description": "Shut down power to idle blocks"},
+      {"name": "Multi-VT cells", "effort": "Tool flow", "impact": "MEDIUM", "risk": "Low", "description": "Use HVT cells for non-critical paths"},
+      {"name": "Data gating", "effort": "RTL", "impact": "MEDIUM", "risk": "Low", "description": "Gate data path toggling when idle"}
+    ]
+  },
+  "CONGESTION_REDUCTION": {
+    "description": "Techniques to reduce routing congestion.",
+    "techniques": [
+      {"name": "Cell density reduction", "effort": "Tool flow", "impact": "HIGH", "risk": "Medium", "description": "Spread cells and add placement blockages"},
+      {"name": "Macro placement optimization", "effort": "Floorplan", "impact": "HIGH", "risk": "High", "description": "Optimize macro locations for routing flow"},
+      {"name": "Routing layer assignment", "effort": "Tool flow", "impact": "MEDIUM", "risk": "Low", "description": "Assign preferred routing layers per net type"},
+      {"name": "Pin accessibility improvement", "effort": "Floorplan", "impact": "MEDIUM", "risk": "Medium", "description": "Improve pin access in congested regions"}
+    ]
+  }
+}

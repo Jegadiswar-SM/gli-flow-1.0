@@ -1,0 +1,20 @@
+{
+  "rule_id": "antenna_violation",
+  "title": "Antenna violation detected",
+  "description": "Antenna ratio exceeds foundry limit for a metal net, creating reliability risks during manufacturing.",
+  "severity": "HIGH",
+  "investigation_checklist": [
+    "Identify the offending net in the antenna report",
+    "Check net length and connected metal layers",
+    "Determine if net connects to long polysilicon segments",
+    "Evaluate if layer-jumping or metal routing improvements can reduce ratio"
+  ],
+  "known_causes": [
+    "Excessive metal area on a gate input",
+    "Insufficient routing resources causing long paths",
+    "Missing protection diodes for long metal nets"
+  ],
+  "references": [
+    "PDK Design Rules Manual - Antenna Rules"
+  ]
+}
