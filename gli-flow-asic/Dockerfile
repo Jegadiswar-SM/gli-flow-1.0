@@ -8,7 +8,8 @@ LABEL maintainer="Green Lantern Industries <team@gatelevel.io>"
 LABEL org.opencontainers.image.title="GLI-FLOW"
 LABEL org.opencontainers.image.description="Stable RTL-to-GDS flow for SKY130"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
-LABEL org.opencontainers.image.version="v1.0.0-mvp"
+ARG GLI_FLOW_VERSION="v1.1.0-beta"
+LABEL org.opencontainers.image.version="${GLI_FLOW_VERSION}"
 
 ARG DEBIAN_FRONTEND=noninteractive
 

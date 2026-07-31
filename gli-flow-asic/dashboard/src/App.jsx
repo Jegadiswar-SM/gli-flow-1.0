@@ -813,7 +813,7 @@ function App() {
 
       {/* === BOTTOM FOOTER BAR === */}
       <footer className="fixed bottom-0 left-[220px] right-0 bg-white border-t border-stone-ridge px-6 py-2.5 flex items-center justify-between z-20">
-        <span className="font-[Work_Sans] text-[11px] text-[#6B7280]">GLI-FLOW v1.0.0 MVP</span>
+        <span className="font-[Work_Sans] text-[11px] text-[#6B7280]">GLI-FLOW</span>
         <span className="font-[Work_Sans] text-[11px] text-[#6B7280]">Execution Intelligence for ASIC Infrastructure</span>
         <div className="flex items-center gap-4">
           <a href="#" className="font-[Work_Sans] text-[11px] text-abyss-ink hover:underline flex items-center gap-1">Documentation <ExternalLink size={10} /></a>

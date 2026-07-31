@@ -1,7 +1,9 @@
 import shutil
 import sys
+import os
 import subprocess
 import importlib.util
+import socket
 from pathlib import Path
 
 from gli_flow.cli.utils import info, success, warn, error
@@ -126,9 +128,11 @@ def _check_optional(args):
         else:
             missing.append(dep)
     if missing:
-        results.append(("Dashboard deps", False, "Missing: " + ", ".join(missing) + " — pip install gli-flow[dashboard]"))
+        source_cmd = 'python -m pip install -e ".[dashboard]"'
+        results.append(("Dashboard deps", False, "Missing backend Python package(s): " + ", ".join(missing) + f" — from a source checkout run {source_cmd}; from a wheel install the dashboard extra"))
     else:
-        results.append(("Dashboard deps", True, "Backend dependencies installed"))
+        health_ok, health_detail = _check_dashboard_health()
+        results.append(("Dashboard health", health_ok, health_detail))
 
     # Node.js
     node_v = _tool_version("node", "--version")
@@ -145,6 +149,44 @@ def _check_optional(args):
         results.append(("npm", False, "Not found — frontend dev server unavailable"))
 
     return results
+
+
+def _check_dashboard_health():
+    """Start the real backend and exercise its HTTP health endpoint."""
+    import urllib.request
+    import urllib.error
+    port = 18765
+    process = None
+    try:
+        import fastapi  # noqa: F401
+        import uvicorn  # noqa: F401
+        project_root = Path(__file__).resolve().parents[2]
+        process = subprocess.Popen(
+            [sys.executable, "-m", "uvicorn", "backend.server:app", "--host", "127.0.0.1", "--port", str(port)],
+            cwd=str(project_root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            env={**os.environ, "GLI_FLOW_BACKEND_PORT": str(port)},
+        )
+        for _ in range(20):
+            try:
+                response = urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1)
+                if response.status == 200:
+                    return True, "FastAPI import, backend startup, and GET /health passed"
+                return False, f"Backend started but GET /health returned HTTP {response.status}"
+            except (urllib.error.URLError, OSError):
+                if process.poll() is not None:
+                    return False, "Backend process exited before GET /health"
+                import time
+                time.sleep(0.25)
+        return False, "Backend process started but GET /health did not respond within 5 seconds"
+    except Exception as exc:
+        return False, f"Backend health check failed: {type(exc).__name__}: {exc}"
+    finally:
+        if process is not None and process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                process.kill()
 
 
 def _print_redesign(mock_pass, mock_items, real_tools, optional_items):

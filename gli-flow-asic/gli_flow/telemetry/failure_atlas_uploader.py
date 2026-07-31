@@ -25,7 +25,7 @@ class FailureAtlasUploader:
         self.settings = get_telemetry_settings()
         self.validator = PrivacyValidator(db_path)
         self.exporter = TelemetryExporter(db_path)
-        self.queue = UploadQueue()
+        self.queue = UploadQueue(db_path=db_path)
         self.retry = RetryEngine(self.queue)
 
     def should_upload(self) -> bool:

@@ -26,7 +26,7 @@ class TelemetryUploader:
         self.settings = get_telemetry_settings()
         self.exporter = TelemetryExporter(db_path)
         self.audit = TelemetryAuditLog(db_path)
-        self.queue = UploadQueue()
+        self.queue = UploadQueue(db_path=db_path)
         self.retry = RetryEngine(self.queue)
         self.server_url = (server_url or DEFAULT_SERVER_URL).rstrip("/")
         self.api_key = api_key or DEFAULT_API_KEY

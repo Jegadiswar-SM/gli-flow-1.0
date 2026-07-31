@@ -143,7 +143,8 @@ def _get_telemetry_mode_label() -> str:
             "LOCAL": "Telemetry: local-only (no data leaves your machine)",
             "DISABLED": "Telemetry: disabled",
         }
-        return labels.get(settings.mode.name, f"Telemetry: {settings.mode.name}")
+        mode = str(settings.mode).upper()
+        return labels.get(mode, f"Telemetry: {mode}")
     except Exception:
         return "Telemetry: checking..."
 
@@ -155,20 +156,35 @@ def _ensure_telemetry_consent(non_interactive: bool = False):
 
     settings = get_telemetry_settings()
     if settings.is_wizard_required():
-        if non_interactive:
-            _default_telemetry_local(settings)
+        if non_interactive or not sys.stdin.isatty():
+            _default_telemetry_full(settings)
             return
         try:
             run_telemetry_wizard()
         except (EOFError, OSError):
-            _default_telemetry_local(settings)
+            _default_telemetry_full(settings)
 
 
-def _default_telemetry_local(settings):
+def _default_telemetry_full(settings):
     from gli_flow.telemetry.settings import TelemetryMode
-    settings.mode = TelemetryMode.LOCAL
-    settings.consent_given = False
+    settings.mode = TelemetryMode.FULL
+    settings.consent_given = True
     settings.save()
+
+
+def _apply_telemetry_flag(mode):
+    if mode not in ("full", "atlas", "local", "disabled"):
+        return
+    from gli_flow.telemetry.settings import get_telemetry_settings
+    settings = get_telemetry_settings()
+    settings.mode = mode
+    settings.consent_given = mode in ("full", "atlas")
+    settings.save()
+
+
+def _command_safety_flags(parser):
+    parser.add_argument("--non-interactive", "--yes", dest="command_non_interactive", action="store_true", help="Never prompt")
+    parser.add_argument("--telemetry", dest="command_telemetry", choices=["full", "atlas", "local", "disabled"], help="Persist telemetry mode")
 
 def _open_browser(url):
     is_wsl = "microsoft" in os.uname().release.lower() if hasattr(os, "uname") else False
@@ -499,6 +515,17 @@ def dashboard_command(args):
     project_root = Path(__file__).resolve().parent.parent.parent
     dashboard_dir = project_root / "dashboard"
 
+    try:
+        import fastapi  # noqa: F401
+        import uvicorn  # noqa: F401
+    except ImportError as exc:
+        error(
+            "Dashboard backend dependencies are missing: " + str(exc) + ". "
+            "Install Python backend dependencies with `python -m pip install -e \".[dashboard]\"` "
+            "from a source checkout. Frontend dependencies are separate: `cd dashboard && npm ci`."
+        )
+        sys.exit(1)
+
     info("Starting backend server...")
     backend_proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "backend.server:app", "--host", backend_host, "--port", str(backend_port)],
@@ -512,10 +539,9 @@ def dashboard_command(args):
     if not _wait_for_backend(backend_host, backend_port):
         backend_proc.terminate()
         error(
-            "Backend server failed to start within 30 seconds.\n"
-            f"  Why: The API server at port {backend_port} did not respond to health checks.\n"
-            "  How GLI-FLOW will fix it: Check if the port is in use or if dependencies are missing.\n"
-            "  User action required: Run 'gli-flow doctor' to check environment, then try again."
+            "Dashboard backend failed its health check. "
+            f"Check port {backend_port} and backend Python dependencies with `python -m pip install -e \".[dashboard]\"`; "
+            "frontend npm dependencies are unrelated."
         )
         sys.exit(1)
     success("Backend is ready")
@@ -559,7 +585,12 @@ def dashboard_command(args):
 
 
 def run_command(args):
-    design_path = args.design
+    design_path = getattr(args, "design", None)
+    if getattr(args, "example", None):
+        design_path = str(Path("examples") / args.example)
+    if not design_path:
+        error("A design path or --example NAME is required. Try `gli-flow examples list`.")
+        return
 
     if not Path(design_path).exists():
         # Try shorthands
@@ -583,6 +614,8 @@ def run_command(args):
     if not ok:
         error(f"Manifest validation failed: {msg}")
         sys.exit(1)
+
+    console.print(f"Pre-flight: manifest={manifest_file} output=outputs/runs (mode={'mock' if args.mock else 'real'})")
 
     if not getattr(args, 'mock', False):
         config = _load_yaml_config()
@@ -654,6 +687,34 @@ def history_command(args):
     runs = db.get_recent_runs(limit=args.limit or 20)
     print_run_history(runs)
     print_next_step(["gli-flow run <design>", "gli-flow diagnose <run_id>"])
+
+
+def examples_command(args):
+    if args.examples_command != "list":
+        error("Use `gli-flow examples list`.")
+        return
+    examples_root = Path(__file__).resolve().parents[2] / "examples"
+    console.print("Built-in examples")
+    for manifest in sorted(examples_root.glob("*/gli_manifest.yaml")):
+        try:
+            import yaml
+            data = yaml.safe_load(manifest.read_text()) or {}
+        except Exception:
+            data = {}
+        console.print(f"  {manifest.parent.name}: {data.get('description', 'RTL example')} (mock: under one minute)")
+
+
+def validate_command(args):
+    design = Path(args.design)
+    if design.is_file() and design.name == "gli_manifest.yaml":
+        manifest = design
+    else:
+        manifest = design / "gli_manifest.yaml"
+    ok, message = validate_manifest(manifest)
+    console.print(f"Manifest: {manifest}")
+    console.print(f"VALIDATION: {'PASS' if ok else 'FAIL'} — {message}")
+    if not ok:
+        sys.exit(1)
 
 
 def status_command(args):
@@ -1018,7 +1079,7 @@ def _doctor_output(validator: EnvironmentValidator):
         f" | Change: gli-flow telemetry mode[/dim]"
     )
     if not report.all_pass:
-        console.print("\n[bold]🔧 Running auto-repair...[/bold] gli-flow doctor --fix")
+        console.print("\n[bold yellow]Recommendation:[/bold yellow] `gli-flow doctor --fix` may attempt repairs; no repair was run by this check.")
     print_next_step(["gli-flow run examples/counter --mock", "gli-flow dashboard"])
     return report
 
@@ -1059,6 +1120,25 @@ def _print_magic_discovery(discovery: DiscoveryReport):
 
 
 def doctor_command(args):
+    target = getattr(args, "for_mode", "mock")
+    if target == "mock":
+        from gli_flow.cli.smoke_test import _check_mock_mode
+        ok, items = _check_mock_mode(args)
+        console.print("GLI-FLOW Doctor — target: mock workflow")
+        for name, item_ok, detail in items:
+            console.print(f"  {'✓' if item_ok else '✗'} {name}: {detail}")
+        console.print(f"FINAL_VERDICT: {'READY_FOR_MOCK' if ok else 'BLOCKED'}")
+        if not ok:
+            sys.exit(1)
+        return
+    if target == "dashboard":
+        from gli_flow.cli.smoke_test import _check_dashboard_health
+        ok, detail = _check_dashboard_health()
+        console.print(f"Dashboard backend: {detail}")
+        console.print(f"FINAL_VERDICT: {'READY' if ok else 'BLOCKED'}")
+        if not ok:
+            sys.exit(1)
+        return
     from gli_flow.infrastructure.environment_validator import EnvironmentValidator
 
     db_path = getattr(args, 'db_path', None)
@@ -1097,6 +1177,7 @@ def doctor_command(args):
 
     if not report.all_pass:
         sys.exit(1)
+    console.print("FINAL_VERDICT: READY_FOR_REAL_FLOW")
 
 
 def remote_command(args):
@@ -2633,13 +2714,15 @@ def build_parser():
         ),
         formatter_class=CategorizedHelpFormatter,
     )
-    parser.add_argument("--non-interactive", action="store_true", help="Run in non-interactive mode (default to local telemetry)")
+    parser.add_argument("--non-interactive", "--yes", action="store_true", help="Never prompt; use persisted settings or full sanitized telemetry by default")
+    parser.add_argument("--telemetry", choices=["full", "atlas", "local", "disabled"], help="Persist telemetry mode for this invocation")
 
     subparsers = parser.add_subparsers(dest="command")
 
-    run_parser = subparsers.add_parser("run", help="Run a design through the flow", epilog=EXAMPLES["run"])
+    run_parser = subparsers.add_parser("run", help="Run a design through the flow (mock demo is usually under a minute)", epilog=(EXAMPLES["run"] + "\nSuccess means the selected flow path completed; it does not prove design quality or tapeout readiness."))
     run_parser._category = "Execution"
-    run_parser.add_argument("design", help="Path to design directory with gli_manifest.yaml")
+    run_parser.add_argument("design", nargs="?", help="Path to design directory with gli_manifest.yaml")
+    run_parser.add_argument("--example", help="Run a named built-in example, e.g. --example counter")
     run_parser.add_argument("--verbose", "-v", action="store_true", help="Show full traceback on error")
     run_parser.add_argument("--threads", "-j", type=int, default=None,
                             help="Number of parallel threads for the flow")
@@ -2649,6 +2732,7 @@ def build_parser():
                             help="Path to OpenROAD-flow-scripts installation")
     run_parser.add_argument("--mock", action="store_true",
                             help="Run with mock EDA adapter (no real tools required)")
+    _command_safety_flags(run_parser)
     run_parser.add_argument("--certify", action="store_true",
                             help="Certification mode: forbid mock execution, require all stages to pass without errors")
     run_parser.add_argument("--db-path", type=str, default=None,
@@ -2675,6 +2759,15 @@ def build_parser():
     batch_parser.add_argument("--memory", type=int, default=None,
                               help="Memory limit in MB per worker")
 
+    examples_parser = subparsers.add_parser("examples", help="List built-in designs and their expected runtime")
+    examples_parser._category = "Setup"
+    examples_sub = examples_parser.add_subparsers(dest="examples_command")
+    examples_sub.add_parser("list", help="List built-in examples")
+
+    validate_parser = subparsers.add_parser("validate", help="Validate a design manifest without running EDA")
+    validate_parser._category = "Setup"
+    validate_parser.add_argument("design", help="Design directory or path to gli_manifest.yaml")
+
     init_parser = subparsers.add_parser("init", help="Create a new design manifest", epilog=EXAMPLES["init"])
     init_parser._category = "Setup"
     init_parser.add_argument("design_name", help="Name of the design (creates a directory and manifest)")
@@ -2683,8 +2776,9 @@ def build_parser():
     init_parser.add_argument("--rtl", type=str, default=None,
                               help="Path to a single RTL file to auto-detect top module and ports")
 
-    quickstart_parser = subparsers.add_parser("quickstart", help="Interactive setup wizard for new designs", epilog=EXAMPLES["quickstart"])
+    quickstart_parser = subparsers.add_parser("quickstart", help="Create a starter RTL design (interactive; use --non-interactive in CI)", epilog=(EXAMPLES["quickstart"] + "\nUsually takes under a minute and creates RTL plus a manifest."))
     quickstart_parser._category = "Setup"
+    _command_safety_flags(quickstart_parser)
 
     report_parser = subparsers.add_parser("report", help="Show QoR report for a completed ORFS run", epilog=EXAMPLES["report"])
     report_parser._category = "Analysis"
@@ -2699,8 +2793,9 @@ def build_parser():
     report_parser.add_argument("--orfs-root", dest="orfs_root_flag", default=None,
                                help="ORFS flow root path")
 
-    install_parser = subparsers.add_parser("install", help="Install gli-flow and all EDA toolchain dependencies", epilog=EXAMPLES["install"])
+    install_parser = subparsers.add_parser("install", help="Preview or install GLI-FLOW dependencies (may download tools and use system privileges)", epilog=(EXAMPLES["install"] + "\nUse --dry-run first. A successful install is checked by `gli-flow smoke-test`."))
     install_parser._category = "Infrastructure"
+    _command_safety_flags(install_parser)
     install_parser.add_argument("--pdk", default="sky130", choices=["sky130", "gf180mcu"],
                                 help="PDK to install (default: sky130)")
     install_parser.add_argument("--pdk-root", default=None,
@@ -2764,12 +2859,14 @@ def build_parser():
     list_parser.add_argument("--bucket", type=str, default=None, help="Bucket name")
     list_parser.add_argument("--prefix", type=str, default="runs", help="Key prefix")
 
-    doctor_parser = subparsers.add_parser("doctor", help="Validate installed EDA toolchain and produce health report", epilog=EXAMPLES["doctor"])
+    doctor_parser = subparsers.add_parser("doctor", help="Check readiness for mock, real, or dashboard workflows", epilog=(EXAMPLES["doctor"] + "\nExpected duration: a few seconds. The final verdict is script-parseable."))
     doctor_parser._category = "Setup"
+    _command_safety_flags(doctor_parser)
     doctor_parser.add_argument("--fix", action="store_true", help="Attempt to auto-repair detected issues")
     doctor_parser.add_argument("--repair-magic", action="store_true", help="Repair broken magic binary shadowing valid system binary")
     doctor_parser.add_argument("--db-path", type=str, default=None, help="Path to SQLite database")
     doctor_parser.add_argument("--verbose", "-v", action="store_true", help="Show detailed discovery information")
+    doctor_parser.add_argument("--for", dest="for_mode", choices=["mock", "real", "dashboard"], default="mock", help="Readiness target (default: mock)")
 
     reset_parser = subparsers.add_parser("reset-runs", help="Permanently delete all run history, telemetry, and dashboard data", epilog=EXAMPLES["reset-runs"])
     reset_parser._category = "Infrastructure"
@@ -2815,8 +2912,9 @@ def build_parser():
     config_parser._category = "Setup"
     config_parser.add_argument("--telemetry", choices=["on", "off"], default=None, help="Enable or disable telemetry")
 
-    dashboard_parser = subparsers.add_parser("dashboard", help="Start the GLI-FLOW dashboard", epilog=EXAMPLES["dashboard"])
+    dashboard_parser = subparsers.add_parser("dashboard", help="Start the dashboard and verify backend /health", epilog=(EXAMPLES["dashboard"] + "\nBackend-only exits only when stopped; startup failure names the missing dependency set."))
     dashboard_parser._category = "Experimental"
+    _command_safety_flags(dashboard_parser)
     dashboard_parser.add_argument("--backend-only", action="store_true", help="Start backend only, skip frontend dev server")
 
     setup_parser = subparsers.add_parser("setup", help="Interactive first-time setup — configure PDK, tools, workspace", epilog=EXAMPLES["setup"])
@@ -2828,6 +2926,7 @@ def build_parser():
 
     smoke_test_parser = subparsers.add_parser("smoke-test", help="Validate installation and environment readiness", epilog=EXAMPLES["smoke-test"])
     smoke_test_parser._category = "Setup"
+    _command_safety_flags(smoke_test_parser)
     smoke_test_parser.add_argument("--db-path", type=str, default=None, help="Path to SQLite database")
 
     export_parser = subparsers.add_parser("export", help="Export runs, telemetry, and Failure Atlas data for backup or migration")
@@ -2935,20 +3034,28 @@ def build_parser():
 
 
 def main():
-    setup_logging()
     parser = build_parser()
     args = parser.parse_args()
 
+    # argparse handles --help during parse. Keep help completely side-effect free.
+    setup_logging()
+    _apply_telemetry_flag(getattr(args, "telemetry", None) or getattr(args, "command_telemetry", None))
+
     # Skip wizard for basic help/config commands if they are being used to disable it
-    if args.command not in [None, "help"] and not (args.command == "telemetry" and args.telemetry_command in ["disable", "mode"]):
+    inspection_commands = {None, "help", "doctor", "smoke-test", "show-telemetry", "history", "status", "report", "db"}
+    if args.command not in inspection_commands and not (args.command == "telemetry" and args.telemetry_command in ["disable", "mode", "status", "preview"]):
         # Pass non-interactive status to telemetry consent
         try:
-            _ensure_telemetry_consent(non_interactive=getattr(args, 'non_interactive', False))
+            _ensure_telemetry_consent(non_interactive=getattr(args, 'non_interactive', False) or getattr(args, 'command_non_interactive', False))
         except Exception:
             error_and_exit("Telemetry initialization failed", fix="Run 'gli-flow telemetry disable' to turn off telemetry, or check your network connection.", verbose=getattr(args, 'verbose', False))
 
     if args.command == "run":
         run_command(args)
+    elif args.command == "examples":
+        examples_command(args)
+    elif args.command == "validate":
+        validate_command(args)
     elif args.command == "history":
         history_command(args)
     elif args.command == "status":

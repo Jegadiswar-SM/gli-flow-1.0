@@ -8,8 +8,19 @@ from gli_flow.database.factory import create_provider
 from gli_flow.database.database_provider import DatabaseProvider
 
 
-QUEUE_DB_DIR = Path.home() / ".gli-flow"
-QUEUE_DB_PATH = QUEUE_DB_DIR / "upload_queue.db"
+def _queue_path(db_path: Optional[str] = None) -> tuple[Path, Path]:
+    if db_path:
+        parent = Path(db_path).expanduser().resolve().parent
+        return parent, parent / "upload_queue.db"
+    configured = os.environ.get("GLI_FLOW_QUEUE_DB_PATH")
+    if configured:
+        path = Path(configured).expanduser()
+        return path.parent, path
+    # Keep queue state beside the same database selected by the CLI, including
+    # its writable fallback when HOME is unavailable.
+    from gli_flow.database.migrations import _get_db_path
+    parent = Path(_get_db_path()).parent
+    return parent, parent / "upload_queue.db"
 
 QUEUE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS upload_queue (
@@ -37,8 +48,9 @@ class UploadQueue:
             path = provider
             self._provider = create_provider(database_url=None, db_path=path)
         else:
-            path = db_path or str(QUEUE_DB_PATH)
-            os.makedirs(str(QUEUE_DB_DIR), exist_ok=True)
+            queue_dir, queue_path = _queue_path(db_path)
+            path = db_path or str(queue_path)
+            os.makedirs(str(queue_dir), exist_ok=True)
             self._provider = create_provider(database_url=None, db_path=path)
         self._ensure_table()
 

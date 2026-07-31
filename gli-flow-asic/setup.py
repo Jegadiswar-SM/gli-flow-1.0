@@ -61,6 +61,10 @@ setup(
         "jinja2>=3.1.0",
         "tabulate>=0.9.0",
         "httpx>=0.27.0",
+        # The supported CLI includes the backend; keep plain source installs runnable.
+        "fastapi>=0.104.0,<1",
+        "uvicorn[standard]>=0.24.0,<1",
+        "pydantic>=2.0.0,<3",
     ],
     entry_points={
         "console_scripts": [

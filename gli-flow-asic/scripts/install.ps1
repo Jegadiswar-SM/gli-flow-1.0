@@ -2,7 +2,9 @@
 # Supports: Windows 10/11, WSL2
 # Usage: iex (iwr -Uri https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.ps1)
 
-$GLIFlowVersion = "v1.0.0"
+$versionFile = Join-Path (Split-Path -Parent $PSScriptRoot) "gli_flow\version.py"
+$versionMatch = Select-String -Path $versionFile -Pattern 'VERSION\s*=\s*"([^"]+)"' | Select-Object -First 1
+$GLIFlowVersion = if ($versionMatch) { $versionMatch.Matches[0].Groups[1].Value } else { "unknown" }
 $MinPython = "3.9"
 $MinDiskGB = 10
 $MinRAMMB = 2048
@@ -11,6 +13,10 @@ function Write-Pass { Write-Host "  ✓ $($args[0])" -ForegroundColor Green }
 function Write-Warn { Write-Host "  ⚠ $($args[0])" -ForegroundColor Yellow }
 function Write-Fail { Write-Host "  ✗ $($args[0])" -ForegroundColor Red; exit 1 }
 function Write-Info { Write-Host "  → $($args[0])" -ForegroundColor Cyan }
+function Invoke-Checked([string]$Command, [scriptblock]$Action) {
+    & $Action
+    if ($LASTEXITCODE -ne 0) { Write-Fail "$Command failed (exit $LASTEXITCODE). See the installer output above." }
+}
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════╗" -ForegroundColor Cyan
@@ -39,7 +45,7 @@ if ($IsWSL) {
         Write-Warn "Untested WSL distribution. Proceeding with caution."
     }
 } else {
-    $os = (Get-WmiObject Win32_OperatingSystem).Caption
+    $os = (Get-CimInstance Win32_OperatingSystem).Caption
     Write-Pass "Windows detected: $os"
     $majorVer = [Environment]::OSVersion.Version.Major
     if ($majorVer -lt 10) {
@@ -86,7 +92,7 @@ if ($drive) {
 }
 
 # ---- RAM ----
-$osInfo = Get-WmiObject Win32_ComputerSystem -ErrorAction SilentlyContinue
+$osInfo = Get-CimInstance Win32_ComputerSystem -ErrorAction SilentlyContinue
 if ($osInfo) {
     $totalRAMMB = [math]::Floor($osInfo.TotalPhysicalMemory / 1MB)
 } else {
@@ -124,24 +130,23 @@ if (-not $env:VIRTUAL_ENV) {
     $activateScript = "$venvDir\Scripts\Activate.ps1"
     if (Test-Path $activateScript) {
         . $activateScript
+        Write-Info "Activation applies only to this child PowerShell process. In a new shell run: & '$activateScript'"
         $PipCmd = "$venvDir\Scripts\pip"
     }
     Write-Pass "Virtual environment ready"
 }
 
 Write-Info "Installing gli-flow package..."
-& $PipCmd install --quiet --upgrade pip setuptools wheel 2>$null
-& $PipCmd install "gli-flow" 2>$null
-if ($LASTEXITCODE -ne 0) {
-    Write-Fail "gli-flow installation failed. Try: pip install gli-flow"
-}
+Invoke-Checked "pip bootstrap" { & $PipCmd install --quiet --upgrade pip setuptools wheel }
+$repoDir = Split-Path -Parent $PSScriptRoot
+Invoke-Checked "source checkout install" { & $PipCmd install -e "${repoDir}[dashboard]" }
 Write-Pass "gli-flow installed"
 
 # ---- Run Doctor ----
 Write-Info "Running environment validation..."
 $gliFlowCmd = Get-Command gli-flow -ErrorAction SilentlyContinue
 if ($gliFlowCmd) {
-    & gli-flow doctor 2>&1 | Out-Null
+    Invoke-Checked "doctor" { & gli-flow doctor }
     Write-Pass "Environment validated"
 } else {
     Write-Warn "gli-flow command not in PATH. Add $venvDir\Scripts to your PATH."
@@ -154,10 +159,10 @@ Write-Host "║  Installation Complete!                  ║" -ForegroundColor C
 Write-Host "╠══════════════════════════════════════════╣" -ForegroundColor Cyan
 Write-Host "║  Next steps:                             ║" -ForegroundColor Cyan
 Write-Host "║                                          ║" -ForegroundColor Cyan
-Write-Host "║  gli-flow quickstart                     ║" -ForegroundColor Cyan
-Write-Host "║  gli-flow run examples/counter           ║" -ForegroundColor Cyan
-Write-Host "║  gli-flow doctor                         ║" -ForegroundColor Cyan
+Write-Host "║  gli-flow smoke-test --non-interactive   ║" -ForegroundColor Cyan
+Write-Host "║  gli-flow run --example counter --mock   ║" -ForegroundColor Cyan
+Write-Host "║  gli-flow init my_design                 ║" -ForegroundColor Cyan
 Write-Host "║                                          ║" -ForegroundColor Cyan
-Write-Host "║  Docs: https://opencode.ai/gli-flow      ║" -ForegroundColor Cyan
+Write-Host "║  Docs: https://github.com/Jegadiswar-SM/gli-flow-asic/tree/main/docs ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""

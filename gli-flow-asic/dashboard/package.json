@@ -1,12 +1,14 @@
 {
   "name": "dashboard",
   "private": true,
+  "engines": { "node": ">=24.18.0", "npm": ">=11.16.0" },
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "audit": "npm audit --audit-level=high",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -50,22 +50,26 @@ def print_stage_progress(stage, progress, status="RUNNING"):
 
 
 def print_results(record):
+    simulated = getattr(record, "execution_mode", "real") == "mock"
+    if simulated:
+        console.print("[bold cyan]SIMULATED/DEMO METRICS — every value below is a placeholder, not evaluated by EDA tools.[/bold cyan]")
     table = Table(box=box.SIMPLE)
     table.add_column("Metric", style="cyan")
     table.add_column("Value", style="white")
 
     qor_color = "green" if record.qor_score and record.qor_score >= 0.7 else "red"
-    table.add_row("QoR Score", f"[{qor_color}]{record.qor_score}[/{qor_color}]")
-    table.add_row("WNS", str(record.wns) if record.wns is not None else "N/A")
-    table.add_row("TNS", str(record.tns) if record.tns is not None else "N/A")
+    suffix = " (simulated)" if simulated else ""
+    table.add_row("QoR Score", f"[{qor_color}]{record.qor_score}[/{qor_color}]{suffix}")
+    table.add_row("WNS", (str(record.wns) if record.wns is not None else "N/A") + suffix)
+    table.add_row("TNS", (str(record.tns) if record.tns is not None else "N/A") + suffix)
     hold_wns = getattr(record, "hold_wns", None)
     if hold_wns is not None:
         hold_color = "green" if hold_wns >= 0 else "red"
         hold_label = "✓" if hold_wns >= 0 else "✗ TAPEOUT BLOCKER"
-        table.add_row("Hold WNS", f"[{hold_color}]{hold_wns:.3f} ns {hold_label}[/{hold_color}]")
-    table.add_row("Utilization", f"{record.utilization}%" if record.utilization is not None else "N/A")
-    table.add_row("Cell Count", str(record.cell_count) if record.cell_count is not None else "N/A")
-    table.add_row("Runtime", f"{record.runtime_sec}s" if record.runtime_sec is not None else "N/A")
+        table.add_row("Hold WNS", f"[{hold_color}]{hold_wns:.3f} ns {hold_label}[/{hold_color}]" + suffix)
+    table.add_row("Utilization", (f"{record.utilization}%" if record.utilization is not None else "N/A") + suffix)
+    table.add_row("Cell Count", (str(record.cell_count) if record.cell_count is not None else "N/A") + suffix)
+    table.add_row("Runtime", (f"{record.runtime_sec}s" if record.runtime_sec is not None else "N/A") + suffix)
 
     console.print(table)
 
@@ -227,7 +231,16 @@ def print_achievement_summary(record, elapsed=None):
     if elapsed:
         timing = f" in [cyan]{elapsed:.0f}s[/cyan]"
 
-    if getattr(record, "status", "") == "SUCCESS":
+    if getattr(record, "execution_mode", "real") == "mock":
+        console.print()
+        console.print(Panel(
+            "[bold cyan]SIMULATED/DEMO OUTPUT[/bold cyan]\n\n"
+            "Flow path exercised successfully with the mock adapter.\n"
+            "Synthetic metrics are placeholders and were not evaluated by real EDA tools.\n"
+            "Mock workflow complete — no tapeout conclusion available.",
+            border_style="cyan",
+        ))
+    elif getattr(record, "status", "") == "SUCCESS":
         qor = getattr(record, "qor_score", None)
         qor_str = f"  QoR Score: [bold green]{qor:.3f}[/bold green]" if qor is not None else ""
 

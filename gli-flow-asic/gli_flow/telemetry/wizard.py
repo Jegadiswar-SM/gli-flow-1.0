@@ -1,6 +1,6 @@
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Prompt
 from gli_flow.telemetry.settings import get_telemetry_settings, TelemetryMode
 
 console = Console()
@@ -16,7 +16,11 @@ def run_telemetry_wizard():
         "  • [bold]Product Quality[/bold]\n\n"
         "[bold green]Privacy Guarantee:[/bold green]\n"
         "GLI-FLOW [underline]NEVER[/underline] uploads RTL, Verilog, SystemVerilog, VHDL, Netlists,\n"
-        "DEF, LEF, GDS, Bitstreams, Liberty Files, or Constraint Contents.",
+        "DEF, LEF, GDS, Bitstreams, Liberty Files, or Constraint Contents.\n\n"
+        "[bold]What is collected:[/bold] sanitized stage names, tool/version identifiers,\n"
+        "timings/counts, failure signatures, resolution outcomes, and a one-way design fingerprint.\n"
+        "[bold]Destination:[/bold] GLI-FLOW telemetry service. [bold]Retention:[/bold] up to 24 months.\n"
+        "You can change or revoke this later with `gli-flow telemetry disable` or `gli-flow config`.",
         border_style="cyan",
     ))
     console.print()
@@ -52,4 +56,4 @@ def run_telemetry_wizard():
     settings.consent_given = True
     settings.save()
 
-    console.print("\n[bold green]✓ Settings saved.[/bold green] You can change this anytime with [bold]gli-flow telemetry mode[/bold].\n")
+    console.print("\n[bold green]✓ Settings saved.[/bold green] Change or revoke with [bold]gli-flow telemetry disable[/bold] or [bold]gli-flow config[/bold].\n")

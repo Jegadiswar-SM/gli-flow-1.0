@@ -80,7 +80,7 @@ These can also be set in `~/.gli-flow/config.json`:
 ```bash
 git clone https://github.com/Jegadiswar-SM/gli-flow-asic.git
 cd gli-flow-asic
-pip install -e .
+pip install -e ".[dashboard]"
 gli-flow install
 ```
 

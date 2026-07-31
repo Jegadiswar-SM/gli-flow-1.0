@@ -1,0 +1,5 @@
+recursive-include gli_flow *.json *.j2 *.jinja2 *.yaml *.yml *.tcl *.sdc
+recursive-include failure_atlas *.json
+recursive-include contracts *.json
+recursive-include configs *.json *.yaml *.yml *.tcl *.sdc
+include backend/*.py

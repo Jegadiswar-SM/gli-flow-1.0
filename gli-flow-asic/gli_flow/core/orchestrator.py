@@ -252,6 +252,8 @@ class FlowOrchestrator:
             implementation_status="NOT_STARTED",
             signoff_status="NOT_RUN",
             tapeout_ready=False,
+            execution_mode="mock" if mock else "real",
+            metric_quality="simulated_placeholder" if mock else "real_evidence",
         )
 
         # ITEMS 50-51: Secure run directory
@@ -781,6 +783,8 @@ class FlowOrchestrator:
             f"- **Run ID**: {self.run_id}",
             f"- **Design**: {self.design_name}",
             f"- **PDK**: {self.manifest.get('pdk', 'N/A')}",
+            f"- **Execution mode**: {'SIMULATED/DEMO (no EDA signoff)' if self._mock_mode else 'REAL TOOL FLOW'}",
+            f"- **Metric quality**: {'simulated placeholder; not evaluated for tapeout' if self._mock_mode else 'parsed from real tool evidence'}",
             f"- **Runtime**: {self.record.runtime_sec}s" if self.record.runtime_sec else "- **Runtime**: N/A",
             f"- **WNS**: {self.record.wns} ns" if self.record.wns is not None else "- **WNS**: N/A",
             f"- **TNS**: {self.record.tns} ns" if self.record.tns is not None else "- **TNS**: N/A",
@@ -790,7 +794,7 @@ class FlowOrchestrator:
             f"## Status",
             f"- **Implementation (RTL→GDS)**: {impl_status}",
             f"- **Signoff (GDS→Signoff)**: {signoff_status}",
-            f"- **Tapeout Ready**: {'YES' if tapeout else 'NO'}",
+            f"- **Tapeout Ready**: {'NO — mock workflow has no tapeout conclusion' if self._mock_mode else ('YES' if tapeout else 'NO')}",
         ]
         if impl_score is not None:
             lines.append(f"- **Implementation Score**: {impl_score:.3f}")
@@ -1694,13 +1698,22 @@ class FlowOrchestrator:
                 console.print(f"  {icon} {cr['corner']['name']}")
 
         console.print()
-        console.print(f"[bold green]✓ Implementation:[/bold green] SUCCESS")
+        if self._mock_mode:
+            console.print("[bold cyan]SIMULATED/DEMO OUTPUT — flow path exercised; design quality and signoff were not evaluated.[/bold cyan]")
+            console.print("[bold green]✓ Flow path:[/bold green] COMPLETE (mock adapter)")
+            console.print("[bold yellow]Signoff:[/bold yellow] NOT EVALUATED (mock output)")
+            console.print("[bold yellow]Mock workflow complete — no tapeout conclusion available.[/bold yellow]")
+        else:
+            console.print(f"[bold green]✓ Implementation:[/bold green] SUCCESS")
         signoff_label = self.record.signoff_status
+        if self._mock_mode:
+            signoff_label = "NOT_EVALUATED_MOCK"
         signoff_color = "green" if signoff_label == "PASS" else "yellow"
         tapeout_label = "YES" if self.record.tapeout_ready else "NO"
         tapeout_color = "green" if self.record.tapeout_ready else "yellow"
-        console.print(f"[bold {signoff_color}]✓ Signoff:[/bold {signoff_color}] {signoff_label}")
-        console.print(f"[bold {tapeout_color}]✓ Tapeout Ready:[/bold {tapeout_color}] {tapeout_label}")
+        if not self._mock_mode:
+            console.print(f"[bold {signoff_color}]✓ Signoff:[/bold {signoff_color}] {signoff_label}")
+            console.print(f"[bold {tapeout_color}]✓ Tapeout Ready:[/bold {tapeout_color}] {tapeout_label}")
         if classification.get("warnings"):
             for w in classification["warnings"]:
                 console.print(f"  [yellow]![/yellow] {w}")

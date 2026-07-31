@@ -3,6 +3,7 @@ import logging
 import logging.handlers
 import os
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -55,6 +56,26 @@ def _make_formatter(log_format):
 
 _initialized = False
 _added_run_dirs = set()
+_warning_emitted = False
+
+
+def user_data_dir() -> Path:
+    """Return the user data directory, with an explicit test/user override."""
+    override = os.environ.get("GLI_FLOW_LOG_DIR")
+    if override:
+        return Path(override)
+    if os.name == "nt":
+        return Path(os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()) / "gli-flow" / "logs"
+    return Path(os.environ.get("XDG_STATE_HOME") or
+                os.environ.get("XDG_CACHE_HOME") or
+                (Path.home() / ".local" / "state")) / "gli-flow" / "logs"
+
+
+def _warn_file_logging(exc):
+    global _warning_emitted
+    if not _warning_emitted:
+        print(f"GLI-FLOW warning: file logging unavailable ({exc}); using stderr only.", file=sys.stderr)
+        _warning_emitted = True
 
 
 def setup_logging(run_dir=None, level=None):
@@ -70,16 +91,17 @@ def setup_logging(run_dir=None, level=None):
         root.setLevel(logging.DEBUG)
         root.handlers.clear()
 
-        log_dir = Path.home() / ".gli-flow" / "logs"
-        log_dir.mkdir(parents=True, exist_ok=True)
-        file_handler = logging.handlers.RotatingFileHandler(
-            log_dir / "gli-flow.log",
-            maxBytes=10 * 1024 * 1024,
-            backupCount=5,
-        )
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
-        root.addHandler(file_handler)
+        try:
+            log_dir = user_data_dir()
+            log_dir.mkdir(parents=True, exist_ok=True)
+            file_handler = logging.handlers.RotatingFileHandler(
+                log_dir / "gli-flow.log", maxBytes=10 * 1024 * 1024, backupCount=5,
+            )
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            root.addHandler(file_handler)
+        except (OSError, PermissionError) as exc:
+            _warn_file_logging(exc)
 
         console_handler = logging.StreamHandler(sys.stderr)
         console_handler.setLevel(log_level)
@@ -93,15 +115,16 @@ def setup_logging(run_dir=None, level=None):
         if resolved not in _added_run_dirs:
             _added_run_dirs.add(resolved)
             run_log_dir = resolved / "logs"
-            run_log_dir.mkdir(parents=True, exist_ok=True)
-            run_handler = logging.handlers.RotatingFileHandler(
-                run_log_dir / "run.log",
-                maxBytes=10 * 1024 * 1024,
-                backupCount=3,
-            )
-            run_handler.setLevel(logging.DEBUG)
-            run_handler.setFormatter(formatter)
-            root.addHandler(run_handler)
+            try:
+                run_log_dir.mkdir(parents=True, exist_ok=True)
+                run_handler = logging.handlers.RotatingFileHandler(
+                    run_log_dir / "run.log", maxBytes=10 * 1024 * 1024, backupCount=3,
+                )
+                run_handler.setLevel(logging.DEBUG)
+                run_handler.setFormatter(formatter)
+                root.addHandler(run_handler)
+            except (OSError, PermissionError) as exc:
+                _warn_file_logging(exc)
 
 
 def get_logger(name):

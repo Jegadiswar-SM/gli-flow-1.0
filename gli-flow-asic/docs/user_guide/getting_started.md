@@ -13,7 +13,7 @@ git clone https://github.com/Jegadiswar-SM/gli-flow-asic.git
 cd gli-flow-asic
 python3 -m venv venv
 source venv/bin/activate
-pip install -e .
+pip install -e ".[dashboard]"
 gli-flow install
 ```
 
@@ -50,9 +50,9 @@ This runs the full pipeline in mock mode — no EDA tools needed. Expect:
   Cell Count    100
   Runtime       42.0s
 
-✓ Implementation: SUCCESS
-✓ Signoff: PASS
-✓ Tapeout Ready: YES
+SIMULATED/DEMO OUTPUT — flow path exercised successfully.
+Synthetic metrics are placeholders; design quality and signoff are not evaluated.
+Mock workflow complete — no tapeout conclusion available.
 ```
 
 ## 4. Open the Dashboard
@@ -69,7 +69,7 @@ telemetry. Use `gli-flow dashboard --backend-only` for the API server only at
 
 **RTL/IP never collected:** GLI-FLOW's telemetry explicitly excludes RTL source code,
 GDS, netlists, and constraints. Verified in the telemetry collection code. Default
-mode is local-only. See [Telemetry & Privacy](../privacy/telemetry_and_privacy.md).
+mode uploads sanitized telemetry by default. RTL/IP/netlists/GDS are never collected; opt out with `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled`. See [Telemetry & Privacy](../privacy/telemetry_and_privacy.md).
 
 ## Beta Scope
 

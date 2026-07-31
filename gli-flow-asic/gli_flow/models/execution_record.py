@@ -22,6 +22,8 @@ class ExecutionRecord:
     hold_tns: Optional[float] = None
     run_dir: str = ""
     timestamp: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    execution_mode: str = "real"
+    metric_quality: str = "real_evidence"
 
     implementation_status: str = "NOT_STARTED"
     signoff_status: str = "NOT_RUN"

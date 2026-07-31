@@ -12,7 +12,7 @@ validates your design config in seconds without any EDA tools installed.
 - **Mock mode.** Develop and validate manifests without the EDA toolchain.
 - **Built-in diagnostics.** Automated failure detection, root-cause analysis, and support bundles.
 - **Dashboard.** Web UI for run history, timing/area/power, DRC/LVS, and telemetry.
-- **Privacy-first.** Default local-only telemetry. RTL, GDS, and netlists are never collected.
+- **Transparent telemetry.** Default is full sanitized telemetry upload; RTL, IP, netlists, and GDS are never collected. Opt out with `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled`.
 
 ## Quick Install
 
@@ -21,8 +21,8 @@ git clone https://github.com/Jegadiswar-SM/gli-flow-asic.git
 cd gli-flow-asic
 python3 -m venv venv
 source venv/bin/activate
-pip install -e .
-gli-flow install
+pip install -e ".[dashboard]"
+gli-flow smoke-test --non-interactive
 ```
 
 Python 3.9+. Linux (Ubuntu 22.04+ / Debian 12+ / WSL2).
@@ -30,11 +30,15 @@ Python 3.9+. Linux (Ubuntu 22.04+ / Debian 12+ / WSL2).
 ## Quick Start
 
 ```bash
-# Verify installation
-gli-flow doctor
+# Verify mock readiness
+gli-flow doctor --for mock
+gli-flow smoke-test --non-interactive
 
 # First run (mock mode, no EDA tools required)
-gli-flow run examples/counter --mock
+gli-flow run --example counter --mock --non-interactive
+
+# Start a new design after the example
+gli-flow init my_design
 
 # Launch dashboard
 gli-flow dashboard
@@ -76,7 +80,7 @@ Use `--backend-only` for API at `http://127.0.0.1:8000`.
 - Open-source ASIC implementation flow (Yosys + OpenROAD + Magic + KLayout)
 - Mock mode for config validation
 - Execution observability and Failure Atlas
-- Opt-in telemetry collection (RTL/IP never collected)
+- Full sanitized telemetry upload by default; opt out with `gli-flow telemetry disable`
 - Web dashboard
 
 **Not included:**

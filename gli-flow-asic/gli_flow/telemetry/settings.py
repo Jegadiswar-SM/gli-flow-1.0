@@ -4,7 +4,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-SETTINGS_FILE = Path.home() / ".gli-flow" / "telemetry_settings.json"
+def settings_file() -> Path:
+    """Resolve settings at call time so tests and relocated homes work."""
+    override = os.environ.get("GLI_FLOW_CONFIG_DIR")
+    if override:
+        return Path(override) / "telemetry_settings.json"
+    return Path(os.environ.get("XDG_CONFIG_HOME") or (Path.home() / ".config")) / "gli-flow" / "telemetry_settings.json"
 
 class TelemetryMode:
     FULL = "full"
@@ -17,22 +22,28 @@ class TelemetrySettings:
         self.settings = self._load()
 
     def _load(self) -> Dict[str, Any]:
-        if SETTINGS_FILE.exists():
+        path = settings_file()
+        if path.exists():
             try:
-                with open(SETTINGS_FILE, "r") as f:
+                with open(path, "r") as f:
                     return json.load(f)
             except Exception:
                 pass
         return {}
 
     def save(self):
-        SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(SETTINGS_FILE, "w") as f:
-            json.dump(self.settings, f, indent=2)
+        path = settings_file()
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w") as f:
+                json.dump(self.settings, f, indent=2)
+        except OSError:
+            # Consent is still usable for this invocation when persistence is unavailable.
+            return
 
     @property
     def mode(self) -> str:
-        return self.settings.get("telemetry_mode", TelemetryMode.LOCAL)
+        return self.settings.get("telemetry_mode", TelemetryMode.FULL)
 
     @mode.setter
     def mode(self, value: str):

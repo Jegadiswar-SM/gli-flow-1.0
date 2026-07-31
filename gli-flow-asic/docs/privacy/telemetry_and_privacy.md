@@ -11,16 +11,22 @@ GLI-FLOW collects anonymized execution telemetry to improve failure detection, r
 | `LOCAL` | ✅ All events | ❌ No upload | Full insights, no data sent |
 | `DISABLED` | ❌ No collection | ❌ No upload | Zero telemetry |
 
-Default: `LOCAL` (non-interactive), user chooses during first run (interactive).
+Default: `FULL` sanitized telemetry upload. Use `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled` to opt out. Non-interactive and non-TTY runs never prompt and use the persisted mode or this default.
 
 ## Consent Workflow
 
-1. First CLI command triggers the telemetry wizard
-2. Interactive: prompts "Enable telemetry?" (Y/n)
-3. Non-interactive (`--non-interactive`): defaults to LOCAL
-4. Saved to `~/.gli-flow/config.yaml`
+1. Inspection commands never trigger the wizard.
+2. Interactive execution commands disclose the payload, destination, retention, and exclusions before asking.
+3. Non-interactive (`--non-interactive`) never reads stdin and uses the persisted mode or FULL.
+4. Saved under the OS user config directory.
 
 ## Managing Telemetry
+
+The default is full sanitized telemetry upload. The payload contains sanitized
+stage names, tool/version identifiers, aggregate timings/counts, failure
+signatures, outcomes, and a one-way design fingerprint. RTL, IP, netlists,
+constraints, DEF, LEF, and GDS are explicitly excluded. Data is sent to the
+GLI-FLOW telemetry service and retained for up to 24 months.
 
 ```bash
 # View current status
