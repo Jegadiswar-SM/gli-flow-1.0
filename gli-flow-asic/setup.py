@@ -1,6 +1,9 @@
 from setuptools import setup, find_packages
+from pathlib import Path
+import re
 
-from gli_flow.version import VERSION
+_version_text = (Path(__file__).parent / "gli_flow" / "version.py").read_text()
+VERSION = re.search(r'VERSION\s*=\s*["\']([^"\']+)', _version_text).group(1)
 
 setup(
     name="gli-flow",
