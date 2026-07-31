@@ -45,6 +45,7 @@ from gli_flow.infrastructure.environment_validator import EnvironmentValidator
 from gli_flow.infrastructure.repair_actions import run_repairs, repair_path_shadowing
 from gli_flow.doctor import DiscoveryReport, run_magic_discovery
 from gli_flow.cli.smoke_test import run_smoke_test
+from gli_flow.cli.status import Readiness
 
 
 
@@ -602,6 +603,12 @@ def run_command(args):
         else:
             friendly_error("manifest")
             console.print(f"[bold yellow]💡 Details:[/bold yellow] Directory not found: {design_path}")
+            import difflib
+            examples_root = Path(__file__).resolve().parents[2] / "examples"
+            known = [p.name for p in examples_root.iterdir() if p.is_dir()]
+            matches = difflib.get_close_matches(Path(design_path).name, known, n=3, cutoff=0.45)
+            if matches:
+                console.print(f"[bold yellow]Did you mean:[/bold yellow] {', '.join(matches)}? Use `--example NAME`.")
             sys.exit(1)
 
     manifest_file = Path(design_path) / "gli_manifest.yaml"
@@ -615,7 +622,15 @@ def run_command(args):
         error(f"Manifest validation failed: {msg}")
         sys.exit(1)
 
-    console.print(f"Pre-flight: manifest={manifest_file} output=outputs/runs (mode={'mock' if args.mock else 'real'})")
+    import yaml
+    manifest_data = yaml.safe_load(manifest_file.read_text()) or {}
+    rtl_list = manifest_data.get("rtl_files", [])
+    constraints = manifest_data.get("sdc_file") or manifest_data.get("constraints") or "not specified"
+    console.print(
+        f"Pre-flight: manifest={manifest_file.resolve()} top={manifest_data.get('top_module')} "
+        f"rtl={rtl_list} constraints={constraints} pdk={manifest_data.get('pdk', 'sky130')} "
+        f"output={Path('outputs/runs').resolve()} mode={'mock' if args.mock else 'real'}"
+    )
 
     if not getattr(args, 'mock', False):
         config = _load_yaml_config()
@@ -1127,7 +1142,8 @@ def doctor_command(args):
         console.print("GLI-FLOW Doctor — target: mock workflow")
         for name, item_ok, detail in items:
             console.print(f"  {'✓' if item_ok else '✗'} {name}: {detail}")
-        console.print(f"FINAL_VERDICT: {'READY_FOR_MOCK' if ok else 'BLOCKED'}")
+        verdict = Readiness.READY_FOR_MOCK if ok else Readiness.BLOCKED
+        console.print(f"FINAL_VERDICT: {verdict.value}")
         if not ok:
             sys.exit(1)
         return
@@ -1135,7 +1151,8 @@ def doctor_command(args):
         from gli_flow.cli.smoke_test import _check_dashboard_health
         ok, detail = _check_dashboard_health()
         console.print(f"Dashboard backend: {detail}")
-        console.print(f"FINAL_VERDICT: {'READY' if ok else 'BLOCKED'}")
+        verdict = Readiness.READY if ok else Readiness.BLOCKED
+        console.print(f"FINAL_VERDICT: {verdict.value}")
         if not ok:
             sys.exit(1)
         return
@@ -1156,7 +1173,7 @@ def doctor_command(args):
     validator = EnvironmentValidator(db_path=db_path, backend="local")
 
     if getattr(args, 'fix', False):
-        info("Running auto-repair...")
+        info("Running auto-repair now...")
         repair_results = run_repairs(db_path=db_path)
         for result in repair_results:
             if result.success:
@@ -1177,7 +1194,7 @@ def doctor_command(args):
 
     if not report.all_pass:
         sys.exit(1)
-    console.print("FINAL_VERDICT: READY_FOR_REAL_FLOW")
+    console.print(f"FINAL_VERDICT: {Readiness.READY_FOR_REAL_FLOW.value}")
 
 
 def remote_command(args):
@@ -2721,7 +2738,7 @@ def build_parser():
 
     run_parser = subparsers.add_parser("run", help="Run a design through the flow (mock demo is usually under a minute)", epilog=(EXAMPLES["run"] + "\nSuccess means the selected flow path completed; it does not prove design quality or tapeout readiness."))
     run_parser._category = "Execution"
-    run_parser.add_argument("design", nargs="?", help="Path to design directory with gli_manifest.yaml")
+    run_parser.add_argument("design", nargs="?", help="Design path; bare example names are shorthand for --example NAME")
     run_parser.add_argument("--example", help="Run a named built-in example, e.g. --example counter")
     run_parser.add_argument("--verbose", "-v", action="store_true", help="Show full traceback on error")
     run_parser.add_argument("--threads", "-j", type=int, default=None,
@@ -3042,13 +3059,15 @@ def main():
     _apply_telemetry_flag(getattr(args, "telemetry", None) or getattr(args, "command_telemetry", None))
 
     # Skip wizard for basic help/config commands if they are being used to disable it
-    inspection_commands = {None, "help", "doctor", "smoke-test", "show-telemetry", "history", "status", "report", "db"}
+    inspection_commands = {None, "help", "doctor", "smoke-test", "show-telemetry", "history", "status", "report", "db", "validate", "examples"}
     if args.command not in inspection_commands and not (args.command == "telemetry" and args.telemetry_command in ["disable", "mode", "status", "preview"]):
         # Pass non-interactive status to telemetry consent
         try:
             _ensure_telemetry_consent(non_interactive=getattr(args, 'non_interactive', False) or getattr(args, 'command_non_interactive', False))
-        except Exception:
-            error_and_exit("Telemetry initialization failed", fix="Run 'gli-flow telemetry disable' to turn off telemetry, or check your network connection.", verbose=getattr(args, 'verbose', False))
+        except Exception as exc:
+            # Telemetry is auxiliary; core flow commands remain usable when an
+            # optional uploader dependency or writable home is unavailable.
+            warn(f"Telemetry unavailable for this invocation ({type(exc).__name__}); continuing locally.")
 
     if args.command == "run":
         run_command(args)

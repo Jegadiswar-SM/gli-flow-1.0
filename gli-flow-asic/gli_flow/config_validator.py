@@ -60,19 +60,28 @@ def validate_manifest(manifest_path):
 
     manifest_dir = manifest_path.parent
     for rtl in rtl_files:
-        rtl_path = Path(rtl)
-        if not rtl_path.exists():
-            rtl_path = manifest_dir / rtl
-        if not rtl_path.exists():
-            rtl_path = Path.cwd() / rtl
-        if not rtl_path.exists():
-            for ancestor in manifest_dir.parents:
-                candidate = ancestor / rtl
-                if candidate.exists():
-                    rtl_path = candidate
-                    break
+        # Manifest paths are intentionally anchored to the manifest directory;
+        # validation must be independent of the caller's working directory.
+        rtl_path = manifest_dir / rtl
+        # Older bundled manifests used project-root-relative examples/... paths.
+        # Resolve that legacy form from the repository root inferred from the
+        # manifest, never from the process CWD.
+        legacy_prefix = Path("examples") / manifest_dir.name
+        if not rtl_path.exists() and Path(rtl).parts[:2] == legacy_prefix.parts:
+            rtl_path = manifest_dir.parents[1] / rtl
         if not rtl_path.exists():
             return (False, f"RTL file not found: {rtl}")
+
+    constraint_values = manifest.get("sdc_file") or manifest.get("constraints") or []
+    if isinstance(constraint_values, str):
+        constraint_values = [constraint_values]
+    for constraint in constraint_values:
+        constraint_path = manifest_dir / constraint
+        legacy_constraint = Path("examples") / manifest_dir.name
+        if not constraint_path.exists() and Path(constraint).parts[:2] == legacy_constraint.parts:
+            constraint_path = manifest_dir.parents[1] / constraint
+        if not constraint_path.exists():
+            return (False, f"Constraints file not found: {constraint}")
 
     pdk = manifest.get("pdk", "sky130")
     if pdk not in SUPPORTED_PDKS and not pdk.startswith("gf"):

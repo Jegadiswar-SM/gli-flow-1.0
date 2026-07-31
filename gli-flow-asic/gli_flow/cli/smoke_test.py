@@ -8,6 +8,7 @@ from pathlib import Path
 
 from gli_flow.cli.utils import info, success, warn, error
 from gli_flow.config_validator import validate_manifest
+from gli_flow.cli.status import Readiness
 
 
 # Tool classification
@@ -31,6 +32,8 @@ def run_smoke_test(args):
     optional_items = _check_optional(args)
 
     _print_redesign(mock_pass, mock_items, real_tools, optional_items)
+    verdict = Readiness.READY_FOR_MOCK if mock_pass else Readiness.BLOCKED
+    print(f"FINAL_VERDICT: {verdict.value}")
 
     if not mock_pass:
         sys.exit(1)

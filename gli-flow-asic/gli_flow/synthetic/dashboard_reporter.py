@@ -111,16 +111,14 @@ def generate_sample_dashboard_data():
 
     # Perform quality checks on the generated dataset
     quality_report = quality_engine.perform_quality_checks(training_dataset)
-    print("
-Quality Report:")
+    print("\nQuality Report:")
     print(quality_report)
 
     # Generate dashboard metrics
     reporter = DashboardReporter(training_dataset)
     metrics = reporter.get_dashboard_metrics()
 
-    print("
---- Synthetic Dataset Dashboard Metrics ---")
+    print("\n--- Synthetic Dataset Dashboard Metrics ---")
     for key, value in metrics.items():
         if isinstance(value, dict):
             print(f"- {key}:")
