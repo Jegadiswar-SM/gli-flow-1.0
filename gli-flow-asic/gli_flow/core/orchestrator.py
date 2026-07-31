@@ -189,7 +189,8 @@ class FlowOrchestrator:
 
     def __init__(self, design_path, threads: int = None, memory_mb: int = None,
                  orfs_root: str = None, mock: bool = False, db_path: str = None,
-                 certification_mode: bool = False):
+                 certification_mode: bool = False, resumed_from: str = None,
+                 resume_stage: str = None):
         discover_pdks()
 
         certification_mode = certification_mode or os.environ.get("GLI_FLOW_CERTIFICATION_MODE", "").lower() in ("1", "true", "yes")
@@ -203,6 +204,8 @@ class FlowOrchestrator:
 
         self.design_path = Path(design_path)
         self.db_path = db_path
+        self.resumed_from = resumed_from
+        self.resume_stage = resume_stage
 
         self.manifest = self._read_manifest()
         self.design_name = self.manifest.get("top_module") or self.design_path.name
@@ -781,6 +784,7 @@ class FlowOrchestrator:
             f"# Run Summary: {self.design_name}",
             f"",
             f"- **Run ID**: {self.run_id}",
+            f"- **Resumed from**: {self.resumed_from} at {self.resume_stage}" if self.resumed_from else "- **Resumed from**: none",
             f"- **Design**: {self.design_name}",
             f"- **PDK**: {self.manifest.get('pdk', 'N/A')}",
             f"- **Execution mode**: {'SIMULATED/DEMO (no EDA signoff)' if self._mock_mode else 'REAL TOOL FLOW'}",

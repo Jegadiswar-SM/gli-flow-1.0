@@ -669,6 +669,8 @@ def run_command(args):
             mock=getattr(args, 'mock', False),
             db_path=db_path,
             certification_mode=getattr(args, 'certify', False),
+            resumed_from=getattr(args, 'resumed_from', None),
+            resume_stage=getattr(args, 'resume_stage', None),
         )
         print_run_header(
             orchestrator.run_id,
@@ -730,6 +732,27 @@ def validate_command(args):
     console.print(f"VALIDATION: {'PASS' if ok else 'FAIL'} — {message}")
     if not ok:
         sys.exit(1)
+
+
+def rerun_command(args):
+    """Create a fresh run linked to an earlier run record."""
+    db = DatabaseManager(db_path=getattr(args, "db_path", None))
+    run = db.get_run(args.run_id)
+    if not run:
+        structured_error("Run not found", why=f"No run record exists for {args.run_id}.", fix="Run `gli-flow history` to list valid run IDs.")
+        sys.exit(1)
+    design_path = Path("examples") / (run.get("design_name") or "counter")
+    if not design_path.exists():
+        design_path = Path(run.get("run_dir", "")).parent
+    if not (design_path / "gli_manifest.yaml").exists():
+        structured_error("Original design is unavailable", why="The source directory for this run is missing.", fix="Restore the design and rerun.")
+        sys.exit(1)
+    console.print(f"Rerunning {args.run_id} from stage {args.from_stage}; original history will not be modified.")
+    run_command(argparse.Namespace(
+        design=str(design_path), example=None, mock=getattr(args, "mock", False),
+        threads=None, memory=None, orfs_root=None, db_path=getattr(args, "db_path", None),
+        certify=False, verbose=False, resumed_from=args.run_id, resume_stage=args.from_stage,
+    ))
 
 
 def status_command(args):
@@ -2785,6 +2808,13 @@ def build_parser():
     validate_parser._category = "Setup"
     validate_parser.add_argument("design", help="Design directory or path to gli_manifest.yaml")
 
+    rerun_parser = subparsers.add_parser("rerun", help="Start a new run linked to an earlier run, from a named stage")
+    rerun_parser._category = "Execution"
+    rerun_parser.add_argument("run_id", help="Original run ID")
+    rerun_parser.add_argument("--from", dest="from_stage", required=True, help="Stage to resume from")
+    rerun_parser.add_argument("--mock", action="store_true", help="Use mock execution for the new run")
+    rerun_parser.add_argument("--db-path", type=str, default=None, help="Path to SQLite database")
+
     init_parser = subparsers.add_parser("init", help="Create a new design manifest", epilog=EXAMPLES["init"])
     init_parser._category = "Setup"
     init_parser.add_argument("design_name", help="Name of the design (creates a directory and manifest)")
@@ -3075,6 +3105,8 @@ def main():
         examples_command(args)
     elif args.command == "validate":
         validate_command(args)
+    elif args.command == "rerun":
+        rerun_command(args)
     elif args.command == "history":
         history_command(args)
     elif args.command == "status":
