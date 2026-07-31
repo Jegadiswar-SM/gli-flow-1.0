@@ -9,7 +9,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "audit": "npm audit --audit-level=high",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:bundle": "node scripts/check_bundle_budget.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",

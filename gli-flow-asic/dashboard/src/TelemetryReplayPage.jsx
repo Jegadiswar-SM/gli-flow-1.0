@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Upload, Play, CheckCircle, AlertTriangle, ChevronDown, ChevronRight, Download } from "lucide-react"
+import { Upload, Play, CheckCircle, AlertTriangle, ChevronDown, ChevronRight } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 

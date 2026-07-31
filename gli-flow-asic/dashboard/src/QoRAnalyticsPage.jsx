@@ -120,7 +120,7 @@ export default function QoRAnalyticsPage({ onSelectRun }) {
                 </tr>
               </thead>
               <tbody>
-                {releases.slice(0, 10).map((r, i) => (
+                {releases.slice(0, 10).map((r) => (
                   <tr key={r.run_id} className="text-xs border-b border-stone-ridge/50 cursor-pointer hover:bg-[#F3F2ED]" onClick={() => onSelectRun?.(r.run_id)}>
                     <td className="py-2 pr-2 font-medium text-abyss-ink">{r.run_id.slice(0, 16)}</td>
                     <td className="py-2 pr-2 text-[#6B7280]">{r.design_name}</td>

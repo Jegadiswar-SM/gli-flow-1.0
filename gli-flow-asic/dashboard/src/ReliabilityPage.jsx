@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Shield, CheckCircle, AlertTriangle, XCircle, Activity, TrendingUp, BarChart3 } from "lucide-react"
+import { Shield, CheckCircle, AlertTriangle, XCircle, Activity } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 
@@ -25,16 +25,14 @@ function ConfidenceBadge({ confidence }) {
 
 export default function ReliabilityPage() {
   const [summary, setSummary] = useState(null)
-  const [healthData, setHealthData] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     Promise.all([
       fetch(`${API_BASE}/reliability/summary`).then(r => r.ok ? r.json() : null),
       fetch(`${API_BASE}/reliability/health`).then(r => r.ok ? r.json() : []),
-    ]).then(([s, h]) => {
+    ]).then(([s]) => {
       setSummary(s)
-      setHealthData(h)
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])

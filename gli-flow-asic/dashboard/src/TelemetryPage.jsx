@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Eye, Shield, CheckCircle, AlertTriangle, ChevronDown, ChevronRight, Download, Terminal, Info, FileDown } from "lucide-react"
+import { Eye, Shield, CheckCircle, ChevronDown, ChevronRight, Info, FileDown } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 

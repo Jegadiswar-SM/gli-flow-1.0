@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import {
   Search, FileText, FileImage, File, Download, Maximize2, Minimize2,
-  Copy, Check, X, ChevronUp, ChevronDown, Filter, ZoomIn, ZoomOut,
-  ArrowLeft, ArrowRight, ExternalLink, AlertTriangle
+  Copy, Check, X, ChevronUp, ChevronDown, ZoomIn, ZoomOut, ExternalLink, AlertTriangle
 } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
@@ -349,7 +348,7 @@ const FILTER_OPTIONS = [
   { key: "config", label: "Config" },
 ]
 
-export default function ArtifactViewer({ runId, initialPath, onArtifactSelect, highlightLine: initialHighlightLine }) {
+export default function ArtifactViewer({ runId, initialPath, onArtifactSelect }) {
   const [artifacts, setArtifacts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)

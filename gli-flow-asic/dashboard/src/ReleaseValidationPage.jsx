@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Shield, CheckCircle, XCircle, Clock, ExternalLink } from "lucide-react"
+import { Shield, CheckCircle, Clock } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 

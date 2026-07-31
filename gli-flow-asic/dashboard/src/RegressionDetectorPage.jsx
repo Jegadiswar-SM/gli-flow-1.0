@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { AlertTriangle, ArrowUp, ArrowDown, Minus, Zap, Search, ChevronDown } from "lucide-react"
+import { AlertTriangle, ArrowUp, ArrowDown, Minus, Zap, Search } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 

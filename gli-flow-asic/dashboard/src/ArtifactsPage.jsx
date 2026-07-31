@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Folder, FileText, Download, ExternalLink, Search } from "lucide-react"
+import { Download } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 
@@ -46,7 +46,7 @@ export default function ArtifactsPage() {
         <div className="bg-white border border-stone-ridge rounded-lg p-4">
           <h3 className="font-[Playfair_Display] text-[13px] text-abyss-ink mb-3">Run Selection</h3>
           <div className="space-y-1 max-h-[400px] overflow-y-auto">
-            {runs.map((r, i) => (
+            {runs.map((r) => (
               <button
                 key={r.run_id}
                 onClick={() => setSelectedRun(r.run_id)}

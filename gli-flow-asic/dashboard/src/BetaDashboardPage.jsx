@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 
@@ -25,7 +24,7 @@ export default function BetaDashboardPage() {
       fetch(`${API_BASE}/atlas/metrics`).then(r => r.json()),
       fetch(`${API_BASE}/resolutions/metrics`).then(r => r.json()),
     ])
-      .then(([dash, rep, atlas, res]) => {
+      .then(([dash, rep]) => {
         setData(dash)
         setReport(rep)
         setLoading(false)

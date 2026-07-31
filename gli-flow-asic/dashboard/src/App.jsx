@@ -1,41 +1,36 @@
-import { useState, useEffect } from "react"
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ReferenceLine, Area, AreaChart, PieChart, Pie, Cell,
-  ResponsiveContainer, Legend
-} from "recharts"
+import { useState, useEffect, lazy, Suspense } from "react"
+import { XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Area, AreaChart, PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
 import {
   LayoutDashboard, Play, Grid, Activity, Folder, BarChart2, Zap, TrendingUp,
   Map, GitBranch, Shield, Sliders, Server, Settings, HelpCircle,
   Bell, ChevronDown, MoreVertical, CheckCircle, AlertTriangle,
-  Star, Menu, ExternalLink, Eye, Upload, MessageSquare, Target, Users,
+  Star, Menu, ExternalLink, Eye, Upload, MessageSquare, Users,
   BarChart3, Award
 } from "lucide-react"
-import RunDetail from "./RunDetail"
-import FailureAtlasPage from "./FailureAtlasPage"
-import EngineeringDashboardPage from "./EngineeringDashboardPage"
-import QoRAnalyticsPage from "./QoRAnalyticsPage"
-import RegressionDetectorPage from "./RegressionDetectorPage"
-import TrendsReportsPage from "./TrendsReportsPage"
-import RunsPage from "./RunsPage"
-import ReliabilityPage from "./ReliabilityPage"
-import ProvenancePage from "./ProvenancePage"
-import ReleaseValidationPage from "./ReleaseValidationPage"
-import PolicySuitePage from "./PolicySuitePage"
-import RunDesignPage from "./RunDesignPage"
-import RunMatrixPage from "./RunMatrixPage"
-import RunMonitorPage from "./RunMonitorPage"
-import ArtifactsPage from "./ArtifactsPage"
-import InfrastructurePage from "./InfrastructurePage"
-import SettingsPage from "./SettingsPage"
-import HelpPage from "./HelpPage"
-import TelemetryPage from "./TelemetryPage"
-import TelemetryHealthPage from "./TelemetryHealthPage"
-import TelemetryReplayPage from "./TelemetryReplayPage"
-import FeedbackCenterPage from "./FeedbackCenterPage"
-import ProductAnalyticsPage from "./ProductAnalyticsPage"
-import UserJourneyPage from "./UserJourneyPage"
-import BetaDashboardPage from "./BetaDashboardPage"
+const RunDetail = lazy(() => import("./RunDetail"))
+const FailureAtlasPage = lazy(() => import("./FailureAtlasPage"))
+const EngineeringDashboardPage = lazy(() => import("./EngineeringDashboardPage"))
+const QoRAnalyticsPage = lazy(() => import("./QoRAnalyticsPage"))
+const RegressionDetectorPage = lazy(() => import("./RegressionDetectorPage"))
+const TrendsReportsPage = lazy(() => import("./TrendsReportsPage"))
+const RunsPage = lazy(() => import("./RunsPage"))
+const ProvenancePage = lazy(() => import("./ProvenancePage"))
+const ReleaseValidationPage = lazy(() => import("./ReleaseValidationPage"))
+const PolicySuitePage = lazy(() => import("./PolicySuitePage"))
+const RunDesignPage = lazy(() => import("./RunDesignPage"))
+const RunMatrixPage = lazy(() => import("./RunMatrixPage"))
+const RunMonitorPage = lazy(() => import("./RunMonitorPage"))
+const ArtifactsPage = lazy(() => import("./ArtifactsPage"))
+const InfrastructurePage = lazy(() => import("./InfrastructurePage"))
+const SettingsPage = lazy(() => import("./SettingsPage"))
+const HelpPage = lazy(() => import("./HelpPage"))
+const TelemetryPage = lazy(() => import("./TelemetryPage"))
+const TelemetryHealthPage = lazy(() => import("./TelemetryHealthPage"))
+const TelemetryReplayPage = lazy(() => import("./TelemetryReplayPage"))
+const FeedbackCenterPage = lazy(() => import("./FeedbackCenterPage"))
+const ProductAnalyticsPage = lazy(() => import("./ProductAnalyticsPage"))
+const UserJourneyPage = lazy(() => import("./UserJourneyPage"))
+const BetaDashboardPage = lazy(() => import("./BetaDashboardPage"))
 import RunStar from "./components/RunStar"
 import { trackEvent } from "./lib/telemetry"
 
@@ -467,6 +462,7 @@ function App() {
 
         {/* === SCROLLABLE CONTENT === */}
         <main className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          <Suspense fallback={<div className="py-12 text-center text-[#6B7280] text-xs">Loading page…</div>}>
           {activeNav === "Important Runs" ? (
             <RunsPage importantOnly={true} onBack={() => setActiveNav("Dashboard")} onSelectRun={setSelectedRun} />
           ) : viewingRuns ? (
@@ -808,6 +804,7 @@ function App() {
           <div className="h-14" />
           </>
           )}
+          </Suspense>
         </main>
       </div>
 

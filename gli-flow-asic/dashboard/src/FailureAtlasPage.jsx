@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Search, Filter, AlertTriangle, CheckCircle, ChevronDown, ChevronRight, ExternalLink, ArrowUp, ArrowDown, Minus, Sparkles, ThumbsUp, ThumbsDown, MessageSquare, Send, Shield } from "lucide-react"
+import { Search, AlertTriangle, CheckCircle, Sparkles, ThumbsUp, ThumbsDown, Send, Shield } from "lucide-react"
 import AIAvailabilityGuard from "./components/AIAvailabilityGuard"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
@@ -18,8 +18,6 @@ const severityStyles = {
   ERROR: "bg-orange-100 text-orange-700 border-orange-200",
   CRITICAL: "bg-red-100 text-red-700 border-red-200",
 }
-
-const severityOrder = { INFO: 0, ADVISORY: 1, WARNING: 2, ERROR: 3, CRITICAL: 4 }
 
 function SeverityBadge({ severity }) {
   const level = _severityLevel(severity)
@@ -609,7 +607,7 @@ function FailureList({ failures, onSelect }) {
     <div className="space-y-2">
       {failures.map((fa) => {
         let ev = {}
-        try { if (typeof fa.evidence === "string") { ev = JSON.parse(fa.evidence) } else if (fa.evidence) { ev = fa.evidence } } catch {}
+        try { if (typeof fa.evidence === "string") { ev = JSON.parse(fa.evidence) } else if (fa.evidence) { ev = fa.evidence } } catch { /* Evidence is optional and may be malformed. */ }
         const stage = fa.detection_stage || ev.stage || fa.domain || "—"
         const errorText = fa.description || fa.title || ""
         const isGeneric = !fa.title || fa.title === `Pipeline failed at stage ${stage}` || fa.title.startsWith("Run")
@@ -779,7 +777,7 @@ function FailureDetail({ failure, onBack }) {
       const identifier = failure.signature || failure.failure_type;
       if (identifier) {
         let ev = {}
-        try { if (typeof failure.evidence === "string") { ev = JSON.parse(failure.evidence) } else if (failure.evidence) { ev = failure.evidence } } catch {}
+        try { if (typeof failure.evidence === "string") { ev = JSON.parse(failure.evidence) } else if (failure.evidence) { ev = failure.evidence } } catch { /* Evidence is optional and may be malformed. */ }
         const citation = ev.citation || ""
         const params = citation ? `?citation=${encodeURIComponent(citation)}` : ""
         fetch(`${API_BASE}/knowledge/failures/${identifier}${params}`)
@@ -798,7 +796,7 @@ function FailureDetail({ failure, onBack }) {
   if (!failure) return null
 
   let ev = {}
-  try { if (typeof failure.evidence === "string") { ev = JSON.parse(failure.evidence) } else if (failure.evidence) { ev = failure.evidence } } catch {}
+  try { if (typeof failure.evidence === "string") { ev = JSON.parse(failure.evidence) } else if (failure.evidence) { ev = failure.evidence } } catch { /* Evidence is optional and may be malformed. */ }
 
   const stage = ev.stage || failure.detection_stage || failure.domain || "—"
   const errorText = failure.description || failure.title || ""

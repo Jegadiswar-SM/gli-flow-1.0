@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Shield, Send, CheckCircle, AlertTriangle, ExternalLink, ArrowUp, FileText, TrendingUp, TrendingDown } from "lucide-react"
+import { Shield, CheckCircle, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 

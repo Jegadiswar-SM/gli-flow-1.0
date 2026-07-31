@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Sliders, CheckCircle, XCircle, FileText } from "lucide-react"
+import { Sliders, CheckCircle, FileText } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 
@@ -16,10 +16,8 @@ export default function PolicySuitePage() {
 
   if (loading) return <div className="py-12 text-center text-[#6B7280] text-xs font-[Work_Sans]">Loading policy data...</div>
 
-  const total = runs.length
   const withQor = runs.filter(r => r.qor_score != null).length
   const passing = runs.filter(r => r.qor_score != null && r.qor_score >= 0.7).length
-  const failing = runs.filter(r => r.qor_score != null && r.qor_score < 0.7).length
   const passRate = withQor > 0 ? Math.round(passing / withQor * 100) : 0
 
   const policies = [

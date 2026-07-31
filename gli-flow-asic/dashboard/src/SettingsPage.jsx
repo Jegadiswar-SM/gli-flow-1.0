@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Settings, Bell, Database, RefreshCw, Globe, Cpu, CheckCircle, XCircle } from "lucide-react"
+import { Bell, Database, RefreshCw, Globe, Cpu, CheckCircle, XCircle } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 

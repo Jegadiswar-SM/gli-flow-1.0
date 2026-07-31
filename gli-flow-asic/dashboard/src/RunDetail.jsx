@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ArrowLeft, Clock, AlertTriangle, CheckCircle, XCircle, Download, ChevronDown, ChevronRight, ExternalLink, FolderOpen } from "lucide-react"
+import { ArrowLeft, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, ExternalLink, FolderOpen } from "lucide-react"
 import ArtifactViewer from "./ArtifactViewer"
 import AIAvailabilityGuard from "./components/AIAvailabilityGuard"
 
@@ -244,33 +244,6 @@ function LayoutImagesTab({ run }) {
   )
 }
 
-function ReportsTab({ run }) {
-  const reportTypes = ["6_finish", "metrics", "synth_stat"]
-  return (
-    <div className="space-y-3">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-[10px] text-blue-700 flex items-center gap-2">
-        <FolderOpen size={14} />
-        Browse all reports, logs, and artifacts in the <strong>Artifacts</strong> tab above.
-      </div>
-      {reportTypes.map((name) => (
-        <div key={name} className="bg-white border border-stone-ridge rounded-lg p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-semibold">{name}</h4>
-            <a
-              href={`${API_BASE}/runs/${run.run_id}/report/${name}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[10px] text-meridian-gold flex items-center gap-1"
-            >
-              <Download size={12} /> View
-            </a>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function FailureAtlasTab({ run, onNavigateToArtifact }) {
   const [failures, setFailures] = useState(null)
   const [expanded, setExpanded] = useState({})
@@ -426,7 +399,7 @@ function FailureAtlasTab({ run, onNavigateToArtifact }) {
       </div>
       {sorted.map((fa) => {
         let ev = {}
-        try { if (typeof fa.evidence === "string") { ev = JSON.parse(fa.evidence) } else if (fa.evidence) { ev = fa.evidence } } catch {}
+        try { if (typeof fa.evidence === "string") { ev = JSON.parse(fa.evidence) } else if (fa.evidence) { ev = fa.evidence } } catch { /* Evidence is optional and may be malformed. */ }
         const stage = ev.stage || fa.detection_stage || "—"
         const isGeneric = !fa.title || fa.title === `Pipeline failed at stage ${stage}` || fa.title.startsWith("Run run_")
         const fid = fa.id || fa.failure_id
@@ -605,7 +578,7 @@ function FailureAtlasTab({ run, onNavigateToArtifact }) {
   )
 }
 
-function AiInvestigationTab({ run, onNavigateToArtifact }) {
+function AiInvestigationTab({ run }) {
   const [investigation, setInvestigation] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)

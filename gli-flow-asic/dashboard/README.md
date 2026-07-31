@@ -1,4 +1,19 @@
-# React + Vite
+# GLI-FLOW Dashboard
+
+## Verification budgets
+
+The production build is route-split with `React.lazy`/`Suspense`. Run
+`npm run build && npm run check:bundle` after a build. The current budgets are
+650 KiB for the largest JavaScript/CSS asset and 1,000 KiB for the combined
+asset set. The shared entry is currently about 602 KiB and is below budget.
+
+`npm run lint` must exit successfully. The current React Hooks configuration
+reports 11 dependency warnings in legacy request effects; these are retained
+for follow-up refactoring, while unused imports, empty catches, and lint
+errors are rejected.
+
+`npm audit` requires registry access. If it cannot reach the npm registry,
+record that as an environment limitation rather than using `--force`.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

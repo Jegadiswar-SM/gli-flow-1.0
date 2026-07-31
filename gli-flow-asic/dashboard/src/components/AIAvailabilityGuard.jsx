@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Sparkles, XCircle } from "lucide-react"
+import { XCircle } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 

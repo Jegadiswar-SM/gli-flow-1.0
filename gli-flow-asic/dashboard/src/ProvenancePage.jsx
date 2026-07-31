@@ -45,7 +45,7 @@ export default function ProvenancePage() {
   const graphNodes = graph?.nodes || []
   const graphEdges = graph?.edges || []
   const recentRuns = summary?.recent_runs || allRuns.slice(0, 20)
-  const displayManifests = manifests.length > 0 ? manifests : allRuns.slice(0, 20).map((r, i) => ({
+  const displayManifests = manifests.length > 0 ? manifests : allRuns.slice(0, 20).map((r) => ({
     run_id: r.run_id,
     design_name: r.design_name,
     timestamp_iso: r.timestamp || "",
