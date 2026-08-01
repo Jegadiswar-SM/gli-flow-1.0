@@ -325,6 +325,20 @@ class InvestigationLayer:
             latency_sec=provider_resp.latency_sec,
         )
 
+    def preview_payload(self) -> dict:
+        """Return the exact compact payload and provider used by the next send."""
+        context, context_str = InvestigationContextBuilder(str(self.run_dir)).build_for_api()
+        provider = self.config.get("provider", {})
+        return {
+            "provider": provider.get("name", "bharatcode"),
+            "model": provider.get("model", ""),
+            "endpoint": provider.get("endpoint", ""),
+            "payload": {"system_prompt": get_system_prompt(), "context": context_str},
+            "context": context,
+            "sanitized": True,
+            "notice": "This exact sanitized payload will be sent only after you confirm this invocation.",
+        }
+
     def save_investigation(self, result: InvestigationResult) -> Path:
         if result.is_success():
             return self._save_successful_investigation(result)

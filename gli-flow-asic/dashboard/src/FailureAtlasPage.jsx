@@ -271,6 +271,7 @@ function AIInvestigationCard({ failure, onClose }) {
   const [aiData, setAiData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [preview, setPreview] = useState(null)
 
   const fetchExisting = useCallback(() => {
     if (!runId) return
@@ -291,10 +292,19 @@ function AIInvestigationCard({ failure, onClose }) {
     }
     setLoading(true)
     setError(null)
-    fetch(`${API_BASE}/runs/${encodeURIComponent(runId)}/investigation`, { method: "POST" })
+    fetch(`${API_BASE}/runs/${encodeURIComponent(runId)}/investigation/preview`)
+      .then(r => r.ok ? r.json() : r.json().then(e => { throw new Error(e.detail || "Preview failed") }))
+      .then(data => { setPreview(data); setLoading(false) })
+      .catch(e => { setLoading(false); setError(e.message) })
+  }
+
+  const confirmAI = () => {
+    setLoading(true)
+    fetch(`${API_BASE}/runs/${encodeURIComponent(runId)}/investigation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirm: true }) })
       .then(r => r.ok ? r.json() : r.json().then(e => { throw new Error(e.detail || "Investigation failed") }))
       .then(data => {
         setAiData(data)
+        setPreview(null)
         setLoading(false)
       })
       .catch(e => { setLoading(false); setError(e.message) })
@@ -338,6 +348,16 @@ function AIInvestigationCard({ failure, onClose }) {
         <p className="text-[9px] text-[#6B7280] mt-2 italic">AI GENERATED · NOT VERIFIED — Always verify with manual inspection.</p>
       </div>
     )
+  }
+
+  if (preview && !loading) {
+    return <div className="p-4 bg-white border border-purple-200 rounded-lg">
+      <div className="flex items-center gap-2 mb-3"><Sparkles size={14} className="text-purple-600" /><h4 className="text-xs font-semibold text-abyss-ink">Confirm AI send</h4></div>
+      <p className="text-[10px] text-[#52606D] mb-2">Provider: <strong>{preview.provider}</strong> · model: {preview.model}</p>
+      <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-[9px] bg-[#F8FAFC] rounded p-2" aria-label="Exact sanitized AI payload">{JSON.stringify(preview.payload, null, 2)}</pre>
+      <p className="text-[10px] text-[#52606D] mt-2">{preview.notice}</p>
+      <div className="flex gap-2 mt-3"><button type="button" onClick={confirmAI} className="text-[10px] bg-purple-600 text-white px-3 py-1.5 rounded font-medium focus-visible:outline-2 focus-visible:outline-blue-600">Confirm and send</button><button type="button" onClick={() => setPreview(null)} className="text-[10px] border px-3 py-1.5 rounded focus-visible:outline-2 focus-visible:outline-blue-600">Cancel</button></div>
+    </div>
   }
 
   if (loading) {

@@ -3001,8 +3001,26 @@ def get_run_investigation(run_id: str):
         conn.close()
 
 
+@app.get("/runs/{run_id}/investigation/preview")
+def preview_run_investigation(run_id: str):
+    from gli_flow.investigation import InvestigationLayer
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT run_dir FROM runs WHERE run_id = ?", (run_id,))
+        row = cursor.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Run not found")
+        run_dir = row[0] or str(_OUTPUTS_DIR / run_id)
+    finally:
+        conn.close()
+    if not Path(run_dir).exists():
+        raise HTTPException(status_code=400, detail="Run directory not found")
+    return InvestigationLayer(run_dir=run_dir, run_id=run_id).preview_payload()
+
+
 @app.post("/runs/{run_id}/investigation")
-def trigger_run_investigation(run_id: str):
+def trigger_run_investigation(run_id: str, payload: dict | None = None):
     """Trigger an LLM investigation for a run.
 
     Builds compact context, calls BharatCode, validates output,
@@ -3012,6 +3030,9 @@ def trigger_run_investigation(run_id: str):
     maintains history, creates backups, validates API key before attempting.
     Uses InvestigationAvailabilityService as single source of truth.
     """
+    payload = payload or {}
+    if payload.get("confirm") is not True:
+        raise HTTPException(status_code=428, detail={"message": "AI investigation is opt-in for each invocation. Preview and confirm the exact sanitized payload first.", "preview": f"/runs/{run_id}/investigation/preview"})
     availability = _ai_availability_service.check_availability()
     if not availability.is_ready:
         raise HTTPException(
