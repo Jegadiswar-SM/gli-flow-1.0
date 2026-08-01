@@ -6,7 +6,7 @@ Generated from `gli_flow/cli/main.py` — every documented command.
 
 | Flag | Description |
 |------|-------------|
-| `--non-interactive` | Run in non-interactive mode (telemetry defaults to LOCAL) |
+| `--non-interactive` | Run in non-interactive mode (telemetry defaults to FULL sanitized upload until changed) |
 
 ## Production Commands
 

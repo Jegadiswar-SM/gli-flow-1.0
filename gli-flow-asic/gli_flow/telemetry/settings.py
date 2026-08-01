@@ -53,7 +53,12 @@ class TelemetrySettings:
 
     @property
     def consent_given(self) -> bool:
-        return self.settings.get("consent_given", False)
+        # A fresh/unconfigured installation starts in FULL mode. An explicit
+        # LOCAL or DISABLED mode remains opt-out even before it is persisted
+        # with a consent flag.
+        if "consent_given" not in self.settings:
+            return self.mode in (TelemetryMode.FULL, TelemetryMode.ATLAS)
+        return self.settings["consent_given"]
 
     @consent_given.setter
     def consent_given(self, value: bool):
@@ -70,8 +75,10 @@ class TelemetrySettings:
         self.settings["version"] = value
 
     def is_wizard_required(self) -> bool:
-        # Wizard is required if consent is not given and mode is not explicitly set to DISABLED/LOCAL by enterprise override
-        if self.settings.get("telemetry_mode") == TelemetryMode.DISABLED:
+        # Explicit local/disabled settings are already an opt-out. Full mode
+        # is the default until the user changes it, so it does not block
+        # non-interactive commands on a fresh installation.
+        if self.mode in (TelemetryMode.LOCAL, TelemetryMode.DISABLED):
             return False
         return not self.consent_given
 

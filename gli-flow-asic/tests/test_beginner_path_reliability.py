@@ -46,6 +46,10 @@ def test_default_telemetry_is_full_and_persisted(tmp_path, monkeypatch):
     monkeypatch.setenv("GLI_FLOW_CONFIG_DIR", str(tmp_path))
     settings = get_telemetry_settings()
     assert settings.mode == TelemetryMode.FULL
+    assert settings.consent_given is True
+    assert settings.is_wizard_required() is False
+    from gli_flow.telemetry.uploader import TelemetryUploader
+    assert TelemetryUploader(db_path=str(tmp_path / "runs.db")).should_upload() is True
     settings.consent_given = True
     settings.save()
     assert get_telemetry_settings().mode == TelemetryMode.FULL

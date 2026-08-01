@@ -153,8 +153,9 @@ def _get_telemetry_mode_label() -> str:
 def _ensure_telemetry_consent(non_interactive: bool = False):
     """Ensure user has seen the telemetry wizard.
 
-    Non-interactive invocations (no TTY, CI, pipes) default to LOCAL-only
-    telemetry: deterministic, never waits on stdin, and never uploads.
+    Non-interactive invocations (no TTY, CI, pipes) default to FULL sanitized
+    telemetry: deterministic, never waits on stdin, and uploads until the
+    user selects another mode.
     """
     from gli_flow.telemetry.settings import get_telemetry_settings, TelemetryMode
     from gli_flow.telemetry.wizard import run_telemetry_wizard
@@ -162,17 +163,17 @@ def _ensure_telemetry_consent(non_interactive: bool = False):
     settings = get_telemetry_settings()
     if settings.is_wizard_required():
         if non_interactive or not sys.stdin.isatty():
-            _default_telemetry_local(settings)
+            _default_telemetry_full(settings)
             return
         try:
             run_telemetry_wizard()
         except (EOFError, OSError):
-            _default_telemetry_local(settings)
+            _default_telemetry_full(settings)
 
 
-def _default_telemetry_local(settings):
+def _default_telemetry_full(settings):
     from gli_flow.telemetry.settings import TelemetryMode
-    settings.mode = TelemetryMode.LOCAL
+    settings.mode = TelemetryMode.FULL
     settings.consent_given = True
     settings.save()
 

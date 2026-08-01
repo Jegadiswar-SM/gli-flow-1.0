@@ -172,7 +172,8 @@ IP-bearing file extensions and fields before any data leaves the machine.
 All telemetry passes through a privacy validator. Preview the exact payload before
 any upload with `gli-flow telemetry preview`.
 
-Default mode is LOCAL — no data leaves your machine without explicit consent.
+Default mode is FULL sanitized telemetry upload. Use `gli-flow telemetry
+disable` or `--telemetry local`/`--telemetry disabled` to opt out.
 
 See the [Telemetry & Privacy guide](../privacy/telemetry_and_privacy.md) for full
 details.
