@@ -166,7 +166,8 @@ def _check_dashboard_health():
         project_root = Path(__file__).resolve().parents[2]
         process = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "backend.server:app", "--host", "127.0.0.1", "--port", str(port)],
-            cwd=str(project_root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            cwd=str(project_root), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True,
             env={**os.environ, "GLI_FLOW_BACKEND_PORT": str(port)},
         )
         for _ in range(20):
@@ -177,10 +178,27 @@ def _check_dashboard_health():
                 return False, f"Backend started but GET /health returned HTTP {response.status}"
             except (urllib.error.URLError, OSError):
                 if process.poll() is not None:
-                    return False, "Backend process exited before GET /health"
+                    try:
+                        _, stderr = process.communicate(timeout=1)
+                    except subprocess.TimeoutExpired:
+                        stderr = ""
+                    detail = (stderr or "").strip().splitlines()
+                    reason = detail[-1][:240] if detail else "no startup diagnostics captured"
+                    return False, f"Backend failed to start (process exited before GET /health): {reason}"
                 import time
                 time.sleep(0.25)
-        return False, "Backend process started but GET /health did not respond within 5 seconds"
+        if process.poll() is None:
+            return False, (
+                "BLOCKED (network-restricted sandbox — backend process is still alive, "
+                "but local network access could not reach GET /health; local network access required to verify)"
+            )
+        try:
+            _, stderr = process.communicate(timeout=1)
+        except subprocess.TimeoutExpired:
+            stderr = ""
+        detail = (stderr or "").strip().splitlines()
+        reason = detail[-1][:240] if detail else "no startup diagnostics captured"
+        return False, f"Backend failed to start (process exited without responding): {reason}"
     except Exception as exc:
         return False, f"Backend health check failed: {type(exc).__name__}: {exc}"
     finally:
