@@ -12,6 +12,7 @@ validates your design config in seconds without any EDA tools installed.
 - **Mock mode.** Develop and validate manifests without the EDA toolchain.
 - **Built-in diagnostics.** Automated failure detection, root-cause analysis, and support bundles.
 - **Dashboard.** Web UI for run history, timing/area/power, DRC/LVS, and telemetry.
+- **Desktop shell.** Optional Electron app with native file access and the RTL Workbench.
 - **Transparent telemetry.** Default is full sanitized telemetry upload; RTL, IP, netlists, and GDS are never collected. Opt out with `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled`.
 
 ## Quick Install
@@ -19,8 +20,8 @@ validates your design config in seconds without any EDA tools installed.
 ```bash
 git clone https://github.com/Jegadiswar-SM/gli-flow-asic.git
 cd gli-flow-asic
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -e ".[dashboard]"
 gli-flow smoke-test --non-interactive
 ```
@@ -43,6 +44,30 @@ gli-flow init my_design
 # Launch dashboard
 gli-flow dashboard
 ```
+
+## Electron desktop dashboard
+
+After installing the Python environment and building the dashboard, launch
+the native shell from the repository root with an absolute Python path:
+
+```bash
+GLI_FLOW_PROJECT_ROOT="$PWD" \
+GLI_FLOW_PYTHON="$PWD/.venv/bin/python" \
+npm --prefix desktop run start
+```
+
+Electron spawns the same FastAPI backend, waits for `/health`, and opens the
+backend-served dashboard. To attach to a backend started by the CLI instead:
+
+```bash
+source .venv/bin/activate
+gli-flow dashboard --backend-only
+# In another terminal, from the repository root:
+npm --prefix desktop run start -- --attach-only
+```
+
+See [Desktop and Workbench](desktop/README.md) for setup, packaging, native
+file access, offline Monaco behavior, and troubleshooting.
 
 ## Dashboard
 
@@ -70,6 +95,7 @@ Use `--backend-only` for API at `http://127.0.0.1:8000`.
 | [Getting Started](docs/user_guide/getting_started.md) | Clone to dashboard step-by-step |
 | [User Manual](docs/user_guide/user_manual.md) | Install, run, diagnose, telemetry |
 | [Dashboard Guide](docs/user_guide/dashboard.md) | Dashboard pages reference |
+| [Desktop and Workbench](desktop/README.md) | Electron shell, RTL editor, and offline setup |
 | [CLI Reference](docs/reference/cli_reference.md) | Every command and flag |
 | [Troubleshooting](docs/reference/troubleshooting.md) | Common issues |
 | [Telemetry & Privacy](docs/privacy/telemetry_and_privacy.md) | Data handling and consent |

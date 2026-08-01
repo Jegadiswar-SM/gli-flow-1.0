@@ -15,6 +15,24 @@ The dashboard backend is included by the supported source install. Frontend
 development dependencies are separate: `cd dashboard && npm ci`; start with
 `gli-flow dashboard --backend-only` to verify `GET /health` without Node.
 
+The optional Electron desktop shell uses the same backend and requires the
+same Python environment. Build the browser dashboard first, then launch it
+with an absolute interpreter path:
+
+```bash
+cd dashboard && npm ci && npm run build
+cd ..
+npm --prefix desktop ci
+GLI_FLOW_PROJECT_ROOT="$PWD" \
+GLI_FLOW_PYTHON="$PWD/.venv/bin/python" \
+npm --prefix desktop run start
+```
+
+For CLI/Electron attach mode, run `gli-flow dashboard --backend-only` in one
+terminal and `npm --prefix desktop run start -- --attach-only` from the root in
+another. See [Desktop and Workbench](../desktop/README.md). Use an absolute
+`GLI_FLOW_PYTHON`; a relative value may fail with `spawn ... ENOENT`.
+
 For reproducible dashboard development, install constraints after the package:
 `python -m pip install -c constraints/dashboard-py312.txt -e ".[dashboard]"`.
 For offline use, populate a wheel cache first and add `--no-index --find-links

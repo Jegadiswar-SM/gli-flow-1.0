@@ -126,7 +126,7 @@ Verification performed:
 ```text
 dashboard npm run lint       PASS (0 errors, 0 warnings)
 dashboard npm run build      PASS
-dashboard npm run check:bundle PASS (1,400,710 bytes / 1,536,000-byte Workbench budget)
+dashboard npm run check:bundle PASS (4,403,274 bytes / 4,864,000-byte self-hosted Monaco budget)
 dashboard npm audit          PASS (0 vulnerabilities)
 backend version/tree/read    PASS
 backend unauthenticated save 403 (expected)

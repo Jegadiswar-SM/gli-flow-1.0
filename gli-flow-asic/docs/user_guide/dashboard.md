@@ -9,6 +9,26 @@ gli-flow dashboard --backend-only # API only at http://127.0.0.1:8000
 
 The full dashboard opens at `http://127.0.0.1:5173`. The backend-only mode serves the API.
 
+## Electron desktop shell
+
+The native shell serves the same built dashboard from the same FastAPI backend:
+
+```bash
+cd /path/to/gli-flow-asic
+cd dashboard && npm ci && npm run build
+cd ..
+npm --prefix desktop ci
+GLI_FLOW_PROJECT_ROOT="$PWD" \
+GLI_FLOW_PYTHON="$PWD/.venv/bin/python" \
+npm --prefix desktop run start
+```
+
+To attach rather than spawn, run `gli-flow dashboard --backend-only` first and
+then launch `npm --prefix desktop run start -- --attach-only` from the root.
+The Workbench is read-only in a plain browser and supports native file access
+and token-gated saves in Electron. Monaco is bundled locally; runtime access
+to jsDelivr or Google Fonts is not required.
+
 ## Pages
 
 ### Home
@@ -24,6 +44,7 @@ The full dashboard opens at `http://127.0.0.1:5173`. The backend-only mode serve
 | Page | Description |
 |------|-------------|
 | **Run Design** | CLI command reference for running designs |
+| **RTL Workbench** | Docked RTL file tree, locally bundled Monaco editor, runs, logs, and metrics |
 | **Run Matrix** | Design × Stage grid showing execution progress per stage |
 | **Run Monitor** | Live run monitor with recent activity feed |
 | **Important Runs** | Filtered view of starred/bookmarked runs |
