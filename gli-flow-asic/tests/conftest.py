@@ -1,8 +1,76 @@
 import json
 import os
+import shutil
+import subprocess
 import tempfile
 
 import pytest
+
+_EDA_TOOLS = ("sv2v", "yosys", "openroad", "magic", "netgen", "netgen-lvs", "klayout")
+
+
+def _have_eda_tools() -> bool:
+    return all(shutil.which(tool) is not None for tool in _EDA_TOOLS)
+
+
+def _network_available() -> bool:
+    import socket
+    try:
+        socket.create_connection(("pypi.org", 443), timeout=3).close()
+        return True
+    except OSError:
+        return False
+
+
+def _home_writable() -> bool:
+    return os.access(os.path.expanduser("~"), os.W_OK)
+
+
+def _can_sudo() -> bool:
+    try:
+        result = subprocess.run(["sudo", "-n", "true"], capture_output=True, timeout=10)
+        return result.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _atlas_db_populated() -> bool:
+    try:
+        import sqlite3
+        from gli_flow.database.migrations import _get_db_path
+        db = _get_db_path()
+        if not os.path.exists(db):
+            return False
+        conn = sqlite3.connect(db)
+        try:
+            row = conn.execute(
+                "SELECT COUNT(*) FROM failure_atlas_entries "
+                "WHERE detection_classification IN ('VERIFIED', 'HEURISTIC')"
+            ).fetchone()
+        finally:
+            conn.close()
+        return bool(row and row[0] > 0)
+    except Exception:
+        return False
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    """Skip environment-gated tests with a visible reason when the sandbox
+    cannot satisfy their requirements. Explicit `pytest -m ""` runs still
+    collect them; the skip applies only when the environment truly lacks
+    support (e.g. missing EDA tools, blocked network, unwritable HOME, no
+    passwordless sudo, or an empty failure-atlas database)."""
+    if item.get_closest_marker("requires_tools") and not _have_eda_tools():
+        pytest.skip("requires real EDA tools (sv2v, yosys, openroad, magic, netgen, klayout)")
+    if item.get_closest_marker("requires_network") and not _network_available():
+        pytest.skip("requires outbound network access")
+    if item.get_closest_marker("requires_writable_home") and not _home_writable():
+        pytest.skip("requires a writable $HOME directory")
+    if item.get_closest_marker("requires_system_mutation") and not _can_sudo():
+        pytest.skip("requires passwordless sudo (runs real system installs via apt/npm)")
+    if item.get_closest_marker("requires_db_data") and not _atlas_db_populated():
+        pytest.skip("requires a populated failure-atlas database (VERIFIED/HEURISTIC entries)")
 
 
 @pytest.fixture

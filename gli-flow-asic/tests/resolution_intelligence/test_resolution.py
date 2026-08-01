@@ -81,7 +81,8 @@ def db_conn():
             resolution_confidence TEXT,
             entry_level TEXT,
             evidence TEXT,
-            detected_at TEXT
+            detected_at TEXT,
+            detection_classification TEXT DEFAULT 'UNVERIFIED'
         )
     """)
     yield conn
@@ -486,7 +487,7 @@ class TestTrustScorer:
         result = scorer.calculate_trust(
             success_count=50, failure_count=2,
             unique_runs=25, unique_designs=12,
-            last_seen="2026-06-14T12:00:00",
+            last_seen=datetime.utcnow().isoformat(timespec="seconds"),
             engineer_confirmations=8, contradictory_reports=0,
         )
         assert result["trust_level"] == "HIGH"
@@ -501,7 +502,7 @@ class TestTrustScorer:
         result = scorer.calculate_trust(
             success_count=10, failure_count=10,
             unique_runs=5, unique_designs=3,
-            last_seen="2026-06-14T12:00:00",
+            last_seen=datetime.utcnow().isoformat(timespec="seconds"),
             engineer_confirmations=1, contradictory_reports=5,
         )
         assert result["trust_level"] == "LOW"
@@ -512,7 +513,7 @@ class TestTrustScorer:
         result = scorer.calculate_trust(
             success_count=5, failure_count=2,
             unique_runs=2, unique_designs=1,
-            last_seen="2026-06-14T12:00:00",
+            last_seen=datetime.utcnow().isoformat(timespec="seconds"),
             engineer_confirmations=0, contradictory_reports=0,
         )
         assert result["trust_level"] in ("MEDIUM", "LOW")
@@ -522,13 +523,13 @@ class TestTrustScorer:
         without = scorer.calculate_trust(
             success_count=5, failure_count=0,
             unique_runs=3, unique_designs=2,
-            last_seen="2026-06-14T12:00:00",
+            last_seen=datetime.utcnow().isoformat(timespec="seconds"),
             engineer_confirmations=0, contradictory_reports=0,
         )
         with_conf = scorer.calculate_trust(
             success_count=5, failure_count=0,
             unique_runs=3, unique_designs=2,
-            last_seen="2026-06-14T12:00:00",
+            last_seen=datetime.utcnow().isoformat(timespec="seconds"),
             engineer_confirmations=3, contradictory_reports=0,
         )
         assert with_conf["trust_score"] > without["trust_score"]
@@ -539,7 +540,7 @@ class TestTrustScorer:
         recent = scorer.calculate_trust(
             success_count=10, failure_count=1,
             unique_runs=5, unique_designs=2,
-            last_seen="2026-06-14T12:00:00",
+            last_seen=datetime.utcnow().isoformat(timespec="seconds"),
         )
         old = scorer.calculate_trust(
             success_count=10, failure_count=1,
@@ -554,7 +555,7 @@ class TestTrustScorer:
         perfect = scorer.calculate_trust(
             success_count=1000, failure_count=0,
             unique_runs=100, unique_designs=50,
-            last_seen="2026-06-14T12:00:00",
+            last_seen=datetime.utcnow().isoformat(timespec="seconds"),
             engineer_confirmations=50, contradictory_reports=0,
         )
         assert 0.0 <= perfect["trust_score"] <= 1.0

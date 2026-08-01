@@ -123,8 +123,10 @@ def test_mock_pipeline_via_cli():
     import sys
 
     result = subprocess.run(
-        [sys.executable, "-m", "gli_flow", "run", DESIGN_PATH, "--mock"],
+        [sys.executable, "-m", "gli_flow", "run", DESIGN_PATH, "--mock", "--non-interactive"],
         capture_output=True, text=True, timeout=120,
     )
     assert result.returncode == 0, f"CLI mock run failed: stderr={result.stderr[:500]}"
-    assert "SUCCESS" in result.stdout
+    assert "SIMULATED/DEMO OUTPUT" in result.stdout, "Mock output must be labeled as simulated"
+    assert "Mock workflow complete" in result.stdout, "Mock output must say no tapeout conclusion"
+    assert "no tapeout conclusion available" in result.stdout, "Mock output must not imply signoff"

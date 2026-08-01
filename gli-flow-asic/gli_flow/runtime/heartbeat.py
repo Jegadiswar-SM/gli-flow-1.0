@@ -25,6 +25,8 @@ class HeartbeatMonitor:
     def stop(self):
         self._stopped = True
         self._write_beat()
+        if self._thread is not None:
+            self._thread.join(timeout=max(self._interval * 2, 1.0))
 
     def _write_beat(self):
         try:

@@ -45,11 +45,15 @@ setup(
         "dev": [
             "pytest>=7.0.0",
             "pytest-cov>=4.0.0",
+            "pytest-timeout>=2.2.0",
+            "cryptography>=42.0.0",
             "httpx>=0.27.0",
             "ruff>=0.1.0",
         ],
         "dashboard": [
             "pytest>=7.0.0",
+            "pytest-timeout>=2.2.0",
+            "cryptography>=42.0.0",
             "fastapi>=0.104.0",
             "uvicorn[standard]>=0.24.0",
             "pydantic>=2.0.0",

@@ -235,6 +235,7 @@ class TestRepairActions:
         actions = get_repair_actions(db_path=tmp_db)
         assert len(actions) > 0
 
+    @pytest.mark.requires_system_mutation
     def test_run_repairs(self, tmp_db):
         from gli_flow.infrastructure.repair_actions import run_repairs
         results = run_repairs(db_path=tmp_db)

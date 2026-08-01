@@ -103,6 +103,7 @@ class TestDetectionClassification:
         dc = "VERIFIED"
         assert dc == "VERIFIED", "EXACT_MATCH must map to VERIFIED"
 
+    @pytest.mark.requires_db_data
     def test_historical_cleanup_distribution(self):
         import sqlite3
         from gli_flow.database.migrations import _get_db_path

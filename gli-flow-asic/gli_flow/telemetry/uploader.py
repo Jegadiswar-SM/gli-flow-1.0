@@ -131,6 +131,9 @@ class TelemetryUploader:
             )
 
     def process_upload_queue(self, batch_size: int = 10) -> dict:
+        if not self.should_upload():
+            return {"processed": 0, "succeeded": 0, "failed": 0, "errors": []}
+
         def upload_fn(payload):
             self._do_http_upload(payload)
         return self.retry.process_queue(upload_fn, batch_size)
