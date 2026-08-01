@@ -20,8 +20,12 @@ Verification performed:
 ```text
 dashboard npm run lint       PASS (0 errors, 0 warnings)
 dashboard npm run build      PASS
+dashboard npm run check:bundle PASS (1,400,370 bytes / 1,536,000-byte Workbench budget)
+dashboard npm audit          PASS (0 vulnerabilities)
 backend version/tree/read    PASS
 backend unauthenticated save 403 (expected)
+desktop npm audit            PASS (0 vulnerabilities)
+electron-builder --dir      Linux unpacked artifact produced
 ```
 
 The plain browser dashboard remains the same SPA and keeps its existing page
