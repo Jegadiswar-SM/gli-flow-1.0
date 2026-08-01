@@ -676,6 +676,26 @@ def get_run(run_id: str):
         conn.close()
 
 
+@app.get("/runs/{run_id}/prediction")
+def get_run_prediction(run_id: str):
+    """Return the historical risk/readiness estimate used by the CLI."""
+    run = get_run(run_id)
+    from failure_atlas.prediction.risk import FailureRiskEngine
+    from failure_atlas.prediction.readiness import TapeoutReadinessPredictor
+
+    metrics = {
+        "wns": run.get("wns") or 0.0,
+        "tns": run.get("tns") or 0.0,
+        "utilization": run.get("utilization") or 0.0,
+        "drc_violations": run.get("drc_violations") or 0,
+    }
+    return {
+        "run_id": run_id,
+        "risks": FailureRiskEngine().predict_risk(metrics, design_name=run.get("design_name")),
+        "readiness": TapeoutReadinessPredictor().predict_readiness(metrics, design_name=run.get("design_name")),
+    }
+
+
 @app.get("/runs/{run_id}/drc")
 def get_run_drc(run_id: str):
     run_dir = _OUTPUTS_DIR / run_id

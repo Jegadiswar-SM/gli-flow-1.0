@@ -24,12 +24,21 @@ function SummaryTab({ run }) {
   const signoffColor = _signoffColor(run.signoff_status)
   const tapeoutColor = run.tapeout_ready ? "text-green-600" : "text-red-600"
   const [trustScore, setTrustScore] = useState(null)
+  const [prediction, setPrediction] = useState(null)
 
   useEffect(() => {
     if (!run.run_id) return
     fetch(`${API_BASE}/runs/${run.run_id}/trust-score`)
       .then(r => r.ok ? r.json() : null)
       .then(setTrustScore)
+  }, [run.run_id])
+
+  useEffect(() => {
+    if (!run.run_id) return
+    fetch(`${API_BASE}/runs/${run.run_id}/prediction`)
+      .then(r => r.ok ? r.json() : null)
+      .then(setPrediction)
+      .catch(() => {})
   }, [run.run_id])
 
   return (
@@ -87,6 +96,22 @@ function SummaryTab({ run }) {
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
           <p className="text-[10px] font-semibold text-amber-800 mb-1">Root Cause Summary</p>
           <p className="text-[10px] text-amber-700">{run.root_cause_summary}</p>
+        </div>
+      )}
+      {prediction && (
+        <div className="mt-4 bg-white border border-stone-ridge rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-xs font-semibold">Historical risk estimate</h4>
+            <span className="text-[10px] text-[#6B7280]">Higher risk is worse</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {Object.entries(prediction.risks || {}).map(([name, value]) => (
+              <div key={name}><p className="text-[10px] text-[#6B7280]">{name}</p><p className="text-sm font-semibold">{value.risk}%</p></div>
+            ))}
+          </div>
+          <div className="mt-3 pt-3 border-t border-stone-ridge flex flex-wrap gap-4 text-[10px] text-[#6B7280]">
+            {Object.entries(prediction.readiness || {}).map(([name, value]) => <span key={name}>{name}: <strong className="text-abyss-ink">{value}%</strong></span>)}
+          </div>
         </div>
       )}
     </div>

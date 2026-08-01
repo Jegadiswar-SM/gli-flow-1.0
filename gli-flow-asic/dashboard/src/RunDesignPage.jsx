@@ -1,15 +1,51 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Play, Terminal, BookOpen, FolderOpen } from "lucide-react"
 import { isElectron } from "./lib/platform"
 
 export default function RunDesignPage() {
-  const [designPath, setDesignPath] = useState("")
+  const API_BASE = import.meta.env.VITE_API_URL || ""
+  const [designPath, setDesignPath] = useState("examples/counter")
+  const [mock, setMock] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState("")
+  const [run, setRun] = useState(null)
   const commands = [
-    { label: "Run with mock mode", cmd: "gli-flow run examples/tiny_or --mock", desc: "Quick test run using mock mode" },
+    { label: "Run with mock mode", cmd: "gli-flow run examples/counter --mock", desc: "Quick test run using mock mode" },
     { label: "Run full flow", cmd: "gli-flow run examples/gcd", desc: "Full RTL-to-GDS run" },
-    { label: "Run with config", cmd: "gli-flow run examples/counter --config my_config.yaml", desc: "Run with custom configuration" },
-    { label: "Batch run", cmd: "gli-flow batch examples/batch_config.yaml", desc: "Execute multiple designs" },
+    { label: "Run with threads", cmd: "gli-flow run examples/counter --threads 4", desc: "Run with four parallel workers" },
+    { label: "Batch run", cmd: "gli-flow batch examples/counter examples/gcd", desc: "Execute multiple designs" },
   ]
+
+  const runDesign = async () => {
+    setBusy(true)
+    setMessage("")
+    try {
+      const response = await fetch(`${API_BASE}/api/run`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ design_path: designPath.trim(), mock }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.detail || "Run could not be started")
+      setRun(data)
+      setMessage(`Started ${data.run_id}`)
+    } catch (error) {
+      setMessage(error.message || "Run could not be started")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!run?.run_id || ["SUCCESS", "FAILED", "COMPLETED"].includes(run.status)) return undefined
+    const timer = setInterval(() => {
+      fetch(`${API_BASE}/runs/${encodeURIComponent(run.run_id)}`)
+        .then(response => response.ok ? response.json() : null)
+        .then(data => { if (data) setRun(data) })
+        .catch(() => {})
+    }, 1500)
+    return () => clearInterval(timer)
+  }, [API_BASE, run?.run_id, run?.status])
 
   return (
     <div className="space-y-6">
@@ -32,8 +68,21 @@ export default function RunDesignPage() {
             <input id="design-path" value={designPath} onChange={event => setDesignPath(event.target.value)} placeholder="examples/counter or /path/to/design" className="flex-1 border border-stone-ridge rounded px-3 py-2 text-xs focus-visible:outline-2 focus-visible:outline-blue-600" />
             {isElectron && <button type="button" onClick={async () => { const selected = await window.gliFlowDesktop.selectDirectory(); if (selected) setDesignPath(selected) }} className="inline-flex items-center gap-1 rounded border border-stone-ridge px-3 py-2 text-xs hover:bg-[#FAFAF8] focus-visible:outline-2 focus-visible:outline-blue-600"><FolderOpen size={14} aria-hidden="true" />Browse…</button>}
           </div>
-          <p className="text-[10px] text-[#6B7280] mt-1">{isElectron ? "Native folder access is available in the desktop shell." : "Enter a design path when using the browser dashboard."}</p>
-        </div>
+            <p className="text-[10px] text-[#6B7280] mt-1">{isElectron ? "Native folder access is available in the desktop shell." : "Enter a design path relative to the workspace or an approved absolute path."}</p>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 mb-5">
+            <label className="inline-flex items-center gap-2 text-xs text-abyss-ink">
+              <input type="checkbox" checked={mock} onChange={event => setMock(event.target.checked)} />
+              Mock mode (no EDA tools required)
+            </label>
+            <button type="button" onClick={runDesign} disabled={busy || !designPath.trim()} className="rounded bg-abyss-ink px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-blue-600">
+              {busy ? "Starting…" : "Run design"}
+            </button>
+          </div>
+
+          {message && <p role="status" className="mb-3 rounded border border-stone-ridge bg-[#FAFAF8] px-3 py-2 text-xs text-abyss-ink">{message}</p>}
+          {run && <div className="mb-5 rounded border border-[#BFDBFE] bg-[#EFF6FF] px-3 py-2 text-xs text-[#1E40AF]">Status: <strong>{run.status || "STARTING"}</strong>{run.current_stage ? ` · ${run.current_stage}` : ""}{run.progress != null ? ` · ${run.progress}%` : ""}</div>}
 
         <p className="text-xs text-[#6B7280] font-[Work_Sans] mb-5 leading-relaxed">
           Use the GLI-FLOW CLI to execute designs through the 29-stage RTL-to-GDS implementation pipeline.
