@@ -33,3 +33,13 @@ html, body, #root {
 .pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid #2563EB;
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  main { max-width: 100%; }
+  table { min-width: 620px; }
+}

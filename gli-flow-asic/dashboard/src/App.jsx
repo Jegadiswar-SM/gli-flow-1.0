@@ -21,6 +21,7 @@ const RunDesignPage = lazy(() => import("./RunDesignPage"))
 const RunMatrixPage = lazy(() => import("./RunMatrixPage"))
 const LearningPathPage = lazy(() => import("./LearningPathPage"))
 const RunComparisonPage = lazy(() => import("./RunComparisonPage"))
+const HomePage = lazy(() => import("./HomePage"))
 const RunMonitorPage = lazy(() => import("./RunMonitorPage"))
 const ArtifactsPage = lazy(() => import("./ArtifactsPage"))
 const InfrastructurePage = lazy(() => import("./InfrastructurePage"))
@@ -434,7 +435,7 @@ function App() {
         {/* === TOPBAR === */}
         <header className="sticky top-0 z-10 bg-canvas-bone border-b border-stone-ridge px-6 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-4">
-            <Menu size={20} className="text-abyss-ink cursor-pointer" />
+            <button type="button" aria-label="Toggle navigation" className="text-abyss-ink focus-visible:outline-2 focus-visible:outline-blue-600"><Menu size={20} /></button>
             <div>
               <h1 className="font-[Eczar] text-[20px] text-abyss-ink leading-tight">GLI-FLOW Dashboard</h1>
               <p className="font-[Work_Sans] text-[11px] text-[#6B7280]">Execution Intelligence for ASIC Infrastructure</p>
@@ -467,7 +468,9 @@ function App() {
         {/* === SCROLLABLE CONTENT === */}
         <main className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           <Suspense fallback={<div className="py-12 text-center text-[#6B7280] text-xs">Loading page…</div>}>
-          {activeNav === "Important Runs" ? (
+          {activeNav === "Dashboard" ? (
+            <HomePage runs={runs} liveRuns={liveRuns} health={health} onNavigate={setActiveNav} />
+          ) : activeNav === "Important Runs" ? (
             <RunsPage importantOnly={true} onBack={() => setActiveNav("Dashboard")} onSelectRun={setSelectedRun} />
           ) : viewingRuns ? (
             <RunsPage onBack={() => setViewingRuns(false)} onSelectRun={setSelectedRun} />
