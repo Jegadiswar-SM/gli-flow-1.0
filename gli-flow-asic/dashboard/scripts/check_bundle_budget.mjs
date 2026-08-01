@@ -3,7 +3,9 @@ import { join } from "node:path"
 
 const dist = new URL("../dist/assets/", import.meta.url)
 const maxChunkBytes = 650 * 1024
-const maxTotalBytes = 1_000 * 1024
+// The Monaco/Dockview Workbench is an intentionally lazy-loaded IDE surface;
+// keep the per-asset guard while accounting for its additional editor assets.
+const maxTotalBytes = 1_500 * 1024
 const files = (await readdir(dist)).filter((name) => /\.(js|css)$/.test(name))
 const sizes = await Promise.all(files.map(async (name) => [name, (await stat(join(dist.pathname, name))).size]))
 const total = sizes.reduce((sum, [, size]) => sum + size, 0)
