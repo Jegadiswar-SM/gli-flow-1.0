@@ -14,9 +14,12 @@ test commands, as well as the FastAPI/HTTP test dependencies.
 
 The production build is route-split with `React.lazy`/`Suspense`. Run
 `npm run build && npm run check:bundle` after a build. The current budgets are
-650 KiB for the largest JavaScript/CSS asset and 1,500 KiB for the combined
-asset set. The Monaco/Dockview Workbench is lazy-loaded; its editor assets are
-included in the combined budget while the shared entry remains about 602 KiB.
+3,200 KiB for the largest JavaScript/CSS asset and 4,750 KiB for the combined
+asset set. The budget was raised from 650 KiB / 1,500 KiB because Monaco is now
+self-hosted in the Workbench instead of fetched from jsDelivr at runtime. The
+measured post-fix build is 2,989 KiB for the lazy Workbench chunk plus a 300
+KiB editor worker, and 4,403 KiB total. The Workbench remains lazy-loaded, so
+these editor assets are not fetched by the other dashboard pages.
 
 `npm run lint` must exit successfully with zero errors and zero warnings.
 Unused imports, empty catches, and lint errors are rejected, and the React

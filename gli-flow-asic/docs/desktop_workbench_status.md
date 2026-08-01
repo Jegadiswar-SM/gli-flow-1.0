@@ -15,6 +15,55 @@ Implemented in the desktop feature track:
   browser dashboard is read-only.
 - Linux electron-builder targets: AppImage and deb.
 
+## Self-hosted Monaco and offline verification
+
+The original Workbench used `@monaco-editor/react` without configuring its
+loader. Before this fix, opening `examples/counter/counter.v` produced
+requests to `https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/...`
+for the loader, editor, contributions, CSS, and workers. The same trace also
+showed Google Fonts requests from both `index.html` and the App stylesheet
+import. It rendered only because this network was available.
+
+The fix adds `monaco-editor@^0.56.0` as a direct dependency and calls
+`loader.config({ monaco })` with Monaco's local editor API. Vite aliases the
+package's ESM API and bundles the editor worker locally; the Workbench's
+existing custom Monarch Verilog tokenizer remains the only language support
+loaded. The dashboard no longer imports Google Fonts at runtime. Its existing
+font-family names now fall back to system sans, serif, and monospace fonts,
+which is appropriate for offline/air-gapped installations.
+
+The bundle budget was rebaselined from 650 KiB per asset / 1,500 KiB total to
+3,200 KiB per asset / 4,750 KiB total. The post-fix measured build is:
+
+```text
+WorkbenchPage-*.js   2,989,008 bytes
+editor.worker-*.js     300,367 bytes
+bundle total         4,403,274 bytes
+budget               4,864,000 bytes
+```
+
+This increase reflects real self-hosted Monaco weight, not an arbitrary
+rounding of the old budget. The Workbench remains a lazy route: the initial
+dashboard load did not fetch its Workbench chunk, and the chunk was fetched
+only after selecting RTL Workbench.
+
+Network verification:
+
+- Before: Chromium trace showed multiple jsDelivr Monaco requests and Google
+  Fonts requests while opening the file.
+- After, normal network: the editor rendered real source and line numbers;
+  no jsDelivr or Google Fonts requests were observed.
+- After, blocked network: Playwright aborted every request matching
+  `cdn.jsdelivr.net`, `fonts.googleapis.com`, or `fonts.gstatic.com`. The
+  Workbench still rendered non-empty Monaco text containing `module`, showed
+  12 line-number elements, had no page errors, and had no failed requests.
+  No Monaco worker was requested by this custom-tokenizer-only path; the
+  locally emitted editor worker is available and configured for core worker
+  use.
+
+The final checks pass: `npm run lint` (zero warnings), `npm run build`,
+`npm run check:bundle`, and `npm audit` (zero vulnerabilities).
+
 ## Dockview data-flow fix
 
 The original Workbench renderer map used inline closures such as
