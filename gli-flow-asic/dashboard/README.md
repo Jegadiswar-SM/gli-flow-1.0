@@ -39,10 +39,10 @@ npm audit
 ```
 
 The current CI acceptance job includes `npm audit --audit-level=high` in the
-dashboard job and therefore gates merges on high/critical findings. A later
-local retry reached the registry/advisory data and reported six findings (one
-low, five high); remediation is intentionally not claimed by this P1 closeout
-and remains a follow-up for the dependency owners.
+dashboard job and therefore gates merges on high/critical findings. The
+dependency graph was refreshed with non-force `npm audit fix`; current direct
+versions include `axios 1.19.0`, `postcss 8.5.25`, and `vite 8.2.0`, and
+`npm audit` now reports zero vulnerabilities.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
