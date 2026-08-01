@@ -56,9 +56,13 @@ def _atlas_db_populated() -> bool:
                 "SELECT COUNT(*) FROM failure_atlas_entries "
                 "WHERE detection_classification IN ('VERIFIED', 'HEURISTIC')"
             ).fetchone()
+            classifications = conn.execute(
+                "SELECT DISTINCT detection_classification FROM failure_atlas_entries"
+            ).fetchall()
         finally:
             conn.close()
-        return bool(row and row[0] > 0)
+        present = {item[0] for item in classifications}
+        return bool(row and row[0] > 0 and {"VERIFIED", "HEURISTIC"}.issubset(present))
     except Exception:
         return False
 
