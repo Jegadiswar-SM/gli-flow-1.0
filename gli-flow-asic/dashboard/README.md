@@ -29,12 +29,20 @@ uses a ref so changing search-only filters does not restart the timer. These
 dependencies are safe because they describe the request or render state each
 effect must observe; no dependency was suppressed.
 
-`npm audit` requires registry access. In the verification sandbox the npm
-registry could not be reached, so the audit was deferred there and recorded
-as an environment limitation rather than using `--force`. The audit is gated
-in CI (`.github/workflows/ci.yml`, `dashboard` job), where GitHub-hosted
-runners have registry access and fail the build on any `high` or
-`critical` vulnerability.
+`npm audit` requires registry access. The original verification attempt in
+this sandbox failed with `getaddrinfo EAI_AGAIN registry.npmjs.org`, so that
+result was recorded as unverified rather than using `--force`. Run the exact
+command below in an environment with registry access:
+
+```bash
+npm audit
+```
+
+The current CI acceptance job includes `npm audit --audit-level=high` in the
+dashboard job and therefore gates merges on high/critical findings. A later
+local retry reached the registry/advisory data and reported six findings (one
+low, five high); remediation is intentionally not claimed by this P1 closeout
+and remains a follow-up for the dependency owners.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
