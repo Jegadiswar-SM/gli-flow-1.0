@@ -18,6 +18,15 @@ globalThis.MonacoEnvironment = {
   getWorker: () => new EditorWorker(),
 }
 
+function useDebouncedValue(value, delay = 300) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+  return debouncedValue
+}
+
 function TreeNode({ node, onOpen }) {
   const [open, setOpen] = useState(node.type === "directory")
   if (node.type === "file") return <button type="button" className="block w-full text-left px-2 py-1 text-[11px] hover:bg-[#E8EEF8] focus-visible:outline-2 focus-visible:outline-blue-600" onClick={() => onOpen(node.path)}><Code2 size={12} className="inline mr-1 text-[#2563EB]" aria-hidden="true" />{node.name}</button>
@@ -53,6 +62,7 @@ function MetricsPanel({ params }) {
 
 export default function WorkbenchPage() {
   const [designPath, setDesignPath] = useState("examples/counter")
+  const debouncedDesignPath = useDebouncedValue(designPath)
   const [tree, setTree] = useState(null)
   const [file, setFile] = useState(null)
   const [dirty, setDirty] = useState(false)
@@ -60,7 +70,7 @@ export default function WorkbenchPage() {
   const [logs, setLogs] = useState([])
   const [message, setMessage] = useState("")
   const panelsRef = useRef({})
-  const fetchTree = useCallback((includeAll = false) => fetch(`${API_BASE}/api/fs/tree?path=${encodeURIComponent(designPath)}&include_all=${includeAll}`).then(response => response.json()).then(setTree).catch(error => setMessage(error.message)), [designPath])
+  const fetchTree = useCallback((includeAll = false) => fetch(`${API_BASE}/api/fs/tree?path=${encodeURIComponent(debouncedDesignPath)}&include_all=${includeAll}`).then(response => response.json()).then(setTree).catch(error => setMessage(error.message)), [debouncedDesignPath])
   useEffect(() => { fetchTree() }, [fetchTree])
   useEffect(() => { if (!run?.run_id) return undefined; const id = setInterval(() => fetch(`${API_BASE}/runs/${encodeURIComponent(run.run_id)}`).then(response => response.ok ? response.json() : null).then(data => { if (data) setRun(data); if (data?.current_stage) setLogs(previous => [...previous.slice(-40), `${new Date().toLocaleTimeString()}  ${data.current_stage}  ${data.progress || 0}%`]) }).catch(() => {}), 1500); return () => clearInterval(id) }, [run?.run_id])
   const openFile = useCallback(path => fetch(`${API_BASE}/api/fs/file?path=${encodeURIComponent(path)}`).then(response => response.json()).then(data => { setFile(data); setDirty(false) }).catch(error => setMessage(error.message)), [])
