@@ -20,6 +20,7 @@ const PolicySuitePage = lazy(() => import("./PolicySuitePage"))
 const RunDesignPage = lazy(() => import("./RunDesignPage"))
 const RunMatrixPage = lazy(() => import("./RunMatrixPage"))
 const LearningPathPage = lazy(() => import("./LearningPathPage"))
+const RunComparisonPage = lazy(() => import("./RunComparisonPage"))
 const RunMonitorPage = lazy(() => import("./RunMonitorPage"))
 const ArtifactsPage = lazy(() => import("./ArtifactsPage"))
 const InfrastructurePage = lazy(() => import("./InfrastructurePage"))
@@ -45,6 +46,7 @@ const navGroups = [
       { id: "Run Design", icon: Play, label: "Run Design" },
       { id: "Learning Path", icon: BookOpen, label: "Learning Path" },
       { id: "Run Matrix", icon: Grid, label: "Run Matrix" },
+      { id: "Compare Runs", icon: GitBranch, label: "Compare Runs" },
       { id: "Run Monitor", icon: Activity, label: "Run Monitor" },
       { id: "Important Runs", icon: Star, label: "Important Runs" },
       { id: "Artifacts", icon: Folder, label: "Artifacts" },
@@ -475,6 +477,8 @@ function App() {
             <LearningPathPage />
           ) : activeNav === "Run Matrix" ? (
             <RunMatrixPage />
+          ) : activeNav === "Compare Runs" ? (
+            <RunComparisonPage />
           ) : activeNav === "Run Monitor" ? (
             <RunMonitorPage />
           ) : activeNav === "Artifacts" ? (

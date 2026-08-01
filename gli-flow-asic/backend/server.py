@@ -5,6 +5,8 @@ from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
 from pathlib import Path
 
 import dataclasses
+import csv
+import io
 import json
 import math
 import mimetypes
@@ -2548,6 +2550,109 @@ def compare_runs(run_id: str, other_run_id: str):
         }
     finally:
         conn.close()
+
+
+COMPARISON_METRICS = ("timing_slack", "area", "power", "utilization", "drc", "runtime")
+
+
+def _comparison_record(row):
+    record = dict(row) if not isinstance(row, dict) else dict(row)
+    run_dir = record.get("run_dir")
+    manifest = Path(run_dir or "") / "reproducibility.json"
+    provenance = {}
+    if manifest.exists():
+        try:
+            provenance = json.loads(manifest.read_text())
+        except (OSError, ValueError):
+            pass
+    quality = provenance.get("metric_quality", "unknown")
+    mode = provenance.get("mode", "unknown")
+    telemetry = {}
+    metrics_path = Path(run_dir or "") / "telemetry" / "metrics.json"
+    if metrics_path.exists():
+        try:
+            telemetry = json.loads(metrics_path.read_text())
+        except (OSError, ValueError):
+            pass
+    values = {
+        "timing_slack": record.get("wns"), "area": telemetry.get("cell_area", record.get("cell_count")),
+        "power": telemetry.get("total_power_mw"), "utilization": record.get("utilization"),
+        "drc": record.get("drc_violations"), "runtime": record.get("runtime_sec"),
+    }
+    return {"run_id": record.get("run_id"), "design_name": record.get("design_name"),
+            "mode": mode, "metric_quality": quality, "values": values,
+            "tags": json.loads(record["tags"]) if isinstance(record.get("tags"), str) and record["tags"].startswith("[") else record.get("tags")}
+
+
+@app.post("/runs/compare")
+def compare_run_set(payload: dict):
+    run_ids = list(dict.fromkeys(payload.get("run_ids") or []))
+    if len(run_ids) < 2:
+        raise HTTPException(status_code=400, detail=f"Select at least two runs; run this design {2 - len(run_ids)} more time(s) to see trends.")
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        records = []
+        for run_id in run_ids:
+            cursor.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,))
+            row = cursor.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
+            records.append(_comparison_record(row))
+        qualities = {item["metric_quality"] for item in records}
+        modes = {item["mode"] for item in records}
+        if len(modes) > 1 or ("real_evidence" in qualities and "simulated_placeholder" in qualities):
+            return {"compatible": False, "reason": "Mock/simulated and real-evidence runs cannot be compared as signoff data.", "runs": records}
+        thresholds = payload.get("thresholds") or {}
+        baseline = records[0]["values"]
+        checks = []
+        for metric, limit in thresholds.items():
+            if metric not in baseline or baseline.get(metric) in (None, 0):
+                continue
+            latest = records[-1]["values"].get(metric)
+            if latest is None:
+                continue
+            change = (latest - baseline[metric]) / abs(baseline[metric]) * 100
+            checks.append({"metric": metric, "change_percent": round(change, 2), "threshold_percent": float(limit), "pass": abs(change) <= float(limit), "message": f"{metric.replace('_', ' ').title()} change is {change:.1f}% (limit {limit}%)."})
+        return {"compatible": True, "runs": records, "metrics": list(COMPARISON_METRICS), "regressions": checks}
+    finally:
+        conn.close()
+
+
+@app.post("/runs/tags")
+def tag_runs(payload: dict):
+    run_id = payload.get("run_id")
+    tags = payload.get("tags") or []
+    if not run_id or not isinstance(tags, list):
+        raise HTTPException(status_code=400, detail="run_id and tags[] are required")
+    conn = get_connection()
+    try:
+        conn.execute("UPDATE runs SET tags = ? WHERE run_id = ?", (json.dumps([str(tag).strip() for tag in tags if str(tag).strip()]), run_id))
+        conn.commit()
+        return {"run_id": run_id, "tags": tags}
+    finally:
+        conn.close()
+
+
+@app.post("/runs/compare/export")
+def export_run_comparison(payload: dict):
+    result = compare_run_set(payload)
+    fmt = payload.get("format", "json").lower()
+    if not result.get("compatible"):
+        raise HTTPException(status_code=409, detail=result.get("reason"))
+    if fmt == "json":
+        return JSONResponse(result)
+    rows = result["runs"]
+    if fmt == "csv":
+        output = io.StringIO(); writer = csv.writer(output)
+        writer.writerow(["run_id", "mode", "metric_quality", *COMPARISON_METRICS])
+        for run in rows: writer.writerow([run["run_id"], run["mode"], run["metric_quality"], *[run["values"].get(m) for m in COMPARISON_METRICS]])
+        return PlainTextResponse(output.getvalue(), media_type="text/csv")
+    if fmt == "markdown":
+        lines = ["| Run | Mode | Metric quality | " + " | ".join(COMPARISON_METRICS) + " |", "|---|---|---|" + "---|" * len(COMPARISON_METRICS)]
+        lines += ["| " + " | ".join([run["run_id"], run["mode"], run["metric_quality"], *[str(run["values"].get(m, "—")) for m in COMPARISON_METRICS]]) + " |" for run in rows]
+        return PlainTextResponse("\n".join(lines), media_type="text/markdown")
+    raise HTTPException(status_code=400, detail="format must be csv, json, or markdown")
 
 
 @app.get("/resolutions/top-resolved")
