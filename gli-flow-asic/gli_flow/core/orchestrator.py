@@ -1150,7 +1150,10 @@ class FlowOrchestrator:
                     )
 
                     # ITEM 14: SV2V preprocessing
-                    processed_rtl = preprocess_rtl(
+                    # Mock mode exercises flow semantics without requiring an
+                    # installed EDA translator. Real synthesis still performs
+                    # the strict SV2V conversion before hierarchy validation.
+                    processed_rtl = rtl_files if self._mock_mode else preprocess_rtl(
                         rtl_files, run_dir=Path(self.run_dir), include_paths=inc_paths
                     )
 
