@@ -112,6 +112,25 @@ Still inside the Ubuntu terminal window:
 
 ## Part 3: Installing GLI-FLOW
 
+### One-command path (recommended)
+
+From the Ubuntu terminal, run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.sh | bash
+```
+
+The installer creates the virtual environment, installs GLI-FLOW with
+dashboard support, runs the mock smoke test, and tells you how to activate the
+environment. In WSL2 it asks once whether to install the optional real EDA
+prerequisites. After activation, try:
+
+```bash
+gli-flow quickstart
+```
+
+### Manual path (if you want to see each step)
+
 1. Get the GLI-FLOW source code. If you have a specific location it was
    shared with you (e.g. a GitHub link), use that; otherwise:
 

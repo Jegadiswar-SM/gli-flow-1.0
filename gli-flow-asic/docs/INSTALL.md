@@ -5,6 +5,22 @@ Windows and macOS are experimental. Use Python 3.9–3.12 in a virtual environme
 
 For Windows beginners, follow the complete [Windows + WSL2 setup guide](WINDOWS_WSL2_SETUP.md).
 
+## One-command install (Linux or WSL2)
+
+The easiest path is to run the hosted installer. It creates a virtual
+environment, installs GLI-FLOW with dashboard support, and verifies the mock
+path:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.sh | bash
+```
+
+At the end, activate the environment using the command it prints, then try
+`gli-flow quickstart`. In WSL2, the installer asks once whether to install the
+optional system-level EDA prerequisites.
+
+## Manual install
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate

@@ -18,13 +18,12 @@ validates your design config in seconds without any EDA tools installed.
 ## Quick Install
 
 ```bash
-git clone https://github.com/Jegadiswar-SM/gli-flow-asic.git
-cd gli-flow-asic
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dashboard]"
-gli-flow smoke-test --non-interactive
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.sh | bash
 ```
+
+Then activate the environment using the command the installer prints and try
+`gli-flow quickstart`. For a visible, manual setup, clone the repository and
+follow [docs/INSTALL.md](docs/INSTALL.md).
 
 Python 3.9+. Linux (Ubuntu 22.04+ / Debian 12+ / WSL2).
 
