@@ -2,6 +2,16 @@
 
 ## Verification budgets
 
+The documented Python-side verification environment is installed in one
+command from the repository root:
+
+```bash
+python3 -m pip install -e ".[dashboard]"
+```
+
+That extra includes `pytest` and `pytest-timeout` for the dashboard-backed
+test commands, as well as the FastAPI/HTTP test dependencies.
+
 The production build is route-split with `React.lazy`/`Suspense`. Run
 `npm run build && npm run check:bundle` after a build. The current budgets are
 650 KiB for the largest JavaScript/CSS asset and 1,000 KiB for the combined
