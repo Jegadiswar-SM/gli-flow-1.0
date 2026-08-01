@@ -39,7 +39,6 @@ import { trackEvent } from "./lib/telemetry"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 const POLL_MS = parseInt(import.meta.env.VITE_POLL_INTERVAL || "2000", 10)
-const GLI_FLOW_VERSION = "v1.1.0-beta"
 
 const navGroups = [
   {
@@ -206,6 +205,7 @@ function App() {
   const [viewingRuns, setViewingRuns] = useState(false)
   const [totalRunsCount, setTotalRunsCount] = useState(0)
   const [selectedDesign, setSelectedDesign] = useState("")
+  const [gliFlowVersion, setGliFlowVersion] = useState("GLI-FLOW")
 
   const fetchData = () => {
     Promise.all([
@@ -235,6 +235,10 @@ function App() {
     fetchData()
     const id = setInterval(fetchData, POLL_MS)
     return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/version`).then(response => response.ok ? response.json() : null).then(data => { if (data?.version) setGliFlowVersion(data.version) }).catch(() => {})
   }, [])
 
   const totalRuns = runs.length
@@ -439,7 +443,7 @@ function App() {
             <button type="button" aria-label="Toggle navigation" className="text-abyss-ink focus-visible:outline-2 focus-visible:outline-blue-600"><Menu size={20} /></button>
             <div>
               <h1 className="font-[Eczar] text-[20px] text-abyss-ink leading-tight">GLI-FLOW Dashboard</h1>
-              <p className="font-[Work_Sans] text-[11px] text-[#6B7280]">Execution Intelligence for ASIC Infrastructure · {GLI_FLOW_VERSION}</p>
+              <p className="font-[Work_Sans] text-[11px] text-[#6B7280]">Execution Intelligence for ASIC Infrastructure · {gliFlowVersion}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">

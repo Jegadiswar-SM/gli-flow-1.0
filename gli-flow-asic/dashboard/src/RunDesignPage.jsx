@@ -1,6 +1,9 @@
-import { Play, Terminal, BookOpen } from "lucide-react"
+import { useState } from "react"
+import { Play, Terminal, BookOpen, FolderOpen } from "lucide-react"
+import { isElectron } from "./lib/platform"
 
 export default function RunDesignPage() {
+  const [designPath, setDesignPath] = useState("")
   const commands = [
     { label: "Run with mock mode", cmd: "gli-flow run examples/tiny_or --mock", desc: "Quick test run using mock mode" },
     { label: "Run full flow", cmd: "gli-flow run examples/gcd", desc: "Full RTL-to-GDS run" },
@@ -21,6 +24,15 @@ export default function RunDesignPage() {
             <h2 className="font-[Playfair_Display] text-[18px] text-abyss-ink">Execute an ASIC Design</h2>
             <p className="text-xs text-[#6B7280] font-[Work_Sans]">Run the GLI-FLOW RTL-to-GDS pipeline</p>
           </div>
+        </div>
+
+        <div className="mb-5">
+          <label htmlFor="design-path" className="block text-xs font-semibold text-abyss-ink mb-1">Design folder</label>
+          <div className="flex gap-2">
+            <input id="design-path" value={designPath} onChange={event => setDesignPath(event.target.value)} placeholder="examples/counter or /path/to/design" className="flex-1 border border-stone-ridge rounded px-3 py-2 text-xs focus-visible:outline-2 focus-visible:outline-blue-600" />
+            {isElectron && <button type="button" onClick={async () => { const selected = await window.gliFlowDesktop.selectDirectory(); if (selected) setDesignPath(selected) }} className="inline-flex items-center gap-1 rounded border border-stone-ridge px-3 py-2 text-xs hover:bg-[#FAFAF8] focus-visible:outline-2 focus-visible:outline-blue-600"><FolderOpen size={14} aria-hidden="true" />Browse…</button>}
+          </div>
+          <p className="text-[10px] text-[#6B7280] mt-1">{isElectron ? "Native folder access is available in the desktop shell." : "Enter a design path when using the browser dashboard."}</p>
         </div>
 
         <p className="text-xs text-[#6B7280] font-[Work_Sans] mb-5 leading-relaxed">

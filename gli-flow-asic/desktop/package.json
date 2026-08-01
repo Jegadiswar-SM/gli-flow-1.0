@@ -1,0 +1,24 @@
+{
+  "name": "gli-flow-desktop",
+  "version": "1.1.0-beta",
+  "private": true,
+  "description": "Native desktop shell for GLI-FLOW",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "make": "electron-builder --linux AppImage deb",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.gli-flow.desktop",
+    "productName": "GLI-FLOW",
+    "asar": true,
+    "files": ["main.js", "preload.js", "README.md"],
+    "linux": { "target": ["AppImage", "deb"], "category": "Development" }
+  }
+}

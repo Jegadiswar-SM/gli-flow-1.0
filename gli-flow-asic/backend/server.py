@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
@@ -12,6 +12,7 @@ import math
 import mimetypes
 import os
 import shutil
+import secrets
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -19,6 +20,7 @@ from typing import Any, Dict, List, Optional
 from gli_flow.database.factory import create_provider
 from gli_flow.database.database_provider import DatabaseProvider, Row
 from gli_flow.database.sqlite import DatabaseManager
+from gli_flow.version import VERSION as GLI_FLOW_VERSION
 from gli_flow.investigation.availability import InvestigationAvailabilityService, ENV_KEY_NAME
 from gli_flow.resolution_intelligence import (
     ResolutionRepository,
@@ -490,6 +492,76 @@ def get_trends():
 
 
 _OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs" / "runs"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_DESIGN_ROOTS = [Path(item).expanduser().resolve() for item in os.environ.get("GLI_FLOW_DESIGN_ROOTS", str(_PROJECT_ROOT)).split(os.pathsep) if item]
+
+
+def _safe_workspace_path(raw_path: str, *, must_exist: bool = True) -> Path:
+    candidate = Path(raw_path).expanduser()
+    if not candidate.is_absolute():
+        candidate = _PROJECT_ROOT / candidate
+    candidate = candidate.resolve()
+    if not any(candidate == root or root in candidate.parents for root in _DESIGN_ROOTS):
+        raise HTTPException(status_code=400, detail="Path is outside configured design roots")
+    if must_exist and not candidate.exists():
+        raise HTTPException(status_code=404, detail="Path not found")
+    return candidate
+
+
+@app.get("/version")
+def get_version():
+    return {"version": GLI_FLOW_VERSION}
+
+
+@app.get("/api/fs/tree")
+def get_filesystem_tree(path: str = Query("examples"), include_all: bool = Query(False)):
+    root = _safe_workspace_path(path)
+    if not root.is_dir():
+        raise HTTPException(status_code=400, detail="Tree path must be a directory")
+    extensions = {".v", ".sv", ".vh", ".svh"}
+
+    def visit(directory: Path, depth: int = 0):
+        if depth > 12:
+            return []
+        result = []
+        for item in sorted(directory.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower())):
+            if item.name.startswith(".") or item.name in {"node_modules", "dist", "__pycache__"}:
+                continue
+            if item.is_dir():
+                children = visit(item, depth + 1)
+                if include_all or children:
+                    result.append({"name": item.name, "path": str(item), "type": "directory", "children": children})
+            elif include_all or item.suffix.lower() in extensions:
+                result.append({"name": item.name, "path": str(item), "type": "file", "extension": item.suffix.lower()})
+        return result
+
+    return {"root": str(root), "children": visit(root)}
+
+
+@app.get("/api/fs/file")
+def read_filesystem_file(path: str):
+    target = _safe_workspace_path(path)
+    if not target.is_file() or target.suffix.lower() not in {".v", ".sv", ".vh", ".svh", ".sdc", ".md", ".yaml", ".yml", ".tcl", ".txt", ".json"}:
+        raise HTTPException(status_code=400, detail="Only text design files can be opened")
+    if target.stat().st_size > 2_000_000:
+        raise HTTPException(status_code=413, detail="File is too large for the workbench")
+    return {"path": str(target), "content": target.read_text(errors="replace")}
+
+
+@app.post("/api/fs/file")
+def write_filesystem_file(payload: dict, request: Request):
+    expected = os.environ.get("GLI_FLOW_DESKTOP_WRITE_TOKEN", "")
+    supplied = request.headers.get("X-GLI-FLOW-DESKTOP-TOKEN", "")
+    if not expected or not supplied or not secrets.compare_digest(expected, supplied):
+        raise HTTPException(status_code=403, detail="File writes require the Electron desktop session token")
+    target = _safe_workspace_path(str(payload.get("path", "")))
+    if target.is_dir() or target.suffix.lower() not in {".v", ".sv", ".vh", ".svh"}:
+        raise HTTPException(status_code=400, detail="Only Verilog/SystemVerilog files can be saved")
+    content = payload.get("content")
+    if not isinstance(content, str) or len(content.encode("utf-8")) > 2_000_000:
+        raise HTTPException(status_code=400, detail="Invalid or oversized file content")
+    target.write_text(content)
+    return {"path": str(target), "saved": True}
 
 
 @app.get("/runs/{run_id}")
