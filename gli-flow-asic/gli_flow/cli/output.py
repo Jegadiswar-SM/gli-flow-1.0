@@ -4,6 +4,8 @@ from rich.panel import Panel
 from rich.layout import Layout
 from rich.columns import Columns
 from rich import box
+from rich.align import Align
+from rich.text import Text
 
 console = Console()
 
@@ -15,9 +17,26 @@ LVS_DISCLAIMER = (
 
 
 def print_banner():
+    wordmark = Text()
+    wordmark.append("GLI", style="bold bright_cyan")
+    wordmark.append("-", style="bold white")
+    wordmark.append("FLOW", style="bold bright_green")
+
     console.print()
-    console.print("[bold green]  GLI-FLOW  [/bold green] [dim]RTL-to-GDS Digital Design Flow[/dim]")
-    console.print("[dim]Open-source ASIC implementation flow[/dim]")
+    console.print(
+        Panel(
+            Align.center(
+                Text.assemble(
+                    wordmark,
+                    ("\nRTL → GDS  ·  Open-source silicon design flow", "dim"),
+                ),
+                vertical="middle",
+            ),
+            border_style="bright_blue",
+            box=box.ROUNDED,
+            padding=(0, 3),
+        )
+    )
 
 
 def print_next_step(steps: list):

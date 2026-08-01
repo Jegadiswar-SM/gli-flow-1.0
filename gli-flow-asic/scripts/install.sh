@@ -10,6 +10,28 @@ SOURCE_DIR="${GLI_FLOW_HOME}/source"
 
 info() { printf '→ %s\n' "$1"; }
 pass() { printf '✓ %s\n' "$1"; }
+
+if [[ -t 1 ]]; then
+    RESET=$'\033[0m'
+    CYAN=$'\033[96m'
+    GREEN=$'\033[92m'
+    BLUE=$'\033[94m'
+    BOLD=$'\033[1m'
+else
+    RESET=''
+    CYAN=''
+    GREEN=''
+    BLUE=''
+    BOLD=''
+fi
+
+print_logo() {
+    printf '\n%s╭────────────────────────────────────────────╮%s\n' "$BLUE" "$RESET"
+    printf '%s│%s       %sGLI-FLOW%s  %sINSTALLER%s              %s│%s\n' "$BLUE" "$RESET" "$BOLD$CYAN" "$RESET" "$BOLD$GREEN" "$RESET" "$BLUE" "$RESET"
+    printf '%s│%s       RTL → GDS  ·  Linux / WSL2         %s│%s\n' "$BLUE" "$RESET" "$BLUE" "$RESET"
+    printf '%s╰────────────────────────────────────────────╯%s\n\n' "$BLUE" "$RESET"
+}
+
 fail() {
     printf '✗ Installation stopped: %s\n' "$1" >&2
     printf '  Nothing else was changed. Re-run this command after fixing the issue.\n' >&2
@@ -22,7 +44,7 @@ on_error() {
 }
 trap 'on_error "$LINENO"' ERR
 
-printf '\nGLI-FLOW Linux/WSL2 installer\n\n'
+print_logo
 info "This will create or reuse ${GLI_FLOW_HOME}, a Python virtual environment, and a source checkout."
 info "It will install the GLI-FLOW dashboard dependencies and run a mock smoke test."
 
