@@ -69,55 +69,55 @@ jobs:
       - name: Verify Import Chain
         run: |
           python3 -c "
-from gli_flow.core.orchestrator import FlowOrchestrator
-from gli_flow.provenance.manifest import generate_reproducibility_manifest
-from gli_flow.regression.detector import detect_regression
-from gli_flow.telemetry.parser import TelemetryParser
-from gli_flow.analytics.qor_score import calculate_qor_score
-from gli_flow.ci import CIConfig, CIRunner, CIReport
-from gli_flow.ci.reporter import generate_junit_xml, generate_markdown_report
-from gli_flow.cloud import CloudStorageConfig, CloudStorageManager, CloudProvider
-from gli_flow.scheduler.remote import RemoteWorker, RemoteWorkerConfig, RemoteWorkerResult
-from gli_flow.testing.mock_adapter import MockEDAAdapter
-print('All imports OK')
-"
+          from gli_flow.core.orchestrator import FlowOrchestrator
+          from gli_flow.provenance.manifest import generate_reproducibility_manifest
+          from gli_flow.regression.detector import detect_regression
+          from gli_flow.telemetry.parser import TelemetryParser
+          from gli_flow.analytics.qor_score import calculate_qor_score
+          from gli_flow.ci import CIConfig, CIRunner, CIReport
+          from gli_flow.ci.reporter import generate_junit_xml, generate_markdown_report
+          from gli_flow.cloud import CloudStorageConfig, CloudStorageManager, CloudProvider
+          from gli_flow.scheduler.remote import RemoteWorker, RemoteWorkerConfig, RemoteWorkerResult
+          from gli_flow.testing.mock_adapter import MockEDAAdapter
+          print('All imports OK')
+          "
 
       - name: Validate CI Module
         run: |
           python3 -c "
-from gli_flow.ci.reporter import CIReport, generate_junit_xml, generate_markdown_report
-r = CIReport(True, 'ci_test', 'counter', {'qor_score': 85.0}, None, [], 10.0)
-xml = generate_junit_xml(r)
-md = generate_markdown_report(r)
-assert 'failures=\"0\"' in xml
-assert '85.0' in md
-print('CI module validation OK')
-"
+          from gli_flow.ci.reporter import CIReport, generate_junit_xml, generate_markdown_report
+          r = CIReport(True, 'ci_test', 'counter', {'qor_score': 85.0}, None, [], 10.0)
+          xml = generate_junit_xml(r)
+          md = generate_markdown_report(r)
+          assert 'failures=\"0\"' in xml
+          assert '85.0' in md
+          print('CI module validation OK')
+          "
 
       - name: Validate Mock Adapter
         run: |
           python3 -c "
-from gli_flow.testing.mock_adapter import MockEDAAdapter
-a = MockEDAAdapter()
-assert a.platform == 'mock'
-assert a.validate_environment() == []
-print('Mock adapter validation OK')
-"
+          from gli_flow.testing.mock_adapter import MockEDAAdapter
+          a = MockEDAAdapter()
+          assert a.platform == 'mock'
+          assert a.validate_environment() == []
+          print('Mock adapter validation OK')
+          "
 
       - name: Verify Hardening Module Imports
         run: |
           python3 -c "
-import tests.failure_corpus
-print('failure_corpus module OK')
-from tests.golden_designs import baseline
-print('golden_designs.baseline module OK')
-from gli_flow.doctor import run_doctor
-print('doctor module OK')
-from gli_flow.install_certification import generate_install_certification
-print('install_certification module OK')
-from gli_flow.core.error_experience import GliFlowError, resolve_error
-print('error_experience module OK')
-"
+          import tests.failure_corpus
+          print('failure_corpus module OK')
+          from tests.golden_designs import baseline
+          print('golden_designs.baseline module OK')
+          from gli_flow.doctor import run_magic_discovery
+          print('doctor module OK')
+          from gli_flow.install_certification import run_certification
+          print('install_certification module OK')
+          from gli_flow.core.error_experience import GliFlowError, resolve_error
+          print('error_experience module OK')
+          "
 
   # WSL2 tests cannot run on GitHub-hosted runners natively;
   # the tests are designed and verified to work on WSL2 environments.
@@ -143,24 +143,24 @@ print('error_experience module OK')
       - name: Verify WSL2 Detection Code
         run: |
           python3 -c "
-from gli_flow.installer.system import is_wsl
-from pathlib import Path
-import tempfile, os
-tf = tempfile.NamedTemporaryFile(mode='w', suffix='_version', delete=False)
-tf.write('Linux version 5.15.167.4-microsoft-standard-WSL2')
-tf.close()
-import builtins
-_orig_open = builtins.open
-def mock_open(p, *a, **kw):
-    if p == '/proc/version':
-        return _orig_open(tf.name, *a, **kw)
-    return _orig_open(p, *a, **kw)
-builtins.open = mock_open
-assert is_wsl() is True
-builtins.open = _orig_open
-os.unlink(tf.name)
-print('WSL2 detection code verified OK')
-"
+          from gli_flow.installer.system import is_wsl
+          from pathlib import Path
+          import tempfile, os
+          tf = tempfile.NamedTemporaryFile(mode='w', suffix='_version', delete=False)
+          tf.write('Linux version 5.15.167.4-microsoft-standard-WSL2')
+          tf.close()
+          import builtins
+          _orig_open = builtins.open
+          def mock_open(p, *a, **kw):
+              if p == '/proc/version':
+                  return _orig_open(tf.name, *a, **kw)
+              return _orig_open(p, *a, **kw)
+          builtins.open = mock_open
+          assert is_wsl() is True
+          builtins.open = _orig_open
+          os.unlink(tf.name)
+          print('WSL2 detection code verified OK')
+          "
 
   failure-corpus:
     runs-on: ubuntu-22.04
@@ -229,13 +229,13 @@ print('WSL2 detection code verified OK')
       - name: Verify Version
         run: |
           python3 -c "
-import sys
-sys.path.insert(0, '.')
-from gli_flow.version import VERSION
-print(f'Version: {VERSION}')
-assert VERSION.startswith('v'), 'Version must start with v'
-print('Version check passed')
-"
+          import sys
+          sys.path.insert(0, '.')
+          from gli_flow.version import VERSION
+          print(f'Version: {VERSION}')
+          assert VERSION.startswith('v'), 'Version must start with v'
+          print('Version check passed')
+          "
 
       - name: Verify Release Assets
         run: |
@@ -306,6 +306,38 @@ print('Version check passed')
         run: |
           python3 release/validate_lvs_integrity.py
 
+  dashboard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: gli-flow-asic/dashboard
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.18.0"
+          cache: npm
+          cache-dependency-path: gli-flow-asic/dashboard/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Check Bundle Budget
+        run: npm run check:bundle
+
+      - name: Audit Dependencies
+        run: npm audit --audit-level=high
+
   notify:
     if: failure()
     needs:
@@ -315,6 +347,7 @@ print('Version check passed')
       - doctor-validation
       - release-validation
       - lvs-integrity
+      - dashboard
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:

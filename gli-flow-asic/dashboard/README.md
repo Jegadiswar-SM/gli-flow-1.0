@@ -7,13 +7,16 @@ The production build is route-split with `React.lazy`/`Suspense`. Run
 650 KiB for the largest JavaScript/CSS asset and 1,000 KiB for the combined
 asset set. The shared entry is currently about 602 KiB and is below budget.
 
-`npm run lint` must exit successfully. The current React Hooks configuration
-reports 11 dependency warnings in legacy request effects; these are retained
-for follow-up refactoring, while unused imports, empty catches, and lint
-errors are rejected.
+`npm run lint` must exit successfully with zero errors and zero warnings.
+Unused imports, empty catches, and lint errors are rejected, and the React
+Hooks dependency arrays are kept exhaustive.
 
-`npm audit` requires registry access. If it cannot reach the npm registry,
-record that as an environment limitation rather than using `--force`.
+`npm audit` requires registry access. In the verification sandbox the npm
+registry could not be reached, so the audit was deferred there and recorded
+as an environment limitation rather than using `--force`. The audit is gated
+in CI (`.github/workflows/ci.yml`, `dashboard` job), where GitHub-hosted
+runners have registry access and fail the build on any `high` or
+`critical` vulnerability.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
