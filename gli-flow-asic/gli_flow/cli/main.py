@@ -644,7 +644,10 @@ def run_command(args):
     if getattr(args, "example", None):
         design_path = str(Path("examples") / args.example)
     if not design_path:
-        error("A design path or --example NAME is required. Try `gli-flow examples list`.")
+        error(
+            "No design specified. Try `gli-flow examples list` or "
+            "`gli-flow run --example counter`."
+        )
         return
 
     if not Path(design_path).exists():

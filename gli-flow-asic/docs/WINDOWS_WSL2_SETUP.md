@@ -246,8 +246,9 @@ gli-flow dashboard
 
 This starts a local web server and should open your default browser
 automatically to it. If it doesn't open automatically, it will print a
-web address (something like `http://127.0.0.1:8000`) — copy that into your
-browser manually.
+web address (normally `http://127.0.0.1:5173`) — copy that into your browser
+manually. The backend-only URL is `http://127.0.0.1:8000` when using
+`gli-flow dashboard --backend-only`.
 
 If a native desktop app version is available to you separately (rather
 than opening in a browser), install and launch that instead, and point it
