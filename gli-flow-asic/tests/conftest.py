@@ -9,6 +9,15 @@ import pytest
 _EDA_TOOLS = ("sv2v", "yosys", "openroad", "magic", "netgen", "netgen-lvs", "klayout")
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--all",
+        action="store_true",
+        default=False,
+        help="run environment-gated tests instead of auto-skipping them",
+    )
+
+
 def _have_eda_tools() -> bool:
     return all(shutil.which(tool) is not None for tool in _EDA_TOOLS)
 
@@ -61,6 +70,8 @@ def pytest_runtest_setup(item):
     collect them; the skip applies only when the environment truly lacks
     support (e.g. missing EDA tools, blocked network, unwritable HOME, no
     passwordless sudo, or an empty failure-atlas database)."""
+    if item.config.getoption("--all"):
+        return
     if item.get_closest_marker("requires_tools") and not _have_eda_tools():
         pytest.skip("requires real EDA tools (sv2v, yosys, openroad, magic, netgen, klayout)")
     if item.get_closest_marker("requires_network") and not _network_available():
