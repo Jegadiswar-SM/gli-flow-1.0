@@ -672,9 +672,10 @@ def run_command(args):
             orfs_root=args.orfs_root,
             mock=getattr(args, 'mock', False),
             db_path=db_path,
-            certification_mode=getattr(args, 'certify', False),
-            resumed_from=getattr(args, 'resumed_from', None),
-            resume_stage=getattr(args, 'resume_stage', None),
+        certification_mode=getattr(args, 'certify', False),
+        resumed_from=getattr(args, 'resumed_from', None),
+        resume_stage=getattr(args, 'resume_stage', None),
+        resume_source_dir=getattr(args, 'resume_source_dir', None),
         )
         print_run_header(
             orchestrator.run_id,
@@ -756,6 +757,7 @@ def rerun_command(args):
         design=str(design_path), example=None, mock=getattr(args, "mock", False),
         threads=None, memory=None, orfs_root=None, db_path=getattr(args, "db_path", None),
         certify=False, verbose=False, resumed_from=args.run_id, resume_stage=args.from_stage,
+        resume_source_dir=run.get("run_dir"),
     ))
 
 

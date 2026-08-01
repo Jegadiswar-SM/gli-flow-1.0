@@ -1,4 +1,5 @@
 import json
+import hashlib
 import logging
 import os
 import re
@@ -190,7 +191,7 @@ class FlowOrchestrator:
     def __init__(self, design_path, threads: int = None, memory_mb: int = None,
                  orfs_root: str = None, mock: bool = False, db_path: str = None,
                  certification_mode: bool = False, resumed_from: str = None,
-                 resume_stage: str = None):
+                 resume_stage: str = None, resume_source_dir: str = None):
         discover_pdks()
 
         certification_mode = certification_mode or os.environ.get("GLI_FLOW_CERTIFICATION_MODE", "").lower() in ("1", "true", "yes")
@@ -206,6 +207,7 @@ class FlowOrchestrator:
         self.db_path = db_path
         self.resumed_from = resumed_from
         self.resume_stage = resume_stage
+        self.resume_source_dir = resume_source_dir
 
         self.manifest = self._read_manifest()
         self.design_name = self.manifest.get("top_module") or self.design_path.name
@@ -214,6 +216,8 @@ class FlowOrchestrator:
 
         self.run_dir_mgr = RunDirectoryManager(self.run_id)
         self.run_dir = self.run_dir_mgr.create()
+        self._resume_start_index = 0
+        self._prepare_resume()
 
         self.pdk_root = os.environ.get("PDK_ROOT") or get_config_value("pdk_root")
         self.orfs_root = orfs_root or os.environ.get("ORFS_ROOT") or get_config_value("orfs_root")
@@ -273,6 +277,64 @@ class FlowOrchestrator:
         self._false_positives: list[str] = []
         self._flow_bugs: list[str] = []
         self._evidence_gaps: list[str] = []
+
+    def _prepare_resume(self):
+        """Restore a prior run's checkpointed files before the target stage."""
+        if not self.resumed_from:
+            return
+        if not self.resume_stage:
+            raise ValueError("A resume stage is required when resuming a run")
+        normalized = self.resume_stage.upper()
+        if normalized not in STAGES:
+            raise ValueError(f"Unknown resume stage '{self.resume_stage}'. Choose one of: {', '.join(STAGES)}")
+        self.resume_stage = normalized
+        self._resume_start_index = STAGES.index(normalized)
+        source = Path(self.resume_source_dir or "")
+        if not source.is_dir():
+            raise ValueError(f"Checkpoint source run directory is unavailable: {source}")
+        if self._resume_start_index:
+            prior = list((source / "checkpoints").glob("*.json"))
+            if len(prior) < self._resume_start_index:
+                raise ValueError(
+                    f"Run {self.resumed_from} has no complete stage checkpoints; "
+                    "rerun cannot safely resume from an intermediate stage"
+                )
+
+        excluded = {"run_summary.md", "reproducibility.json", "stage_execution.jsonl"}
+        for source_path in source.rglob("*"):
+            relative = source_path.relative_to(source)
+            if "checkpoints" in relative.parts or relative.name in excluded:
+                continue
+            destination = self.run_dir / relative
+            if source_path.is_dir():
+                destination.mkdir(parents=True, exist_ok=True)
+            else:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_path, destination)
+
+    def _record_stage_event(self, stage: str, action: str):
+        event = {"stage": stage, "action": action, "timestamp": time.time()}
+        with (self.run_dir / "stage_execution.jsonl").open("a") as handle:
+            handle.write(json.dumps(event) + "\n")
+
+    def _write_stage_checkpoint(self, stage: str, index: int):
+        checkpoint_dir = self.run_dir / "checkpoints"
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        outputs = []
+        for path in sorted(self.run_dir.rglob("*")):
+            relative = path.relative_to(self.run_dir)
+            if path.is_file() and "checkpoints" not in relative.parts and relative.name != "stage_execution.jsonl":
+                digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                outputs.append({"path": str(relative), "sha256": digest, "size": path.stat().st_size})
+        checkpoint = {
+            "run_id": self.run_id,
+            "source_run_id": self.resumed_from,
+            "stage": stage,
+            "order": index,
+            "completed": True,
+            "outputs": outputs,
+        }
+        (checkpoint_dir / f"{index:02d}_{stage.lower()}.json").write_text(json.dumps(checkpoint, indent=2))
 
     def _read_manifest(self):
         manifest_path = self.design_path / "gli_manifest.yaml"
@@ -1052,6 +1114,11 @@ class FlowOrchestrator:
 
         for index, stage in enumerate(STAGES):
             progress = int(((index + 1) / len(STAGES)) * 100)
+            if index < self._resume_start_index:
+                self._record_stage_event(stage, "reused_checkpoint")
+                print_stage_progress(stage, progress, "REUSED CHECKPOINT")
+                continue
+            self._record_stage_event(stage, "executed")
             self._update_stage(stage, progress)
             print_stage_progress(stage, progress, "RUNNING")
 
@@ -1388,6 +1455,8 @@ class FlowOrchestrator:
                     raise
                 print(f"  [SKIP] {stage}: tool error")
                 self._add_failure_atlas_entry(stage, "STAGE_FAILURE", "HIGH")
+
+            self._write_stage_checkpoint(stage, index)
 
         # ITEM 15: Post-synthesis safety check
         synth_log = self.run_dir / "logs" / "synthesis.log"
