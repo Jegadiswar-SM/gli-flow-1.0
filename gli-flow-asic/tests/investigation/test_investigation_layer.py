@@ -146,7 +146,9 @@ class TestBharatCodeProvider:
 
     def test_timeout_handling(self):
         with patch.dict(os.environ, {"BHARATCODE_API_KEY": "test-key"}):
-            provider = BharatCodeProvider(timeout_sec=1, retry_attempts=1)
+            # Keep the retry path deterministic and prompt in the sandbox;
+            # the provider itself still enforces the one-second HTTP timeout.
+            provider = BharatCodeProvider(timeout_sec=1, retry_attempts=1, retry_delay_sec=0)
             resp = provider.investigate("prompt", "context")
             assert not resp.success  # will timeout since no real server
 
