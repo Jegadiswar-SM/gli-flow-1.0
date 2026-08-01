@@ -342,7 +342,7 @@ Common Workflows:
 First Time:
   gli-flow smoke-test          Verify installation
   gli-flow doctor              Detailed environment check
-  gli-flow run counter         Run your first design
+  gli-flow run --example counter  Run your first design
 
 Investigate Failure:
   gli-flow diagnose <run>      Analyze a failed run

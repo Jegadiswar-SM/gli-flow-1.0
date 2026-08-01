@@ -33,7 +33,7 @@
 |---------|----------------|
 | `run` (success) | `gli-flow dashboard` |
 | `run` (failure) | `gli-flow diagnose <run>` |
-| `doctor` | `gli-flow run counter --mock` |
+| `doctor` | `gli-flow run --example counter --mock` |
 | `install` | `gli-flow doctor` |
 | `diagnose` | `gli-flow investigate <run>` |
 | `investigate` | `gli-flow diagnose <run>` |
@@ -73,9 +73,9 @@ $ gli-flow --help
 
 $ gli-flow doctor
   → READY/WARNING/ERROR per check
-  → Next: gli-flow run counter --mock
+  → Next: gli-flow run --example counter --mock
 
-$ gli-flow run counter --mock
+$ gli-flow run --example counter --mock
   → ✓ Run completed successfully
   → Next: gli-flow dashboard
 
@@ -129,7 +129,7 @@ GLI-FLOW Doctor — Environment Health Report
 Telemetry: enabled | To change: gli-flow config --telemetry off
 
 Next:
-  gli-flow run counter --mock
+  gli-flow run --example counter --mock
 ```
 
 ### Before (raw error, confusing)

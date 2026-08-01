@@ -2750,7 +2750,7 @@ def build_parser():
             "  First Time:\n"
             "    gli-flow smoke-test          Verify installation\n"
             "    gli-flow doctor              Detailed environment check\n"
-            "    gli-flow run counter         Run your first design\n\n"
+            "    gli-flow run --example counter  Run your first design\n\n"
             "  Investigate Failure:\n"
             "    gli-flow diagnose <run>      Analyze a failed run\n"
             "    gli-flow investigate <run>   Deep AI investigation\n\n"

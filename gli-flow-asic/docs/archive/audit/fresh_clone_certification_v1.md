@@ -33,8 +33,8 @@ The GLI-FLOW installation and onboarding experience is generally smooth and func
 
 ## 3. Issues and Observations
 
-### [MEDIUM] `gli-flow run counter` Usability Friction
-- **Issue:** Running `gli-flow run counter` fails if the user is not in the `examples/` directory.
+### [MEDIUM] `gli-flow run --example counter` Usability Friction
+- **Issue:** Running the counter example failed if the user was not in the `examples/` directory.
 - **Expected:** The tool should likely search for designs in common locations (like `./designs/` or `./examples/`) if a relative path is not found.
 - **Impact:** First-time users might be confused when following a simplified command.
 

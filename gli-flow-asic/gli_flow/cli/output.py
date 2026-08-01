@@ -291,7 +291,7 @@ def print_first_run_guide():
         "[bold]Common Workflows[/bold]\n\n"
         "  First Time:\n"
         "    [bold green]gli-flow doctor[/bold green]\n"
-        "    [bold green]gli-flow run counter[/bold green]\n\n"
+        "    [bold green]gli-flow run --example counter[/bold green]\n\n"
         "  Investigate Failure:\n"
         "    [bold green]gli-flow diagnose <run>[/bold green]\n\n"
         "  Telemetry:\n"

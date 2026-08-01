@@ -37,7 +37,7 @@
 | `READY FOR TAPEOUT FLOW` | `✓ Environment is READY` |
 | `NOT READY (1 failure(s))` | `✗ Environment has ERRORS` |
 | `READY WITH WARNINGS` | `⚠ Environment has WARNINGS` |
-| No next-step | `Next: gli-flow run counter --mock` |
+| No next-step | `Next: gli-flow run --example counter --mock` |
 
 ### ✅ `install`
 | Before | After |
