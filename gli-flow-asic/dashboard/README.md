@@ -21,6 +21,14 @@ asset set. The shared entry is currently about 602 KiB and is below budget.
 Unused imports, empty catches, and lint errors are rejected, and the React
 Hooks dependency arrays are kept exhaustive.
 
+The former 11 hook warnings were reviewed individually in commit `c0439a7`:
+derived text lines and filtered artifacts use `useMemo`; artifact fetch,
+navigation handlers, engineering/feedback/atlas fetchers, and AI fetchers use
+`useCallback`; effects include the values they read; and the atlas interval
+uses a ref so changing search-only filters does not restart the timer. These
+dependencies are safe because they describe the request or render state each
+effect must observe; no dependency was suppressed.
+
 `npm audit` requires registry access. In the verification sandbox the npm
 registry could not be reached, so the audit was deferred there and recorded
 as an environment limitation rather than using `--force`. The audit is gated
