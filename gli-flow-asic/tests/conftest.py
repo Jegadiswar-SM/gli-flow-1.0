@@ -22,6 +22,23 @@ def _have_eda_tools() -> bool:
     return all(shutil.which(tool) is not None for tool in _EDA_TOOLS)
 
 
+def _have_functional_magic() -> bool:
+    """Return whether the Magic paths used by the real-tool tests work."""
+    try:
+        from gli_flow.core.tool_discovery import (
+            discover_magic_binaries,
+            validate_magic_candidate,
+        )
+
+        for candidate in discover_magic_binaries():
+            report = validate_magic_candidate(candidate)
+            if report.passed and candidate.path == "/usr/bin/magic":
+                return os.path.isfile("/usr/lib/x86_64-linux-gnu/magic/tcl/magicdnull")
+    except Exception:
+        return False
+    return False
+
+
 def _network_available() -> bool:
     import socket
     try:
@@ -78,6 +95,8 @@ def pytest_runtest_setup(item):
         return
     if item.get_closest_marker("requires_tools") and not _have_eda_tools():
         pytest.skip("requires real EDA tools (sv2v, yosys, openroad, magic, netgen, klayout)")
+    if item.get_closest_marker("requires_functional_magic") and not _have_functional_magic():
+        pytest.skip("requires a functional Magic binary at /usr/bin/magic and magicdnull")
     if item.get_closest_marker("requires_network") and not _network_available():
         pytest.skip("requires outbound network access")
     if item.get_closest_marker("requires_writable_home") and not _home_writable():

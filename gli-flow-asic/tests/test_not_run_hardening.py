@@ -23,6 +23,8 @@ class TestEMParserHardening:
             assert metrics["em_max_current_density_ma_um"] is None
 
     def test_em_unreadable_file_returns_error(self):
+        if hasattr(os, "geteuid") and os.geteuid() == 0:
+            pytest.skip("permission simulation requires a non-root user")
         with tempfile.TemporaryDirectory() as tmp:
             em_file = Path(tmp) / "em_report.txt"
             em_file.touch()
@@ -69,6 +71,8 @@ class TestSIParserHardening:
             assert metrics["si_crosstalk_violations"] is None
 
     def test_si_unreadable_file_returns_error(self):
+        if hasattr(os, "geteuid") and os.geteuid() == 0:
+            pytest.skip("permission simulation requires a non-root user")
         with tempfile.TemporaryDirectory() as tmp:
             si_file = Path(tmp) / "si_report.txt"
             si_file.touch()
@@ -141,6 +145,8 @@ class TestFormalParserHardening:
             assert metrics["formal_compare_points"] is None
 
     def test_formal_unreadable_file_returns_error(self):
+        if hasattr(os, "geteuid") and os.geteuid() == 0:
+            pytest.skip("permission simulation requires a non-root user")
         with tempfile.TemporaryDirectory() as tmp:
             fm_file = Path(tmp) / "formal_log.txt"
             fm_file.touch()

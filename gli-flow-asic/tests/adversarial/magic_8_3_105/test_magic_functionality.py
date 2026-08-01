@@ -21,6 +21,8 @@ from pathlib import Path
 import pytest
 
 
+pytestmark = pytest.mark.requires_functional_magic
+
 MAGIC_BINARY = "/usr/bin/magic"
 MAGICDNUL_BINARY = "/usr/lib/x86_64-linux-gnu/magic/tcl/magicdnull"
 

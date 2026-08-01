@@ -19,6 +19,8 @@ import os
 import tempfile
 from pathlib import Path
 
+import pytest
+
 
 def _create_broken_wrapper(path: Path):
     """Create a broken Tcl wrapper referencing a missing file."""
@@ -162,6 +164,7 @@ def test_validate_magic_candidate_passes_valid():
         )
 
 
+@pytest.mark.requires_functional_magic
 def test_path_shadowing_never_selects_broken():
     """Never select broken candidate solely due to PATH order."""
     from gli_flow.core.tool_discovery import (
@@ -206,6 +209,7 @@ def test_path_shadowing_never_selects_broken():
             os.environ["PATH"] = old_path
 
 
+@pytest.mark.requires_functional_magic
 def test_doctor_detects_shadowing_issue():
     """Doctor discovery report must indicate path shadowing issue."""
     from gli_flow.core.tool_discovery import (
