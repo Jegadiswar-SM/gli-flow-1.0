@@ -11,6 +11,7 @@ Failure Atlas entries must reference environment fingerprints.
 """
 
 import json
+import hashlib
 import logging
 import os
 import platform
@@ -163,6 +164,9 @@ def capture_fingerprint(
         tool_discovery_timeout=dt["timeout_occurred"],
         tool_discovery_fallback_count=dt["fallback_count"],
     )
+    fp.fingerprint_id = hashlib.sha256(
+        json.dumps(fp.to_dict(), sort_keys=True).encode("utf-8")
+    ).hexdigest()
 
     return fp
 

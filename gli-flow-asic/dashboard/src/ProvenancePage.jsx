@@ -45,17 +45,7 @@ export default function ProvenancePage() {
   const graphNodes = graph?.nodes || []
   const graphEdges = graph?.edges || []
   const recentRuns = summary?.recent_runs || allRuns.slice(0, 20)
-  const displayManifests = manifests.length > 0 ? manifests : allRuns.slice(0, 20).map((r) => ({
-    run_id: r.run_id,
-    design_name: r.design_name,
-    timestamp_iso: r.timestamp || "",
-    system: { platform: "Linux 6.x-x86_64", python_version: "3.10.12", hostname: r.design_name || "runner" },
-    toolchain: { openroad: "v2.0_" + (r.run_id || "").slice(-4), yosys: "0.38+", python: "3.10.12" },
-    provenance: { rtl_hashes: {}, pdk: { name: "sky130A", root: "/usr/local/share/pdk" } },
-    execution: { reproduction_command: r.design_name ? `gli-flow run ${r.design_name}` : "gli-flow run", reproducibility_mode: true },
-    metrics: { qor_score: r.qor_score },
-    status: r.status,
-  }))
+  const displayManifests = manifests
 
   return (
     <div className="space-y-6">

@@ -51,6 +51,13 @@ def print_stage_progress(stage, progress, status="RUNNING"):
 
 def print_results(record):
     simulated = getattr(record, "execution_mode", "real") == "mock"
+    real_evidence = True
+    if not simulated:
+        from gli_flow.provenance.manifest import real_result_display_allowed
+        run_dir = getattr(record, "run_dir", "")
+        real_evidence = bool(run_dir) and real_result_display_allowed(run_dir)
+        if not real_evidence:
+            console.print("[bold red]UNVERIFIED RESULT — this run has no matching real-tool parsing provenance; values are not shown as real signoff evidence.[/bold red]")
     if simulated:
         console.print("[bold cyan]SIMULATED/DEMO METRICS — every value below is a placeholder, not evaluated by EDA tools.[/bold cyan]")
     table = Table(box=box.SIMPLE)
@@ -58,7 +65,7 @@ def print_results(record):
     table.add_column("Value", style="white")
 
     qor_color = "green" if record.qor_score and record.qor_score >= 0.7 else "red"
-    suffix = " (simulated)" if simulated else ""
+    suffix = " (simulated)" if simulated else (" (unverified)" if not real_evidence else "")
     table.add_row("QoR Score", f"[{qor_color}]{record.qor_score}[/{qor_color}]{suffix}")
     table.add_row("WNS", (str(record.wns) if record.wns is not None else "N/A") + suffix)
     table.add_row("TNS", (str(record.tns) if record.tns is not None else "N/A") + suffix)
@@ -74,10 +81,12 @@ def print_results(record):
     console.print(table)
 
     lvs_is_clean = getattr(record, "lvs_is_clean", None)
-    if lvs_is_clean is True:
+    if lvs_is_clean is True and real_evidence:
         console.print(f"  [green]✓ LVS PASS[/green]")
         console.print(f"\n  [dim]ℹ {LVS_DISCLAIMER}[/dim]")
-    elif lvs_is_clean is False:
+    elif lvs_is_clean is True:
+        console.print("  [yellow]! LVS result unverified — source parser provenance is missing[/yellow]")
+    elif lvs_is_clean is False and real_evidence:
         console.print(f"  [red]✗ LVS FAIL[/red]")
 
     console.print()

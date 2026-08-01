@@ -30,6 +30,7 @@ from gli_flow.installer.workspace import get_config_value
 from gli_flow.testing.layout_images import generate_placeholder_images
 
 from gli_flow.provenance.manifest import generate_reproducibility_manifest
+from gli_flow.core.environment_fingerprint import capture_fingerprint, save_fingerprint
 from gli_flow.core.subprocess_env import safe_env
 from gli_flow.regression.detector import detect_regression
 from gli_flow.core.exceptions import StageOOMError, StageTimeoutError, SynthesisSafetyError, RoutingOverflowError, TapeoutBlockingError
@@ -729,6 +730,10 @@ class FlowOrchestrator:
             metrics=metrics,
             manifest_data=manifest_data,
             run_dir=str(self.run_dir),
+            execution_mode=self.record.execution_mode,
+            metric_quality=self.record.metric_quality,
+            environment_fingerprint=self.environment_fingerprint.to_dict()
+            if hasattr(self, "environment_fingerprint") else {},
         )
 
     def _check_regression(self):
@@ -1079,6 +1084,11 @@ class FlowOrchestrator:
 
     def run(self):
         self.database.insert_run(self.record)
+        self.environment_fingerprint = capture_fingerprint(
+            pdk_name=self.manifest.get("pdk", ""),
+            pdk_version=self.manifest.get("pdk_version", ""),
+        )
+        save_fingerprint(str(self.run_dir), self.environment_fingerprint)
 
         print(f"Run ID: {self.run_id}")
         print(f"Design: {self.design_name}")

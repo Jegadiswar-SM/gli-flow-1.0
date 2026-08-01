@@ -1661,7 +1661,7 @@ def get_provenance_summary():
     finally:
         conn.close()
 
-    manifest_files = list(Path(__file__).resolve().parent.parent.glob("outputs/runs/*/reports/reproducibility.json"))
+    manifest_files = list(Path(__file__).resolve().parent.parent.glob("outputs/runs/*/reproducibility.json"))
     manifest_count = len(manifest_files)
 
     provenance_graph = _PROVENANCE_DIR / "provenance_graph.json"
@@ -1684,46 +1684,11 @@ def get_provenance_summary():
 @app.get("/provenance/manifests")
 def get_provenance_manifests():
     manifests = []
-    for m_file in sorted(Path(__file__).resolve().parent.parent.glob("outputs/runs/*/reports/reproducibility.json"), reverse=True)[:20]:
+    for m_file in sorted(Path(__file__).resolve().parent.parent.glob("outputs/runs/*/reproducibility.json"), reverse=True)[:20]:
         try:
             manifests.append(json.loads(m_file.read_text()))
         except Exception:
             pass
-
-    if not manifests:
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute("SELECT run_id, design_name, status, qor_score, timestamp FROM runs ORDER BY timestamp DESC LIMIT 20")
-            for row in cursor.fetchall():
-                manifests.append({
-                    "manifest_version": "2.0",
-                    "run_id": row["run_id"],
-                    "design_name": row["design_name"],
-                    "timestamp_iso": row["timestamp"] if row["timestamp"] else "",
-                    "system": {
-                        "platform": "inferred",
-                        "python_version": "derived",
-                        "hostname": "dashboard",
-                    },
-                    "toolchain": {
-                        "openroad": "inferred",
-                        "yosys": "inferred",
-                        "python": "inferred",
-                    },
-                    "provenance": {
-                        "rtl_hashes": {},
-                        "pdk": {"name": "inferred", "root": ""},
-                    },
-                    "execution": {
-                        "reproduction_command": f"gli-flow run {row['design_name']}",
-                        "reproducibility_mode": True,
-                    },
-                    "metrics": {"qor_score": row["qor_score"]},
-                    "status": row["status"],
-                })
-        finally:
-            conn.close()
 
     return manifests
 
@@ -3722,4 +3687,3 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", "8000"))
     uvicorn.run("backend.server:app", host="127.0.0.1", port=port, reload=True)
-
