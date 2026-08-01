@@ -1536,11 +1536,19 @@ def quickstart_command(args):
     print_banner()
     console.print("  Welcome to GLI-FLOW! Let's get you set up quickly.\n")
 
-    try:
-        design_name = input("  Design name (e.g., my_chip): ").strip() or "my_design"
-    except (EOFError, KeyboardInterrupt):
-        warn("Aborted.")
-        return
+    non_interactive = bool(
+        getattr(args, "command_non_interactive", False)
+        or getattr(args, "non_interactive", False)
+    )
+    if non_interactive:
+        design_name = "my_design"
+        info("Non-interactive mode: using default design name 'my_design'.")
+    else:
+        try:
+            design_name = input("  Design name (e.g., my_chip): ").strip() or "my_design"
+        except (EOFError, KeyboardInterrupt):
+            warn("Aborted.")
+            return
 
     info(f"Creating manifest for '{design_name}'...")
     manifest = {
@@ -2303,9 +2311,12 @@ def export_command(args):
     try:
         from gli_flow.database.sqlite import DatabaseManager
         db = DatabaseManager(db_path=db_path)
-        runs = db.get_recent_runs(limit=10000)
-        (export_dir / "runs.json").write_text(json.dumps(runs, indent=2, default=str))
-        success(f"Exported {len(runs)} runs to {export_dir / 'runs.json'}")
+        try:
+            runs = db.get_recent_runs(limit=10000)
+            (export_dir / "runs.json").write_text(json.dumps(runs, indent=2, default=str))
+            success(f"Exported {len(runs)} runs to {export_dir / 'runs.json'}")
+        finally:
+            db.close()
     except Exception:
         warn("Could not export runs — database may be busy or inaccessible")
 
@@ -2318,7 +2329,7 @@ def export_command(args):
             conn = s3.connect(actual_db)
             try:
                 rows = conn.execute("SELECT * FROM failure_atlas_entries ORDER BY detected_at DESC").fetchall()
-                cols = [d[0] for d in conn.execute("PRAGMA table_info(failure_atlas_entries)").fetchall()]
+                cols = [d[1] for d in conn.execute("PRAGMA table_info(failure_atlas_entries)").fetchall()]
                 entries = [dict(zip(cols, r)) for r in rows]
                 (export_dir / "failure_atlas.json").write_text(json.dumps(entries, indent=2, default=str))
                 success(f"Exported {len(entries)} Failure Atlas entries to {export_dir / 'failure_atlas.json'}")
@@ -2335,7 +2346,105 @@ def export_command(args):
     }
     (export_dir / "export_summary.json").write_text(json.dumps(summary, indent=2))
     success(f"Export complete: {export_dir.resolve()}")
-    info("All data exported as plain JSON. Import by running 'gli-flow import' (coming soon) or manually reimport via the CLI.")
+    info("All data exported as plain JSON. Restore it with 'gli-flow import <export-directory>'.")
+
+
+def import_command(args):
+    """Import a JSON export into the local SQLite database, idempotently."""
+    import json
+    import sqlite3
+
+    export_dir = Path(args.path).expanduser().resolve()
+    if not export_dir.is_dir():
+        error(f"Export directory not found: {export_dir}")
+        return
+
+    summary_path = export_dir / "export_summary.json"
+    if not summary_path.exists():
+        error(f"Not a GLI-FLOW export directory: missing {summary_path.name}")
+        return
+
+    db_path = getattr(args, "db_path", None) or _get_db_path()
+    try:
+        migration_engine = MigrationEngine(db_path)
+        try:
+            migration_engine.migrate("runs", RUNS_MIGRATIONS)
+            migration_engine.migrate("failure_atlas", FAILURE_ATLAS_MIGRATIONS)
+        finally:
+            migration_engine.close()
+        connection = sqlite3.connect(db_path)
+        connection.row_factory = sqlite3.Row
+        imported = {"runs": 0, "failure_atlas_entries": 0}
+        skipped = {"runs": 0, "failure_atlas_entries": 0}
+        try:
+            for table, filename in (("runs", "runs.json"), ("failure_atlas_entries", "failure_atlas.json")):
+                source = export_dir / filename
+                if not source.exists():
+                    continue
+                records = json.loads(source.read_text())
+                if not isinstance(records, list):
+                    raise ValueError(f"{filename} must contain a JSON list")
+                columns = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
+                for record in records:
+                    if not isinstance(record, dict):
+                        continue
+                    values = {key: value for key, value in record.items() if key in columns}
+                    if not values:
+                        continue
+                    names = list(values)
+                    placeholders = ", ".join("?" for _ in names)
+                    cursor = connection.execute(
+                        f"INSERT OR IGNORE INTO {table} ({', '.join(names)}) VALUES ({placeholders})",
+                        [values[name] for name in names],
+                    )
+                    if cursor.rowcount:
+                        imported[table] += cursor.rowcount
+                    else:
+                        skipped[table] += 1
+            connection.commit()
+        finally:
+            connection.close()
+    except (OSError, ValueError, sqlite3.Error) as exc:
+        error(f"Import failed: {exc}")
+        return
+
+    success(f"Import complete: {imported['runs']} runs and {imported['failure_atlas_entries']} Failure Atlas entries added.")
+    if any(skipped.values()):
+        info(f"Skipped {skipped['runs']} existing runs and {skipped['failure_atlas_entries']} existing Failure Atlas entries.")
+
+
+def predict_command(args):
+    """Show historical failure risk and tapeout-readiness estimates for a run."""
+    run_id = args.run_id
+    db_path = getattr(args, "db_path", None)
+    db = DatabaseManager(db_path=db_path)
+    try:
+        run = db.get_run(run_id)
+    finally:
+        db.close()
+    if not run:
+        error(f"Run '{run_id}' not found.")
+        return
+
+    from failure_atlas.prediction.risk import FailureRiskEngine
+    from failure_atlas.prediction.readiness import TapeoutReadinessPredictor
+
+    metrics = {
+        "wns": run.get("wns") or 0.0,
+        "tns": run.get("tns") or 0.0,
+        "utilization": run.get("utilization") or 0.0,
+        "drc_violations": run.get("drc_violations") or 0,
+    }
+    risks = FailureRiskEngine(db_path).predict_risk(metrics, design_name=run.get("design_name"))
+    readiness = TapeoutReadinessPredictor(db_path).predict_readiness(metrics, design_name=run.get("design_name"))
+    section_header(f"Prediction for {run_id}")
+    info(f"Design: {run.get('design_name', 'unknown')}")
+    info("Failure risk (higher is riskier):")
+    for failure_type, result in risks.items():
+        info(f"  {failure_type:8s} {result['risk']:5.1f}%")
+    info("Tapeout readiness estimate:")
+    for stage, value in readiness.items():
+        info(f"  {stage:14s} {value:5.1f}%")
 
 
 def config_command(args):
@@ -3050,6 +3159,16 @@ def build_parser():
     export_parser.add_argument("--output", "-o", type=str, default=None, help="Output directory path")
     export_parser.add_argument("--db-path", type=str, default=None, help="Path to SQLite database")
 
+    import_parser = subparsers.add_parser("import", help="Import a GLI-FLOW JSON export into the local database")
+    import_parser._category = "Infrastructure"
+    import_parser.add_argument("path", help="Export directory created by `gli-flow export`")
+    import_parser.add_argument("--db-path", type=str, default=None, help="Path to SQLite database")
+
+    predict_parser = subparsers.add_parser("predict", help="Estimate failure risk and tapeout readiness for a run")
+    predict_parser._category = "Analysis"
+    predict_parser.add_argument("run_id", help="Run ID to analyze")
+    predict_parser.add_argument("--db-path", type=str, default=None, help="Path to SQLite database")
+
     support_bundle_parser = subparsers.add_parser("support-bundle", help="Generate a support bundle archive for debugging", epilog=EXAMPLES["support-bundle"])
     support_bundle_parser._category = "Infrastructure"
     support_bundle_parser.add_argument("--output", "-o", type=str, default=None, help="Output path for support bundle zip")
@@ -3225,6 +3344,10 @@ def main():
         run_smoke_test(args)
     elif args.command == "export":
         export_command(args)
+    elif args.command == "import":
+        import_command(args)
+    elif args.command == "predict":
+        predict_command(args)
     elif args.command == "support-bundle":
         support_bundle_command(args)
     elif args.command == "upgrade-check":

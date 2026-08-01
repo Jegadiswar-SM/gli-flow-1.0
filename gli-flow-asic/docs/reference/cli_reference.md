@@ -333,7 +333,6 @@ Telemetry Intelligence Warehouse.
 ### `gli-flow predict <run_id>`
 
 Predict execution risk and tapeout readiness.
-**Note:** Defined in parser but not wired in dispatch.
 
 ## Custom Help Epilog
 
