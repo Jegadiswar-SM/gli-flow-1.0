@@ -51,8 +51,48 @@ from gli_flow.cli.status import Readiness
 
 
 
-class CategorizedHelpFormatter(argparse.HelpFormatter):
-    """HelpFormatter that groups subcommands by stability category."""
+COMMON_COMMANDS = {
+    "dashboard",
+    "doctor",
+    "examples",
+    "history",
+    "install",
+    "quickstart",
+    "report",
+    "run",
+    "smoke-test",
+    "validate",
+}
+
+
+class TieredArgumentParser(argparse.ArgumentParser):
+    """Top-level parser whose help can show a beginner or full command list."""
+
+    _show_all = False
+
+    def _get_formatter(self):
+        if self.formatter_class is TieredHelpFormatter:
+            return self.formatter_class(prog=self.prog, show_all=self._show_all)
+        return super()._get_formatter()
+
+    def parse_args(self, args=None, namespace=None):
+        requested = sys.argv[1:] if args is None else args
+        self._show_all = "--all" in requested
+        return super().parse_args(args, namespace)
+
+
+class TieredHelpAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.print_help()
+        parser.exit()
+
+
+class TieredHelpFormatter(argparse.HelpFormatter):
+    """Render common top-level commands by default and all commands on request."""
+
+    def __init__(self, prog, **kwargs):
+        self.show_all = kwargs.pop("show_all", False)
+        super().__init__(prog, **kwargs)
 
     def _format_action(self, action):
         if not isinstance(action, argparse._SubParsersAction):
@@ -74,30 +114,18 @@ class CategorizedHelpFormatter(argparse.HelpFormatter):
                 for line in help_lines[1:]:
                     parts.append(f"{' ' * help_position}{line}\n")
 
-        # Group subactions by category
-        name_map = {}
-        for sa in action._get_subactions():
-            name_map[getattr(sa, "dest", "")] = sa
+        name_map = {
+            getattr(sa, "dest", ""): sa for sa in action._get_subactions()
+        }
 
-        category_help = {}
-        for name, parser in action.choices.items():
-            cat = getattr(parser, "_category", "production")
-            sa = name_map.get(name)
-            if sa:
-                category_help.setdefault(cat, []).append(sa)
-
-        for category, title in [
-            ("Execution", "Execution:"),
-            ("Setup", "Setup:"),
-            ("Analysis", "Analysis:"),
-            ("Infrastructure", "Infrastructure:"),
-            ("Experimental", "Experimental (functional, may need setup):"),
-        ]:
-            subactions = category_help.get(category, [])
-            if not subactions:
-                continue
-            parts.append(f"\n  {title}\n")
-            for sa in subactions:
+        if not self.show_all:
+            common = [
+                (name, name_map.get(name))
+                for name in sorted(COMMON_COMMANDS)
+                if name in action.choices and name_map.get(name) is not None
+            ]
+            parts.append("\n  Common commands:\n")
+            for name, sa in common:
                 invocation = self._format_action_invocation(sa)
                 help_text = self._expand_help(sa) if sa.help else ""
                 padded = f"{' ' * 2}{invocation:<{action_width - 2}}"
@@ -108,9 +136,30 @@ class CategorizedHelpFormatter(argparse.HelpFormatter):
                         parts.append(f"{' ' * help_position}{line}\n")
                 else:
                     parts.append(f"{padded}\n")
+            parts.append(
+                "\n  Run `gli-flow --help --all` or `gli-flow commands` "
+                "to see advanced commands.\n"
+            )
+            return self._join_parts(parts)
 
+        # Full help is intentionally alphabetical so the complete command
+        # surface remains discoverable without assigning stability categories.
+        parts.append("\n  All commands:\n")
+        for name in sorted(action.choices):
+            sa = name_map.get(name)
+            if not sa:
+                continue
+            invocation = self._format_action_invocation(sa)
+            help_text = self._expand_help(sa) if sa.help else ""
+            padded = f"{' ' * 2}{invocation:<{action_width - 2}}"
+            if help_text:
+                help_lines = self._split_lines(help_text, help_width)
+                parts.append(f"{padded}  {help_lines[0]}\n")
+                for line in help_lines[1:]:
+                    parts.append(f"{' ' * help_position}{line}\n")
+            else:
+                parts.append(f"{padded}\n")
         return self._join_parts(parts)
-
 
 def _load_config():
     config_path = Path.home() / ".gli-flow" / "config.json"
@@ -2742,9 +2791,10 @@ def telemetry_command(args):
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(
+    parser = TieredArgumentParser(
         prog="gli-flow",
         description="GLI-FLOW — RTL-to-GDS Digital Design Flow",
+        add_help=False,
         epilog=(
             "Common Workflows:\n"
             "  First Time:\n"
@@ -2761,12 +2811,17 @@ def build_parser():
             "See 'gli-flow <command> --help' for detailed command help.\n"
             "Report issues: https://github.com/Jegadiswar-SM/gli-flow-asic/issues"
         ),
-        formatter_class=CategorizedHelpFormatter,
+        formatter_class=TieredHelpFormatter,
     )
+    parser.add_argument("-h", "--help", action=TieredHelpAction, nargs=0, help="Show this help message")
+    parser.add_argument("--all", action="store_true", help="Include advanced commands in top-level help")
     parser.add_argument("--non-interactive", "--yes", action="store_true", help="Never prompt; use persisted settings or full sanitized telemetry by default")
     parser.add_argument("--telemetry", choices=["full", "atlas", "local", "disabled"], help="Persist telemetry mode for this invocation")
 
-    subparsers = parser.add_subparsers(dest="command")
+    subparsers = parser.add_subparsers(dest="command", metavar="COMMAND")
+
+    commands_parser = subparsers.add_parser("commands", help="Show the full alphabetical command list")
+    commands_parser._category = "Setup"
 
     run_parser = subparsers.add_parser("run", help="Run a design through the flow (mock demo is usually under a minute)", epilog=(EXAMPLES["run"] + "\nSuccess means the selected flow path completed; it does not prove design quality or tapeout readiness."))
     run_parser._category = "Execution"
@@ -3094,6 +3149,11 @@ def build_parser():
 def main():
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.command == "commands":
+        parser._show_all = True
+        parser.print_help()
+        return
 
     # argparse handles --help during parse. Keep help completely side-effect free.
     setup_logging()
