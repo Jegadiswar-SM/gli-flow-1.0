@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Shield, CheckCircle, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
@@ -188,7 +188,7 @@ export default function EngineeringDashboardPage() {
   const [selectedEsc, setSelectedEsc] = useState(null)
   const [statusFilter, setStatusFilter] = useState("")
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams()
     if (statusFilter) params.set("status", statusFilter)
@@ -212,13 +212,13 @@ export default function EngineeringDashboardPage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }
+  }, [statusFilter])
 
   useEffect(() => {
     fetchData()
     const id = setInterval(fetchData, 30000)
     return () => clearInterval(id)
-  }, [statusFilter])
+  }, [fetchData])
 
   if (selectedEsc) {
     return <EscalationDetail esc={selectedEsc} onBack={() => setSelectedEsc(null)} />

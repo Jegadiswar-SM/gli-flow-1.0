@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Search, AlertTriangle, CheckCircle, Sparkles, ThumbsUp, ThumbsDown, Send, Shield } from "lucide-react"
 import AIAvailabilityGuard from "./components/AIAvailabilityGuard"
 
@@ -272,7 +272,7 @@ function AIInvestigationCard({ failure, onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const fetchExisting = () => {
+  const fetchExisting = useCallback(() => {
     if (!runId) return
     fetch(`${API_BASE}/runs/${encodeURIComponent(runId)}/investigation`)
       .then(r => r.ok ? r.json() : null)
@@ -280,9 +280,9 @@ function AIInvestigationCard({ failure, onClose }) {
         if (data?.investigation || data?.status) setAiData(data)
       })
       .catch(() => {})
-  }
+  }, [runId])
 
-  useEffect(() => { fetchExisting() }, [runId])
+  useEffect(() => { fetchExisting() }, [fetchExisting])
 
   const triggerAI = () => {
     if (!runId) {
@@ -1000,7 +1000,7 @@ export default function FailureAtlasPage({ designFilter }) {
       return (b.detected_at || "").localeCompare(a.detected_at || "")
     })
 
-  const fetchAll = () => {
+  const fetchAll = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams()
     if (search) params.set("search", search)
@@ -1034,11 +1034,14 @@ export default function FailureAtlasPage({ designFilter }) {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }
+  }, [search, typeFilter, designFilter, includeHeuristic, includeUnverified])
+
+  const fetchAllRef = useRef(fetchAll)
+  useEffect(() => { fetchAllRef.current = fetchAll }, [fetchAll])
 
   useEffect(() => {
-    fetchAll()
-    const id = setInterval(fetchAll, 30000)
+    fetchAllRef.current()
+    const id = setInterval(() => fetchAllRef.current(), 30000)
     return () => clearInterval(id)
   }, [designFilter, includeHeuristic, includeUnverified])
 

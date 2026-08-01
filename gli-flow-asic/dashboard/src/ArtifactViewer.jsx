@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import {
   Search, FileText, FileImage, File, Download, Maximize2, Minimize2,
   Copy, Check, X, ChevronUp, ChevronDown, ZoomIn, ZoomOut, ExternalLink, AlertTriangle
@@ -71,12 +71,10 @@ function TextViewer({ content, truncated, fileName, onClose, onDownload }) {
   const [currentMatch, setCurrentMatch] = useState(-1)
   const [copied, setCopied] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
-  const [lineCount, setLineCount] = useState(0)
   const searchRef = useRef(null)
   const contentRef = useRef(null)
 
-  const lines = content ? content.split("\n") : []
-  useEffect(() => { setLineCount(lines.length) }, [content])
+  const lines = useMemo(() => (content ? content.split("\n") : []), [content])
 
   const handleSearch = useCallback((query) => {
     setSearchQuery(query)
@@ -133,7 +131,7 @@ function TextViewer({ content, truncated, fileName, onClose, onDownload }) {
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-stone-ridge bg-[#FAFAF8] text-[11px]">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="font-medium text-abyss-ink truncate">{fileName}</span>
-          <span className="text-[#6B7280]">{lineCount} lines{truncated ? " (truncated)" : ""}</span>
+          <span className="text-[#6B7280]">{lines.length} lines{truncated ? " (truncated)" : ""}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="relative flex items-center">
@@ -359,6 +357,10 @@ export default function ArtifactViewer({ runId, initialPath, onArtifactSelect })
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState(null)
   const listRef = useRef(null)
+  const prevInitialPath = useRef(initialPath)
+  const onArtifactSelectRef = useRef(onArtifactSelect)
+
+  useEffect(() => { onArtifactSelectRef.current = onArtifactSelect }, [onArtifactSelect])
 
   const artifactFileUrl = (path) => `${API_BASE}/runs/${runId}/artifact?path=${encodeURIComponent(path)}`
 
@@ -396,11 +398,7 @@ export default function ArtifactViewer({ runId, initialPath, onArtifactSelect })
         data = data || []
         setArtifacts(data)
         setLoading(false)
-        if (initialPath && data.some(a => a.path === initialPath)) {
-          setSelectedPath(initialPath)
-        } else if (data.length > 0 && !selectedPath) {
-          setSelectedPath(data[0].path)
-        }
+        if (data.length > 0) setSelectedPath(data[0].path)
       })
       .catch(e => {
         if (e.name === "AbortError") return
@@ -409,7 +407,7 @@ export default function ArtifactViewer({ runId, initialPath, onArtifactSelect })
         setError(e.message)
       })
     return () => controller.abort()
-  }, [runId])
+  }, [runId, fetchArtifacts])
 
   useEffect(() => {
     if (!runId || !selectedPath) {
@@ -443,22 +441,23 @@ export default function ArtifactViewer({ runId, initialPath, onArtifactSelect })
   }, [runId, selectedPath, artifacts])
 
   useEffect(() => {
-    if (initialPath && initialPath !== selectedPath) {
-      setSelectedPath(initialPath)
+    if (prevInitialPath.current !== initialPath) {
+      prevInitialPath.current = initialPath
+      if (initialPath) setSelectedPath(initialPath)
     }
   }, [initialPath])
 
   useEffect(() => {
-    if (selectedPath && onArtifactSelect) {
-      onArtifactSelect(selectedPath)
+    if (selectedPath && onArtifactSelectRef.current) {
+      onArtifactSelectRef.current(selectedPath)
     }
   }, [selectedPath])
 
-  const filtered = artifacts.filter(a => {
+  const filtered = useMemo(() => artifacts.filter(a => {
     if (filterCategory !== "all" && a.category !== filterCategory) return false
     if (searchQuery && !a.path.toLowerCase().includes(searchQuery.toLowerCase())) return false
     return true
-  })
+  }), [artifacts, filterCategory, searchQuery])
 
   const selectedIndex = filtered.findIndex(a => a.path === selectedPath)
   const selectedArtifact = artifacts.find(a => a.path === selectedPath)
@@ -471,12 +470,12 @@ export default function ArtifactViewer({ runId, initialPath, onArtifactSelect })
     a.click()
   }
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (selectedIndex > 0) setSelectedPath(filtered[selectedIndex - 1].path)
-  }
-  const handleNext = () => {
+  }, [selectedIndex, filtered])
+  const handleNext = useCallback(() => {
     if (selectedIndex < filtered.length - 1) setSelectedPath(filtered[selectedIndex + 1].path)
-  }
+  }, [selectedIndex, filtered])
 
   const handleKeyDown = useCallback((e) => {
     if (e.ctrlKey && e.key === "f") {
@@ -490,7 +489,7 @@ export default function ArtifactViewer({ runId, initialPath, onArtifactSelect })
     if (e.key === "ArrowUp" && (e.altKey || e.ctrlKey)) {
       e.preventDefault(); handlePrev()
     }
-  }, [selectedIndex, filtered])
+  }, [handleNext, handlePrev])
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown)

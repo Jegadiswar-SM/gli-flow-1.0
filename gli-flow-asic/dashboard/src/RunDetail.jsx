@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { ArrowLeft, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, ExternalLink, FolderOpen } from "lucide-react"
 import ArtifactViewer from "./ArtifactViewer"
 import AIAvailabilityGuard from "./components/AIAvailabilityGuard"
@@ -583,22 +583,22 @@ function AiInvestigationTab({ run }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const fetchInvestigation = () => {
+  const fetchInvestigation = useCallback(() => {
     if (!run?.run_id) return
-    fetch(`${API_BASE}/runs/${run.run_id}/investigation`)
+    fetch(`${API_BASE}/runs/${run?.run_id}/investigation`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         setInvestigation(data)
         setLoading(false)
       })
       .catch(() => { setLoading(false); setError("Failed to load") })
-  }
+  }, [run.run_id])
 
   useEffect(() => {
     if (!run?.run_id) return
     setLoading(true)
     fetchInvestigation()
-  }, [run?.run_id])
+  }, [run?.run_id, fetchInvestigation])
 
   const runInvestigation = () => {
     setLoading(true)

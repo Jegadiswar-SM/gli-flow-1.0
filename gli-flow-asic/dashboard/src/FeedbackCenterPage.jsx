@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
 
@@ -19,7 +19,7 @@ export default function FeedbackCenterPage() {
   const [filterType, setFilterType] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     const params = new URLSearchParams()
     if (filterType) params.set("feedback_type", filterType)
     if (filterStatus) params.set("status", filterStatus)
@@ -33,9 +33,9 @@ export default function FeedbackCenterPage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }
+  }, [filterType, filterStatus])
 
-  useEffect(() => { fetchData() }, [filterType, filterStatus])
+  useEffect(() => { fetchData() }, [fetchData])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
