@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import Editor from "@monaco-editor/react"
+import Editor, { loader } from "@monaco-editor/react"
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api.js"
+import EditorWorker from "../node_modules/monaco-editor/esm/vs/editor/editor.worker.js?worker"
 import { DockviewReact } from "dockview-react"
 import "dockview-react/dist/styles/dockview.css"
 import { Code2, FolderTree, Play, Save, TerminalSquare } from "lucide-react"
@@ -7,6 +9,14 @@ import { isElectron } from "./lib/platform"
 import { GLI_THEME } from "./lib/theme"
 
 const API_BASE = import.meta.env.VITE_API_URL || ""
+
+// @monaco-editor/react otherwise injects the public jsDelivr AMD loader at
+// runtime. Supplying the bundled engine keeps the Workbench usable offline
+// and avoids executing third-party renderer code in the Electron shell.
+loader.config({ monaco })
+globalThis.MonacoEnvironment = {
+  getWorker: () => new EditorWorker(),
+}
 
 function TreeNode({ node, onOpen }) {
   const [open, setOpen] = useState(node.type === "directory")

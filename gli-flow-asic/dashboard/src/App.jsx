@@ -369,7 +369,8 @@ function App() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-canvas-bone" style={{ fontFamily: "Work Sans, sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Eczar:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&family=Cascadia+Code:wght@400&display=swap');
+        /* Runtime font downloads are intentionally avoided for offline/air-gapped use. */
+        :root { --font-sans: Arial, Helvetica, sans-serif; --font-display: Georgia, 'Times New Roman', serif; --font-mono: 'Cascadia Code', Consolas, monospace; }
       `}</style>
 
       {/* === SIDEBAR === */}
