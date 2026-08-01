@@ -3,6 +3,8 @@
 Recommended: Ubuntu 22.04/24.04 or WSL2, or the repository Docker image. Native
 Windows and macOS are experimental. Use Python 3.9–3.12 in a virtual environment.
 
+For Windows beginners, follow the complete [Windows + WSL2 setup guide](WINDOWS_WSL2_SETUP.md).
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate

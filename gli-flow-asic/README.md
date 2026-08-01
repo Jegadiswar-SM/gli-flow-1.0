@@ -28,6 +28,8 @@ gli-flow smoke-test --non-interactive
 
 Python 3.9+. Linux (Ubuntu 22.04+ / Debian 12+ / WSL2).
 
+Windows beginners: follow the [Windows + WSL2 setup guide](docs/WINDOWS_WSL2_SETUP.md).
+
 ## Quick Start
 
 ```bash
