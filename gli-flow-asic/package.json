@@ -4,5 +4,8 @@
   },
   "dependencies": {
     "recharts": "^3.8.1"
+  },
+  "scripts": {
+    "desktop:build": "npm --prefix dashboard ci && npm --prefix dashboard run build && npm --prefix desktop ci && npm --prefix desktop run make"
   }
 }

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
@@ -428,6 +428,27 @@ def run_learning_path_step(payload: dict):
         "is_experiment": True, "metric_quality": record.metric_quality,
         "status": record.status,
     }
+
+
+def _run_design_background(design_path: str, mock: bool, db_path: str | None = None):
+    from gli_flow.core.orchestrator import FlowOrchestrator
+    FlowOrchestrator(design_path=design_path, mock=mock, db_path=db_path).run()
+
+
+@app.post("/api/run")
+def start_design_run(payload: dict, background_tasks: BackgroundTasks):
+    design_path = str(payload.get("design_path", "")).strip()
+    if not design_path:
+        raise HTTPException(status_code=400, detail="design_path is required")
+    design = _safe_workspace_path(design_path)
+    if not (design / "gli_manifest.yaml").exists():
+        raise HTTPException(status_code=400, detail="Design folder must contain gli_manifest.yaml")
+    from gli_flow.core.orchestrator import FlowOrchestrator
+    preview = FlowOrchestrator(design_path=str(design), mock=bool(payload.get("mock", True)))
+    # The orchestrator creates its run directory on construction; execute it
+    # in the background so the browser remains responsive like the CLI.
+    background_tasks.add_task(preview.run)
+    return {"run_id": preview.run_id, "design_path": str(design), "status": "STARTING", "mock": bool(payload.get("mock", True))}
 
 
 @app.get("/trends")

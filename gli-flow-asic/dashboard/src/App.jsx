@@ -5,7 +5,7 @@ import {
   Map, GitBranch, Shield, Sliders, Server, Settings, HelpCircle,
   Bell, ChevronDown, MoreVertical, CheckCircle, AlertTriangle,
   Star, Menu, ExternalLink, Eye, Upload, MessageSquare, Users,
-  BarChart3, Award, BookOpen
+  BarChart3, Award, BookOpen, Code2
 } from "lucide-react"
 const RunDetail = lazy(() => import("./RunDetail"))
 const FailureAtlasPage = lazy(() => import("./FailureAtlasPage"))
@@ -22,6 +22,7 @@ const RunMatrixPage = lazy(() => import("./RunMatrixPage"))
 const LearningPathPage = lazy(() => import("./LearningPathPage"))
 const RunComparisonPage = lazy(() => import("./RunComparisonPage"))
 const HomePage = lazy(() => import("./HomePage"))
+const WorkbenchPage = lazy(() => import("./WorkbenchPage"))
 const RunMonitorPage = lazy(() => import("./RunMonitorPage"))
 const ArtifactsPage = lazy(() => import("./ArtifactsPage"))
 const InfrastructurePage = lazy(() => import("./InfrastructurePage"))
@@ -41,6 +42,12 @@ const API_BASE = import.meta.env.VITE_API_URL || ""
 const POLL_MS = parseInt(import.meta.env.VITE_POLL_INTERVAL || "2000", 10)
 
 const navGroups = [
+  {
+    group: "WORKBENCH",
+    items: [
+      { id: "Workbench", icon: Code2, label: "RTL Workbench" },
+    ],
+  },
   {
     group: "EXECUTION",
     items: [
@@ -475,6 +482,8 @@ function App() {
           <Suspense fallback={<div className="py-12 text-center text-[#6B7280] text-xs">Loading page…</div>}>
           {activeNav === "Dashboard" ? (
             <HomePage runs={runs} liveRuns={liveRuns} health={health} onNavigate={setActiveNav} />
+          ) : activeNav === "Workbench" ? (
+            <WorkbenchPage />
           ) : activeNav === "Important Runs" ? (
             <RunsPage importantOnly={true} onBack={() => setActiveNav("Dashboard")} onSelectRun={setSelectedRun} />
           ) : viewingRuns ? (
