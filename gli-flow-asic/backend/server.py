@@ -268,7 +268,7 @@ else:
 
 
 @app.get("/runs")
-def get_runs(limit: int = Query(50, ge=1, le=10000), important: bool = Query(False)):
+def get_runs(limit: int = Query(50, ge=1, le=10000), important: bool = Query(False), include_experiments: bool = Query(False)):
     conn = get_connection()
     try:
         cursor = conn.cursor()
@@ -295,6 +295,8 @@ def get_runs(limit: int = Query(50, ge=1, le=10000), important: bool = Query(Fal
                 r.implementation_score,
                 r.signoff_score,
                 r.root_cause_summary,
+                r.is_experiment,
+                r.experiment_metadata,
                 r.drc_violations,
                 r.drc_is_clean,
                 r.lvs_is_clean,
@@ -318,8 +320,13 @@ def get_runs(limit: int = Query(50, ge=1, le=10000), important: bool = Query(Fal
             ) fa ON r.run_id = fa.run_id
         """
         params = []
+        predicates = []
         if important:
-            sql += " WHERE r.is_important = 1"
+            predicates.append("r.is_important = 1")
+        if not include_experiments:
+            predicates.append("COALESCE(r.is_experiment, 0) = 0")
+        if predicates:
+            sql += " WHERE " + " AND ".join(predicates)
         
         sql += " ORDER BY r.timestamp DESC LIMIT ?"
         params.append(limit)
@@ -333,27 +340,35 @@ def get_runs(limit: int = Query(50, ge=1, le=10000), important: bool = Query(Fal
             "timestamp", "is_important", "tapeout_ready",
             "implementation_status", "signoff_status",
             "implementation_score", "signoff_score", "root_cause_summary",
+            "is_experiment", "experiment_metadata",
             "drc_violations", "drc_is_clean", "lvs_is_clean",
             "failure_count", "max_severity",
         ]
-        return rows_to_dicts(rows, columns)
+        result = rows_to_dicts(rows, columns)
+        for item in result:
+            if isinstance(item.get("experiment_metadata"), str):
+                try:
+                    item["experiment_metadata"] = json.loads(item["experiment_metadata"])
+                except (TypeError, ValueError):
+                    pass
+        return result
     finally:
         conn.close()
 
 
 @app.get("/runs/count")
-def get_runs_count():
+def get_runs_count(include_experiments: bool = Query(False)):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM runs")
+        cursor.execute("SELECT COUNT(*) FROM runs" if include_experiments else "SELECT COUNT(*) FROM runs WHERE COALESCE(is_experiment, 0) = 0")
         return {"total": cursor.fetchone()[0]}
     finally:
         conn.close()
 
 
 @app.get("/live_runs")
-def get_live_runs():
+def get_live_runs(include_experiments: bool = Query(False)):
     conn = get_connection()
     try:
         cursor = conn.cursor()
@@ -365,15 +380,50 @@ def get_live_runs():
                 current_stage,
                 progress
             FROM runs
-            WHERE status='RUNNING'
+            WHERE status='RUNNING' AND (? OR COALESCE(is_experiment, 0) = 0)
             ORDER BY timestamp DESC
-            """
+            """,
+            (include_experiments,)
         )
         rows = cursor.fetchall()
         columns = ["run_id", "status", "current_stage", "progress"]
         return rows_to_dicts(rows, columns)
     finally:
         conn.close()
+
+
+LEARNING_PATH = {
+    "counter": ("counter", "Learn signals, RTL structure, and a first synthesis run."),
+    "gcd": ("gcd", "See how combinational logic and constraints affect implementation."),
+    "uart": ("uart", "Trace a multi-module design through placement, routing, and checks."),
+    "user_rtl": ("tiny_or", "Run your own RTL after applying the same flow vocabulary."),
+}
+
+
+@app.post("/learning-path/run")
+def run_learning_path_step(payload: dict):
+    """Run one isolated, clearly labelled learning-path experiment in mock mode."""
+    step = payload.get("step")
+    if step not in LEARNING_PATH:
+        raise HTTPException(status_code=400, detail=f"Unknown learning path step: {step}")
+    design_name, _ = LEARNING_PATH[step]
+    design_path = payload.get("design_path") if step == "user_rtl" else None
+    candidate = Path(design_path) if design_path else Path("examples") / design_name
+    if not (candidate / "gli_manifest.yaml").exists():
+        raise HTTPException(status_code=400, detail=f"Learning example is unavailable: {candidate}")
+    from gli_flow.core.orchestrator import FlowOrchestrator
+    parameters = payload.get("parameters") or {}
+    orchestrator = FlowOrchestrator(
+        design_path=str(candidate), mock=True,
+        is_experiment=True,
+        experiment_metadata={"learning_step": step, "parameters": parameters},
+    )
+    record = orchestrator.run()
+    return {
+        "run_id": record.run_id, "step": step, "label": design_name,
+        "is_experiment": True, "metric_quality": record.metric_quality,
+        "status": record.status,
+    }
 
 
 @app.get("/trends")
@@ -455,7 +505,7 @@ def get_run(run_id: str):
                 lvs_result, lvs_is_clean, signoff_setup_pass, signoff_hold_pass,
                 signoff_gate_json, tapeout_ready, implementation_status,
                 signoff_status, implementation_score, signoff_score,
-                root_cause_summary
+                root_cause_summary, is_experiment, experiment_metadata
             FROM runs
             WHERE run_id = ?
             """,
@@ -473,9 +523,14 @@ def get_run(run_id: str):
             "lvs_is_clean", "signoff_setup_pass", "signoff_hold_pass",
             "signoff_gate_json", "tapeout_ready", "implementation_status",
             "signoff_status", "implementation_score", "signoff_score",
-            "root_cause_summary",
+            "root_cause_summary", "is_experiment", "experiment_metadata",
         ]
         result = dict(zip(columns, row))
+        if isinstance(result.get("experiment_metadata"), str):
+            try:
+                result["experiment_metadata"] = json.loads(result["experiment_metadata"])
+            except (TypeError, ValueError):
+                pass
 
         cursor.execute(
             "SELECT COUNT(*), MAX(severity) FROM failure_atlas_entries WHERE run_id = ?",

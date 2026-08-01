@@ -24,6 +24,8 @@ class ExecutionRecord:
     timestamp: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     execution_mode: str = "real"
     metric_quality: str = "real_evidence"
+    is_experiment: bool = False
+    experiment_metadata: Optional[dict] = None
 
     implementation_status: str = "NOT_STARTED"
     signoff_status: str = "NOT_RUN"

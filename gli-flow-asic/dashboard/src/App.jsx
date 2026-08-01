@@ -5,7 +5,7 @@ import {
   Map, GitBranch, Shield, Sliders, Server, Settings, HelpCircle,
   Bell, ChevronDown, MoreVertical, CheckCircle, AlertTriangle,
   Star, Menu, ExternalLink, Eye, Upload, MessageSquare, Users,
-  BarChart3, Award
+  BarChart3, Award, BookOpen
 } from "lucide-react"
 const RunDetail = lazy(() => import("./RunDetail"))
 const FailureAtlasPage = lazy(() => import("./FailureAtlasPage"))
@@ -19,6 +19,7 @@ const ReleaseValidationPage = lazy(() => import("./ReleaseValidationPage"))
 const PolicySuitePage = lazy(() => import("./PolicySuitePage"))
 const RunDesignPage = lazy(() => import("./RunDesignPage"))
 const RunMatrixPage = lazy(() => import("./RunMatrixPage"))
+const LearningPathPage = lazy(() => import("./LearningPathPage"))
 const RunMonitorPage = lazy(() => import("./RunMonitorPage"))
 const ArtifactsPage = lazy(() => import("./ArtifactsPage"))
 const InfrastructurePage = lazy(() => import("./InfrastructurePage"))
@@ -42,6 +43,7 @@ const navGroups = [
     group: "EXECUTION",
     items: [
       { id: "Run Design", icon: Play, label: "Run Design" },
+      { id: "Learning Path", icon: BookOpen, label: "Learning Path" },
       { id: "Run Matrix", icon: Grid, label: "Run Matrix" },
       { id: "Run Monitor", icon: Activity, label: "Run Monitor" },
       { id: "Important Runs", icon: Star, label: "Important Runs" },
@@ -469,6 +471,8 @@ function App() {
             <RunsPage onBack={() => setViewingRuns(false)} onSelectRun={setSelectedRun} />
           ) : activeNav === "Run Design" ? (
             <RunDesignPage />
+          ) : activeNav === "Learning Path" ? (
+            <LearningPathPage />
           ) : activeNav === "Run Matrix" ? (
             <RunMatrixPage />
           ) : activeNav === "Run Monitor" ? (

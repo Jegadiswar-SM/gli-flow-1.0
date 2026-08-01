@@ -1,4 +1,5 @@
 import os
+import json
 
 from gli_flow.database.factory import create_provider
 from gli_flow.database.migrations import _get_db_path
@@ -69,9 +70,9 @@ class DatabaseManager:
             INSERT INTO runs (
                 run_id, design_name, status, current_stage,
                 progress, wns, tns, utilization, runtime_sec,
-                cell_count, qor_score, run_dir
+                cell_count, qor_score, run_dir, is_experiment, experiment_metadata
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 record.run_id, record.design_name, record.status,
@@ -79,6 +80,8 @@ class DatabaseManager:
                 record.wns, record.tns, record.utilization,
                 record.runtime_sec, record.cell_count, record.qor_score,
                 str(getattr(record, 'run_dir', '')),
+                int(getattr(record, 'is_experiment', False)),
+                json.dumps(getattr(record, 'experiment_metadata', None)) if getattr(record, 'experiment_metadata', None) else None,
             ),
         )
 

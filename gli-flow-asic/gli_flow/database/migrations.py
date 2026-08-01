@@ -95,6 +95,10 @@ RUNS_MIGRATIONS = [
     Migration(8, "add LLM investigation failed attempts column", """
         ALTER TABLE runs ADD COLUMN llm_investigation_failed_attempts TEXT DEFAULT '{"attempts":[]}'
     """),
+    Migration(9, "add learning-path experiment metadata", """
+        ALTER TABLE runs ADD COLUMN is_experiment INTEGER DEFAULT 0;
+        ALTER TABLE runs ADD COLUMN experiment_metadata TEXT DEFAULT NULL
+    """),
 ]
 
 FAILURE_ATLAS_MIGRATIONS = [
@@ -432,7 +436,7 @@ EXPECTED_COLUMNS = {
         "implementation_score", "signoff_score", "root_cause_summary",
         "llm_investigation_available", "llm_investigation_status",
         "llm_investigation_summary", "llm_investigation_timestamp",
-        "llm_investigation_failed_attempts"
+        "llm_investigation_failed_attempts", "is_experiment", "experiment_metadata"
     },
     "failure_atlas_entries": {
         "id", "run_id", "failure_id", "failure_type", "severity", "title",

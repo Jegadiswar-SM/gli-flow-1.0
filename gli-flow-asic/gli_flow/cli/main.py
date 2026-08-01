@@ -677,6 +677,8 @@ def run_command(args):
         resumed_from=getattr(args, 'resumed_from', None),
         resume_stage=getattr(args, 'resume_stage', None),
         resume_source_dir=getattr(args, 'resume_source_dir', None),
+        is_experiment=getattr(args, 'is_experiment', False),
+        experiment_metadata=getattr(args, 'experiment_metadata', None),
         )
         print_run_header(
             orchestrator.run_id,
@@ -2779,6 +2781,8 @@ def build_parser():
                             help="Path to OpenROAD-flow-scripts installation")
     run_parser.add_argument("--mock", action="store_true",
                             help="Run with mock EDA adapter (no real tools required)")
+    run_parser.add_argument("--experiment", dest="is_experiment", action="store_true",
+                            help="Tag this run as a sandbox experiment; hidden from default history")
     _command_safety_flags(run_parser)
     run_parser.add_argument("--certify", action="store_true",
                             help="Certification mode: forbid mock execution, require all stages to pass without errors")

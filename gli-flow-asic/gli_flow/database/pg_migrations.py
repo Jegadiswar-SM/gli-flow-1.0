@@ -65,6 +65,8 @@ PG_CREATE_SQL = {
             llm_investigation_summary       TEXT,
             llm_investigation_timestamp     TIMESTAMPTZ,
             llm_investigation_failed_attempts JSONB     DEFAULT '{"attempts":[]}'
+            ,is_experiment                  BOOLEAN     DEFAULT FALSE
+            ,experiment_metadata            JSONB
         );
     """,
     "failure_atlas_entries": """

@@ -192,7 +192,8 @@ class FlowOrchestrator:
     def __init__(self, design_path, threads: int = None, memory_mb: int = None,
                  orfs_root: str = None, mock: bool = False, db_path: str = None,
                  certification_mode: bool = False, resumed_from: str = None,
-                 resume_stage: str = None, resume_source_dir: str = None):
+                 resume_stage: str = None, resume_source_dir: str = None,
+                 is_experiment: bool = False, experiment_metadata: dict = None):
         discover_pdks()
 
         certification_mode = certification_mode or os.environ.get("GLI_FLOW_CERTIFICATION_MODE", "").lower() in ("1", "true", "yes")
@@ -209,6 +210,8 @@ class FlowOrchestrator:
         self.resumed_from = resumed_from
         self.resume_stage = resume_stage
         self.resume_source_dir = resume_source_dir
+        self.is_experiment = is_experiment
+        self.experiment_metadata = experiment_metadata or {}
 
         self.manifest = self._read_manifest()
         self.design_name = self.manifest.get("top_module") or self.design_path.name
@@ -262,6 +265,8 @@ class FlowOrchestrator:
             tapeout_ready=False,
             execution_mode="mock" if mock else "real",
             metric_quality="simulated_placeholder" if mock else "real_evidence",
+            is_experiment=self.is_experiment,
+            experiment_metadata=self.experiment_metadata,
         )
 
         # ITEMS 50-51: Secure run directory
