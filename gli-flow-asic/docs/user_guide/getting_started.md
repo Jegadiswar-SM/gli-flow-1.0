@@ -88,7 +88,7 @@ collection. See [Telemetry & Privacy](../privacy/telemetry_and_privacy.md).
 ## Beta Scope
 
 **Included:** Open-source ASIC implementation flow (Yosys + OpenROAD + Magic + KLayout),
-mock mode, web dashboard, Failure Atlas, opt-in telemetry, Supabase cloud storage.
+mock mode, web dashboard, Failure Atlas, and opt-in telemetry.
 
 **Not included:** Commercial EDA tools, tapeout certification, guaranteed tapeout
 outcomes, production signoff guarantees, enterprise features, multi-user platform.

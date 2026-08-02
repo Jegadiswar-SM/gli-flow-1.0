@@ -1,7 +1,7 @@
 # PostgreSQL Production Readiness Checklist v1
 
 **Generated:** 2026-06-23
-**Project:** GLI-FLOW ASIC — PostgreSQL (Supabase) Migration
+**Project:** GLI-FLOW ASIC — PostgreSQL Migration
 
 ---
 
@@ -18,9 +18,9 @@
 
 ## Phase A: Connectivity & Infrastructure
 
-- [ ] **Supabase connectivity verified** — `scripts/test_supabase_connection.py` passes with `DATABASE_URL`
-- [ ] **SSL/TLS configured** — Supabase requires SSL; `sslmode=require` in connection string
-- [ ] **Connection pooling configured** — Supabase uses PgBouncer on port 6543; `pool_mode=transaction` recommended
+- [ ] **PostgreSQL connectivity verified** — connect using `DATABASE_URL`
+- [ ] **SSL/TLS configured** — configure according to the selected PostgreSQL deployment
+- [ ] **Connection pooling configured** — configure according to the selected PostgreSQL deployment
 - [ ] **DATABASE_URL added to Railway** — Environment variable configured in Railway dashboard
 - [ ] **GLI_FLOW_DB kept as fallback** — SQLite path remains configurable for local development
 - [ ] **Database migration script created** — `scripts/migrate_to_postgres.py` ready
@@ -150,7 +150,7 @@
 ```
 Component            Status    Tester    Date
 ─────────────────────────────────────────────────
-Supabase connectivity [ ]       ______    ______
+PostgreSQL connectivity [ ]     ______    ______
 Schema validated      [ ]       ______    ______
 Row counts match      [ ]       ______    ______
 Telemetry writes      [ ]       ______    ______

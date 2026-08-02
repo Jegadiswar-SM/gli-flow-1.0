@@ -2,8 +2,8 @@
 
 This file records the current implementation and verification status for
 `/corrections.md`. P2-4 (Telemetry and AI trust) is intentionally excluded
-from this completion pass, as requested. Supabase is also unchanged by
-request.
+from this completion pass, as requested. The optional remote database
+integration has since been removed; generic PostgreSQL support remains.
 
 ## Completed scope
 
@@ -49,8 +49,8 @@ now part of the current repository state:
   [`docs/desktop_workbench_status.md`](../desktop_workbench_status.md) for the
   tier-by-tier implementation, bundle measurements, and deferred scope.
 
-The explicit P2-4 exclusion remains unchanged. Supabase remains unchanged by
-request.
+The explicit P2-4 exclusion remains unchanged. The removed remote integration
+is not part of the current repository; generic PostgreSQL support remains.
 
 ## Verification commands
 

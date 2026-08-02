@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,12 +31,7 @@ class FailureAtlasRepository:
             self.db_path = db_path
         else:
             self.db_path = _get_db_path()
-        supabase_token = os.environ.get("SUPABASE_API_TOKEN")
-        supabase_ref = os.environ.get("SUPABASE_PROJECT_REF")
-        if supabase_token and supabase_ref:
-            self._provider = create_provider()
-        else:
-            self._provider = create_provider(db_path=self.db_path)
+        self._provider = create_provider(db_path=self.db_path)
 
     def close(self):
         if self._provider:
@@ -518,4 +512,3 @@ class FailureAtlasRepository:
             "SELECT * FROM execution_intelligence ORDER BY timestamp DESC LIMIT ? OFFSET ?",
             (limit, offset),
         )
-

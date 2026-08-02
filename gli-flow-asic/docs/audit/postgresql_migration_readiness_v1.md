@@ -2,7 +2,7 @@
 
 **Generated:** 2026-06-23
 **Project:** GLI-FLOW ASIC
-**Scope:** Full database audit for PostgreSQL (Supabase) migration
+**Scope:** Full database audit for PostgreSQL migration
 
 ---
 

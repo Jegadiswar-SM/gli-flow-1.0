@@ -10,7 +10,7 @@ def _run(*args, env):
 def test_core_commands_degrade_without_optional_services(tmp_path):
     env = os.environ.copy()
     env.update({"GLI_FLOW_CONFIG_DIR": str(tmp_path / "config"), "GLI_FLOW_DB": str(tmp_path / "runs.db")})
-    for key in ("SUPABASE_URL", "SUPABASE_API_TOKEN", "BHARATCODE_API_KEY", "GLI_SERVER_URL", "GLI_API_KEY"):
+    for key in ("BHARATCODE_API_KEY", "GLI_SERVER_URL", "GLI_API_KEY"):
         env.pop(key, None)
     validate = _run("validate", "examples/counter", env=env)
     doctor = _run("doctor", "--for", "mock", env=env)

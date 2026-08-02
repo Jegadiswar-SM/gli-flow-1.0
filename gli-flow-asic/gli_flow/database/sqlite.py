@@ -1,4 +1,3 @@
-import os
 import json
 
 from gli_flow.database.factory import create_provider
@@ -12,12 +11,7 @@ class DatabaseManager:
             self.db_path = db_path
         else:
             self.db_path = _get_db_path()
-        supabase_token = os.environ.get("SUPABASE_API_TOKEN")
-        supabase_ref = os.environ.get("SUPABASE_PROJECT_REF")
-        if supabase_token and supabase_ref:
-            self._provider = create_provider()
-        else:
-            self._provider = create_provider(db_path=self.db_path)
+        self._provider = create_provider(db_path=self.db_path)
 
     def update_run_signoff(self, run_id, signoff_gate=None, timing_result=None, drc_result=None, lvs_result=None):
         import dataclasses

@@ -1,7 +1,7 @@
 # Database Abstraction Layer Plan v1
 
 **Generated:** 2026-06-23
-**Goal:** Remove SQLite assumptions from business logic; enable PostgreSQL (Supabase) without deleting SQLite support.
+**Goal:** Remove SQLite assumptions from business logic; enable PostgreSQL without deleting SQLite support.
 
 ---
 

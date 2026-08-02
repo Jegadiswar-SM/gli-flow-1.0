@@ -2,7 +2,7 @@
 """
 SQLite → PostgreSQL Migration Tool.
 
-Migrates all data from a SQLite database to PostgreSQL (Supabase).
+Migrates all data from a SQLite database to PostgreSQL.
 
 Usage:
     # Dry run (validate only, no writes)

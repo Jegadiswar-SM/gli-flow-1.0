@@ -1,7 +1,7 @@
 # Migration Execution Plan v1
 
 **Generated:** 2026-06-23
-**Goal:** Zero-data-loss migration from SQLite to PostgreSQL (Supabase) with rollback capability.
+**Goal:** Zero-data-loss migration from SQLite to PostgreSQL with rollback capability.
 
 ---
 

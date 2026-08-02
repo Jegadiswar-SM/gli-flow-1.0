@@ -101,20 +101,7 @@
 
 ---
 
-## 7. Supabase Integration
-
-| Criterion | Score | Evidence |
-|-----------|-------|----------|
-| Supabase provider loads | ✅ PASS | `supabase_api_provider.py` imports without error |
-| Token read from env | ✅ PASS | `SUPABASE_API_TOKEN` and `SUPABASE_PROJECT_REF` read from env |
-| Bearer auth on requests | ✅ PASS | `Authorization: Bearer {token}` header set properly |
-| Graceful fallback | ⚠️ WARNING | No explicit offline fallback — if Supabase is unavailable, `TokenExpiredError` may surface |
-
-**Score: ⚠️ WARNING** — Requires explicit connection retry logic and graceful offline fallback for beta.
-
----
-
-## 8. Example Designs
+## 7. Example Designs
 
 | Criterion | Score | Evidence |
 |-----------|-------|----------|
@@ -128,14 +115,13 @@
 
 ---
 
-## 9. Security
+## 8. Security
 
 | Criterion | Score | Evidence |
 |-----------|-------|----------|
 | No hardcoded API keys | ✅ PASS | `cloud_ingestion/config.py` default changed to empty string |
 | .env excluded from git | ✅ PASS | `.env` added to both root and dashboard `.gitignore` |
 | BHARATCODE_API_KEY not logged | ✅ PASS | Key used only in Bearer header, never printed |
-| SUPABASE_API_TOKEN not logged | ✅ PASS | Token used only in Bearer header |
 | Telemetry payloads exclude secrets | ✅ PASS | `PrivacyValidator.sanitize_value()` blocks all sensitive fields |
 | Backend API has no auth | ⚠️ WARNING | Local-only tool — auth would add friction without clear benefit for single-user deployment |
 
@@ -153,7 +139,6 @@
 | Dashboard | ✅ PASS |
 | Telemetry | ✅ PASS |
 | Failure Atlas | ✅ PASS |
-| Supabase Integration | ⚠️ WARNING |
 | Example Designs | ✅ PASS |
 | Security | ✅ PASS |
 
@@ -173,7 +158,6 @@
 
 ### Recommended Beta Caveats
 
-1. Supabase integration requires an explicit offline fallback — document that beta users without Supabase should skip `SUPABASE_API_TOKEN` env var
-2. Backend API is unauthenticated — recommend binding to `127.0.0.1` only (default)
-3. Example designs are validated in mock mode only — real ASIC flow testing requires EDA toolchain
-4. AI investigation requires `BHARATCODE_API_KEY` — documented as experimental
+1. Backend API is unauthenticated — recommend binding to `127.0.0.1` only (default)
+2. Example designs are validated in mock mode only — real ASIC flow testing requires EDA toolchain
+3. AI investigation requires `BHARATCODE_API_KEY` — documented as experimental

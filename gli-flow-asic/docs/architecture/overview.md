@@ -13,8 +13,7 @@ External systems are optional or environment-dependent:
 - EDA executables: Yosys, OpenROAD/ORFS, Magic, Netgen, KLayout, and optional
   LibreLane.
 - PDK and flow data: primarily Sky130A; the installer also recognizes GF180MCU.
-- Optional databases: PostgreSQL through 'DATABASE_URL', or the Supabase API
-  provider when 'SUPABASE_API_TOKEN' and 'SUPABASE_PROJECT_REF' are both set.
+- Optional database: PostgreSQL through 'DATABASE_URL'.
 - Optional AI investigation: the provider implemented under
   'gli_flow.investigation.providers', enabled only when its provider key is
   available.
@@ -49,7 +48,6 @@ graph TB
     subgraph Storage
         SQLite[(SQLite)]
         PostgreSQL[(PostgreSQL)]
-        Supabase[(Supabase API)]
         Files[(Run files and reports)]
         Knowledge[(Failure Atlas JSON and DB records)]
     end
@@ -72,7 +70,6 @@ graph TB
     Runtime --> Files
     Analysis --> Knowledge
     SQLite -. selected when configured .-> PostgreSQL
-    SQLite -. selected when configured .-> Supabase
     Installer --> Adapters
 ~~~
 
@@ -111,9 +108,8 @@ shared between simulated and real execution.
 
 SQLite is the normal local provider. The database schema is migrated on access
 by the database provider layer. PostgreSQL is selected for a PostgreSQL
-'DATABASE_URL'; the Supabase API provider is selected only when both Supabase
-variables are present and no explicit local database path is supplied. Run files
-remain filesystem artifacts even when a remote provider is selected.
+'DATABASE_URL'. Run files remain filesystem artifacts even when a remote
+provider is selected.
 
 ### Backend
 
@@ -152,7 +148,7 @@ signoff; inspect the evidence files and signoff gate.
 | Logs and reports | Stored under the run directory; support bundles redact common secrets and paths |
 | Failure signatures and remediation | Stored in Failure Atlas records and repository data |
 | AI prompts/results | Optional experimental investigation path; review before sharing |
-| Cloud/Supabase data | Only used when corresponding provider/configuration is explicitly enabled |
+| Cloud data | Only used when corresponding provider/configuration is explicitly enabled |
 
 ## Architectural constraints
 
@@ -163,4 +159,3 @@ signoff; inspect the evidence files and signoff gate.
 - Several advanced analytics, synthetic-data, community, and migration modules
   are present but require additional configuration and are not part of the
   beginner path.
-

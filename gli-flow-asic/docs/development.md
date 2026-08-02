@@ -55,7 +55,7 @@ cd dashboard && npm run lint && npm run build && npm run check:bundle && npm tes
 - 'gli_flow/core/' — orchestrator, stages, safety, subprocess, logging, and validation.
 - 'gli_flow/backends/' — OpenROAD, LibreLane, and ORFS monitoring adapters.
 - 'gli_flow/installer/' — platform detection, tool installers, PDK/ORFS setup, validation.
-- 'gli_flow/database/' — provider abstraction, migrations, SQLite/PostgreSQL/Supabase.
+- 'gli_flow/database/' — provider abstraction, migrations, SQLite/PostgreSQL.
 - 'gli_flow/telemetry/' — local telemetry, sanitization, queue, upload, and audit.
 - 'gli_flow/signoff/' — evidence classification and signoff gate support.
 - 'failure_atlas/' — failure taxonomy, signatures, remediation, and records.
@@ -84,6 +84,5 @@ cd dashboard && npm run lint && npm run build && npm run check:bundle && npm tes
 - Are links and code examples checked?
 - Does the change preserve the Python supported range?
 - Does the dashboard still pass lint/build/bundle/test?
-- Does the change touch cloud, AI, telemetry, or Supabase behavior? If so,
-  document consent, fallback, and offline behavior explicitly.
-
+- Does the change touch cloud, AI, or telemetry behavior? If so, document
+  consent, fallback, and offline behavior explicitly.

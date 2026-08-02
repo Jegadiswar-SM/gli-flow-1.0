@@ -22,8 +22,8 @@ timing-clean, DRC/LVS-clean, functionally correct, or manufacturable.
   validation without installed EDA tools.
 - Real-tool adapters for OpenROAD/ORFS and LibreLane, with PDK discovery and
   tool validation.
-- Local SQLite persistence by default, with optional PostgreSQL or Supabase
-  provider selection when explicitly configured.
+- Local SQLite persistence by default, with optional PostgreSQL provider
+  selection when explicitly configured.
 - Failure Atlas detection, signatures, evidence classification, root-cause
   analysis, remediation suggestions, resolution records, and local search.
 - Reproducibility manifests, environment fingerprints, stage checkpoints,
@@ -33,7 +33,7 @@ timing-clean, DRC/LVS-clean, functionally correct, or manufacturable.
 - An optional Electron desktop shell with native file access and a local Monaco
   RTL Workbench.
 - Local-only telemetry by default. Upload modes require an explicit telemetry
-  choice; core execution does not require cloud services, AI, Supabase, or
+  choice; core execution does not require cloud services, AI, or
   telemetry uploads.
 
 ## Architecture
@@ -52,7 +52,6 @@ flowchart LR
     Adapter --> Libre[LibreLaneAdapter]
     Orchestrator --> DB[(SQLite by default)]
     DB -. optional provider .-> PG[(PostgreSQL)]
-    DB -. optional provider .-> Supabase[(Supabase API)]
     Orchestrator --> Files[Run directory, reports, artifacts]
     Orchestrator --> Atlas[Failure Atlas]
     Orchestrator --> Prov[Provenance and fingerprints]
@@ -259,7 +258,7 @@ CLI and `FlowOrchestrator`.
 | CLI | Python `argparse`, Rich, setuptools console entry point |
 | Orchestration | `gli_flow.core.orchestrator.FlowOrchestrator` |
 | Real EDA | Yosys, OpenROAD/ORFS, Magic, Netgen, KLayout, optional LibreLane |
-| Backend | FastAPI, Uvicorn, Pydantic, SQLite/PostgreSQL/Supabase providers |
+| Backend | FastAPI, Uvicorn, Pydantic, SQLite/PostgreSQL providers |
 | Dashboard | React 19, Vite, Recharts, Monaco, Tailwind/PostCSS |
 | Desktop | Electron and electron-builder |
 | Intelligence | Failure Atlas, deterministic analysis, optional AI investigation |
@@ -309,7 +308,7 @@ Start at the [documentation index](docs/README.md). Important entry points:
 The repository contains functional code for many advanced command and
 dashboard surfaces, but not all are equally production-ready. AI investigation
 is explicitly experimental and requires a configured provider. Cloud,
-PostgreSQL, Supabase, remote execution, community escalation, synthetic data
+PostgreSQL, remote execution, community escalation, synthetic data
 campaigns, and warehouse workflows require additional configuration or are
 optional. Several synthetic-data components contain explicit placeholder logic.
 

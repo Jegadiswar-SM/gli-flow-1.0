@@ -34,7 +34,7 @@ WSL2 prompt.
 
 The installer is safe to re-run after an interrupted install. It does not
 remove a checkout or system packages. GLI-FLOW's default telemetry mode is
-local-only; core runs do not require cloud services, AI, Supabase, or telemetry
+local-only; core runs do not require cloud services, AI, or telemetry
 uploads.
 
 ## Manual install

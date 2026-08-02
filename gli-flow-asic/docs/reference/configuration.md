@@ -72,13 +72,9 @@ relative to the manifest file.
 
 - If 'DATABASE_URL' starts with 'postgresql', use PostgreSQL. Install a
   compatible psycopg package separately; it is not a default package dependency.
-- If no explicit database path is passed and both 'SUPABASE_API_TOKEN' and
-  'SUPABASE_PROJECT_REF' are set, use the Supabase API provider.
 - Otherwise use SQLite.
 
-For local development, do not set remote provider variables unless you are
-intentionally testing that integration. Supabase is not required by the core
-flow.
+For local development, leave 'DATABASE_URL' unset to use SQLite.
 
 ## Telemetry settings
 
@@ -154,4 +150,3 @@ Do not put secrets in manifests, support bundles, or committed config files.
 
 Use an absolute GLI_FLOW_PYTHON path. Relative interpreter paths can fail when
 Electron spawns the backend.
-

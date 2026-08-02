@@ -534,9 +534,9 @@ CREATE INDEX IF NOT EXISTS idx_uq_run_id ON upload_queue(run_id);
 
 ---
 
-## 21. Cloud Ingestion Tables (Supabase Cloud, separate schema)
+## 21. Cloud Ingestion Tables (separate schema)
 
-These tables are currently in a separate SQLite database (`cloud_ingestion`). For Supabase migration, they can remain in the same PostgreSQL database under a separate schema (e.g., `ingestion`).
+These tables are currently in a separate SQLite database (`cloud_ingestion`). They can remain in the same PostgreSQL database under a separate schema (e.g., `ingestion`).
 
 ```sql
 CREATE SCHEMA IF NOT EXISTS ingestion;
