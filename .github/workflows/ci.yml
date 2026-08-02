@@ -1,0 +1,78 @@
+name: GLI-FLOW verification
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-and-cli:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gli-flow-asic
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: gli-flow-asic/constraints/dashboard-py312.txt
+      - name: Install package and dashboard backend
+        run: python -m pip install -c constraints/dashboard-py312.txt -e ".[dashboard]"
+      - name: Check version consistency
+        run: python scripts/check_version_consistency.py
+      - name: Verify side-effect-free help with read-only home
+        run: |
+          readonly_home="$(mktemp -d)"
+          chmod 555 "$readonly_home"
+          HOME="$readonly_home" gli-flow --help >/tmp/gli-flow-help.txt
+          grep -q "usage: gli-flow" /tmp/gli-flow-help.txt
+      - name: Verify mock readiness and demo
+        env:
+          GLI_FLOW_CONFIG_DIR: ${{ runner.temp }}/gli-flow-config
+          GLI_FLOW_DB: ${{ runner.temp }}/gli-flow.db
+        run: |
+          gli-flow doctor --for mock --non-interactive
+          gli-flow smoke-test --non-interactive
+          gli-flow run --example counter --mock --non-interactive
+      - name: Verify local telemetry does not upload
+        env:
+          GLI_FLOW_CONFIG_DIR: ${{ runner.temp }}/gli-flow-local-config
+          GLI_FLOW_DB: ${{ runner.temp }}/gli-flow-local.db
+        run: |
+          gli-flow --telemetry local smoke-test --non-interactive
+          test "$(gli-flow telemetry status | grep -ci 'local')" -ge 1
+      - name: Verify backend health endpoint
+        env:
+          GLI_FLOW_DB: ${{ runner.temp }}/gli-flow-dashboard.db
+        run: |
+          python -m uvicorn backend.server:app --host 127.0.0.1 --port 18765 >/tmp/gli-flow-uvicorn.log 2>&1 &
+          backend_pid=$!
+          trap 'kill "$backend_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 20); do
+            curl --fail --silent http://127.0.0.1:18765/health && exit 0
+            sleep 1
+          done
+          cat /tmp/gli-flow-uvicorn.log
+          exit 1
+      - name: Run Python tests
+        run: pytest -q --timeout=60
+
+  dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gli-flow-asic/dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: gli-flow-asic/dashboard/.nvmrc
+          cache: npm
+          cache-dependency-path: gli-flow-asic/dashboard/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run check:bundle
+      - run: npm test
+      - run: npm audit --audit-level=high

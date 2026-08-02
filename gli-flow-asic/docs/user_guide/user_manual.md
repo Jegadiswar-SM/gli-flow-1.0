@@ -9,7 +9,8 @@ generate support bundles, and how telemetry works.
 ## How Do I Install?
 
 ```bash
-git clone https://github.com/Jegadiswar-SM/gli-flow-asic.git
+git clone https://github.com/Jegadiswar-SM/gli-flow-1.0.git
+cd gli-flow-1.0/gli-flow-asic
 cd gli-flow-asic
 python3 -m venv venv
 source venv/bin/activate
@@ -172,8 +173,8 @@ IP-bearing file extensions and fields before any data leaves the machine.
 All telemetry passes through a privacy validator. Preview the exact payload before
 any upload with `gli-flow telemetry preview`.
 
-Default mode is FULL sanitized telemetry upload. Use `gli-flow telemetry
-disable` or `--telemetry local`/`--telemetry disabled` to opt out.
+Default mode is LOCAL-only collection with no upload. Explicitly opt in with
+`gli-flow telemetry mode full` or `gli-flow telemetry mode atlas`.
 
 See the [Telemetry & Privacy guide](../privacy/telemetry_and_privacy.md) for full
 details.

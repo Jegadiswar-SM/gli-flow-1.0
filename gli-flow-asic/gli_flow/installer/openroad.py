@@ -1,4 +1,5 @@
 import json
+import hashlib
 import os
 import re
 import shutil
@@ -70,14 +71,23 @@ def _fetch_deb_urls():
         with urllib.request.urlopen(req, timeout=15) as resp:
             releases = json.loads(resp.read())
         deb_map = {}
+        checksum_assets = {}
         for rel in releases:
             for asset in rel.get("assets", []):
                 name = asset["name"]
+                if name.endswith((".sha256", ".sha256sum", ".sha256.txt")):
+                    checksum_assets[name.rsplit(".", 1)[0]] = asset["browser_download_url"]
+                    continue
                 if "ubuntu" in name and name.endswith(".deb"):
                     for uv in SUPPORTED_UBUNTU_VERSIONS:
                         if f"ubuntu-{uv}" in name or f"ubuntu{uv}" in name:
                             if uv not in deb_map:
-                                deb_map[uv] = asset["browser_download_url"]
+                                deb_map[uv] = {
+                                    "url": asset["browser_download_url"],
+                                    "asset_name": name,
+                                }
+        for candidate in deb_map.values():
+            candidate["checksum_url"] = checksum_assets.get(candidate.pop("asset_name"))
         return deb_map
     except Exception:
         return {}
@@ -145,8 +155,10 @@ def _install_via_deb(info) -> tuple[bool, str]:
         if preferred in deb_map and preferred not in candidates:
             candidates.append(preferred)
     for uv in candidates:
-        url = deb_map[uv]
-        if _install_deb(url):
+        candidate = deb_map[uv]
+        if not candidate.get("checksum_url"):
+            return (False, f".deb for Ubuntu {uv} has no published SHA-256 checksum")
+        if _install_deb(candidate["url"], candidate["checksum_url"]):
             detection = detect_tool("openroad")
             if detection.exists:
                 return (True, f"installed via .deb ({detection.version})")
@@ -171,13 +183,30 @@ def _download_deb(url: str, dest: str) -> bool:
     return False
 
 
-def _install_deb(url: str) -> bool:
-    tmp = tempfile.mktemp(suffix=".deb")
+def _install_deb(url: str, checksum_url: Optional[str] = None) -> bool:
+    tmp_file = tempfile.NamedTemporaryFile(prefix="gli-flow-openroad-", suffix=".deb", delete=False)
+    tmp = tmp_file.name
+    tmp_file.close()
     try:
         print("  [INFO] Downloading OpenROAD .deb ...")
         if not _download_deb(url, tmp):
             print("  [WARN] Download failed")
             return False
+        if checksum_url:
+            try:
+                with urllib.request.urlopen(checksum_url, timeout=15) as response:
+                    checksum_text = response.read().decode("utf-8", errors="replace")
+                expected = re.search(r"\b[a-fA-F0-9]{64}\b", checksum_text)
+                if not expected:
+                    print("  [WARN] Published checksum could not be parsed")
+                    return False
+                digest = hashlib.sha256(Path(tmp).read_bytes()).hexdigest()
+                if digest.lower() != expected.group(0).lower():
+                    print("  [WARN] OpenROAD checksum mismatch; refusing installation")
+                    return False
+            except Exception as exc:
+                print(f"  [WARN] Could not verify OpenROAD checksum: {exc}")
+                return False
         _remove_conflicting_packages()
         ok = run_sudo(
             ["dpkg", "--force-overwrite", "-i", tmp],

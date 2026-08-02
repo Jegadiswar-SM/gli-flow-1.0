@@ -351,11 +351,33 @@ class FlowOrchestrator:
         with open(manifest_path, "r") as f:
             manifest = yaml.safe_load(f)
 
+        # Manifest paths are owned by the design, not by the caller's current
+        # working directory. Normalize existing relative RTL and constraint
+        # paths once so every backend sees the same files.
+        manifest_dir = manifest_path.parent.resolve()
+
+        def resolve_manifest_path(value):
+            path = Path(value)
+            if path.is_absolute():
+                return str(path)
+            candidate = manifest_dir / path
+            if candidate.exists():
+                return str(candidate)
+            legacy = manifest_dir.parents[1] / path if path.parts[:1] == ("examples",) else candidate
+            return str(legacy if legacy.exists() else candidate)
+
+        if isinstance(manifest.get("rtl_files"), list):
+            manifest["rtl_files"] = [resolve_manifest_path(path) for path in manifest["rtl_files"]]
+        if isinstance(manifest.get("sdc_file"), str):
+            manifest["sdc_file"] = resolve_manifest_path(manifest["sdc_file"])
+        if isinstance(manifest.get("constraints"), list):
+            manifest["constraints"] = [resolve_manifest_path(path) for path in manifest["constraints"]]
+
         rtl_files = manifest.get("rtl_files")
         if not rtl_files:
             _, top_module, discovered = scan_directory(self.design_path)
             if discovered:
-                manifest["rtl_files"] = [str(Path(f).relative_to(self.design_path.parent)) for f in discovered]
+                manifest["rtl_files"] = [str(Path(f).resolve()) for f in discovered]
                 print(f"  [INFO] Auto-discovered {len(discovered)} RTL file(s) in design directory")
                 if top_module and "top_module" not in manifest:
                     manifest["top_module"] = top_module.name

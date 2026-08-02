@@ -1,6 +1,6 @@
 # GLI-FLOW One-Command Install (PowerShell)
 # Supports: Windows 10/11, WSL2
-# Usage: iex (iwr -Uri https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.ps1)
+# Usage: iex (iwr -Uri https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.ps1)
 
 $versionFile = Join-Path (Split-Path -Parent $PSScriptRoot) "gli_flow\version.py"
 $versionMatch = Select-String -Path $versionFile -Pattern 'VERSION\s*=\s*"([^"]+)"' | Select-Object -First 1
@@ -163,6 +163,6 @@ Write-Host "║  gli-flow smoke-test --non-interactive   ║" -ForegroundColor C
 Write-Host "║  gli-flow run --example counter --mock   ║" -ForegroundColor Cyan
 Write-Host "║  gli-flow init my_design                 ║" -ForegroundColor Cyan
 Write-Host "║                                          ║" -ForegroundColor Cyan
-Write-Host "║  Docs: https://github.com/Jegadiswar-SM/gli-flow-asic/tree/main/docs ║" -ForegroundColor Cyan
+Write-Host "║  Docs: https://github.com/Jegadiswar-SM/gli-flow-1.0/tree/main/gli-flow-asic/docs ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""

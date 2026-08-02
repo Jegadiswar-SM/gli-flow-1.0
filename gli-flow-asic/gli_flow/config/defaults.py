@@ -15,6 +15,8 @@ DEFAULTS = {
     "pdk": "sky130A",
     "workspace": str(_HOME / "gli-flow-workspace"),
     "db_path": str(_HOME / ".gli-flow" / "gli_flow.db"),
+    # Local collection is enabled for diagnostics, but uploads require an
+    # explicit telemetry mode choice.
     "telemetry": "on",
     "orfs_root": str(_HOME / ".gli-flow" / "orfs"),
     "log_level": "INFO",

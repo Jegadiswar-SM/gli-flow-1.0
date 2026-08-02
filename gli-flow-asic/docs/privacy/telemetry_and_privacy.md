@@ -11,7 +11,7 @@ GLI-FLOW collects anonymized execution telemetry to improve failure detection, r
 | `LOCAL` | ✅ All events | ❌ No upload | Full insights, no data sent |
 | `DISABLED` | ❌ No collection | ❌ No upload | Zero telemetry |
 
-Default: `FULL` sanitized telemetry upload. Use `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled` to opt out. Non-interactive and non-TTY runs never prompt and use the persisted mode or this default.
+Default: `LOCAL` collection with no upload. Use `gli-flow telemetry mode full` or `gli-flow telemetry mode atlas` to explicitly opt in to sanitized uploads. Non-interactive and non-TTY runs never prompt and remain local-only unless an upload mode was already explicitly persisted.
 
 ## Consent Workflow
 
@@ -22,7 +22,7 @@ Default: `FULL` sanitized telemetry upload. Use `gli-flow telemetry disable` or 
 
 ## Managing Telemetry
 
-The default is full sanitized telemetry upload. The payload contains sanitized
+When explicitly enabled, the payload contains sanitized
 stage names, tool/version identifiers, aggregate timings/counts, failure
 signatures, outcomes, and a one-way design fingerprint. RTL, IP, netlists,
 constraints, DEF, LEF, and GDS are explicitly excluded. Data is sent to the

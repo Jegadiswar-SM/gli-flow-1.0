@@ -16,4 +16,4 @@ No. RTL, netlists, GDS, and constraints are never uploaded regardless of telemet
 Yes, with `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled`. The default is full sanitized telemetry upload; RTL, IP, netlists, constraints, and GDS are never collected.
 
 **How do I report a bug?**
-Run `gli-flow support-bundle` and attach the `.zip` to https://github.com/Jegadiswar-SM/gli-flow-asic/issues.
+Run `gli-flow support-bundle` and attach the `.zip` to https://github.com/Jegadiswar-SM/gli-flow-1.0/issues.

@@ -117,7 +117,7 @@ Still inside the Ubuntu terminal window:
 From the Ubuntu terminal, run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash
 ```
 
 The installer creates the virtual environment, installs GLI-FLOW with

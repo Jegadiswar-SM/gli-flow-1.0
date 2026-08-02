@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import traceback
 import webbrowser
@@ -162,7 +163,7 @@ class TieredHelpFormatter(argparse.HelpFormatter):
         return self._join_parts(parts)
 
 def _load_config():
-    config_path = Path.home() / ".gli-flow" / "config.json"
+    config_path = _ensure_config_dir() / "config.json"
     if config_path.exists():
         import json
         return json.loads(config_path.read_text())
@@ -170,8 +171,7 @@ def _load_config():
 
 
 def _save_config(config):
-    config_path = Path.home() / ".gli-flow" / "config.json"
-    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path = _ensure_config_dir() / "config.json"
     import json
     config_path.write_text(json.dumps(config, indent=2))
 
@@ -202,9 +202,9 @@ def _get_telemetry_mode_label() -> str:
 def _ensure_telemetry_consent(non_interactive: bool = False):
     """Ensure user has seen the telemetry wizard.
 
-    Non-interactive invocations (no TTY, CI, pipes) default to FULL sanitized
-    telemetry: deterministic, never waits on stdin, and uploads until the
-    user selects another mode.
+    Non-interactive invocations (no TTY, CI, pipes) default to local-only
+    telemetry: deterministic, never waits on stdin, and never upload without
+    explicit user consent.
     """
     from gli_flow.telemetry.settings import get_telemetry_settings, TelemetryMode
     from gli_flow.telemetry.wizard import run_telemetry_wizard
@@ -212,18 +212,18 @@ def _ensure_telemetry_consent(non_interactive: bool = False):
     settings = get_telemetry_settings()
     if settings.is_wizard_required():
         if non_interactive or not sys.stdin.isatty():
-            _default_telemetry_full(settings)
+            _default_telemetry_local(settings)
             return
         try:
             run_telemetry_wizard()
         except (EOFError, OSError):
-            _default_telemetry_full(settings)
+            _default_telemetry_local(settings)
 
 
-def _default_telemetry_full(settings):
+def _default_telemetry_local(settings):
     from gli_flow.telemetry.settings import TelemetryMode
-    settings.mode = TelemetryMode.FULL
-    settings.consent_given = True
+    settings.mode = TelemetryMode.LOCAL
+    settings.consent_given = False
     settings.save()
 
 
@@ -1986,9 +1986,19 @@ def show_telemetry_command(args):
 
 
 def _ensure_config_dir():
-    cfg_dir = Path.home() / ".gli-flow"
-    cfg_dir.mkdir(parents=True, exist_ok=True)
-    return cfg_dir
+    override = os.environ.get("GLI_FLOW_CONFIG_DIR")
+    if override:
+        cfg_dir = Path(override).expanduser()
+    else:
+        cfg_dir = Path(os.environ.get("XDG_CONFIG_HOME") or (Path.home() / ".config")) / "gli-flow"
+    try:
+        cfg_dir.mkdir(parents=True, exist_ok=True)
+        return cfg_dir
+    except OSError as exc:
+        fallback = Path(tempfile.gettempdir()) / "gli-flow-config"
+        fallback.mkdir(parents=True, exist_ok=True)
+        warn(f"Configuration directory unavailable ({exc}); using {fallback} for this invocation.")
+        return fallback
 
 
 def _load_yaml_config():
@@ -2106,6 +2116,7 @@ def support_bundle_command(args):
     import zipfile
     import platform
     import subprocess
+    import re
     from datetime import datetime
 
     cfg_dir = _ensure_config_dir()
@@ -2118,6 +2129,14 @@ def support_bundle_command(args):
 
     bundle_data = {}
     files_to_include = []
+
+    def _redact_support_text(value: str) -> str:
+        """Remove credentials and machine-specific paths from text files."""
+        value = re.sub(r"(?i)(api[_-]?key|token|password|secret)\s*[:=]\s*[^\s,}]+", r"\1=[REDACTED]", value)
+        value = re.sub(r"(?i)bearer\s+[A-Za-z0-9._~+/=-]+", "Bearer [REDACTED]", value)
+        value = re.sub(r"/(?:home|Users|tmp|private/tmp)/[^\s'\"]+", "[LOCAL_PATH_REDACTED]", value)
+        value = re.sub(r"[A-Za-z]:\\[^\r\n\"']+", "[LOCAL_PATH_REDACTED]", value)
+        return value
 
     # Config
     for cfg_file in ["config.yaml", "config.json"]:
@@ -2211,7 +2230,10 @@ def support_bundle_command(args):
         bundle_data["doctor"] = {"error": "Could not collect doctor environment data"}
 
     # Logs
-    for logs_dir in [Path.home() / ".gli-flow" / "logs", Path("logs")]:
+    log_dirs = [Path.home() / ".gli-flow" / "logs", Path("logs")]
+    if os.environ.get("GLI_FLOW_LOG_DIR"):
+        log_dirs.insert(0, Path(os.environ["GLI_FLOW_LOG_DIR"]))
+    for logs_dir in log_dirs:
         if logs_dir.exists():
             for log_file in sorted(logs_dir.rglob("*.log"))[:20]:
                 files_to_include.append((str(log_file), f"logs/{log_file.name}"))
@@ -2240,13 +2262,28 @@ def support_bundle_command(args):
     files_to_include.append((str(bundle_data_path), "bundle_data.json"))
 
     # Write zip
+    unique_files = []
+    seen_arcnames = set()
+    for src, arcname in files_to_include:
+        if arcname in seen_arcnames:
+            continue
+        seen_arcnames.add(arcname)
+        unique_files.append((src, arcname))
     with zipfile.ZipFile(bundle_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        for src, arcname in files_to_include:
-            if Path(src).exists():
-                zf.write(src, arcname)
+        for src, arcname in unique_files:
+            source_path = Path(src)
+            if not source_path.exists():
+                continue
+            if source_path.suffix.lower() in {".log", ".json", ".rpt", ".md", ".txt", ".yaml", ".yml", ".cfg"}:
+                try:
+                    zf.writestr(arcname, _redact_support_text(source_path.read_text(errors="replace")))
+                    continue
+                except OSError:
+                    pass
+            zf.write(source_path, arcname)
 
     success(f"Support bundle written to: {bundle_path.resolve()}")
-    info(f"Contains {len(files_to_include)} files")
+    info(f"Contains {len(unique_files)} files")
     print_next_step(["gli-flow doctor", "gli-flow diagnose <run_id>"])
 
 
@@ -2276,7 +2313,7 @@ def upgrade_check_command(args):
                 info(f"Latest on {source}: v{latest}")
                 if latest > current:
                     warn(f"A newer version is available: v{latest}")
-                    info("Upgrade: pip install --upgrade gli-flow")
+                    info("Upgrade: pull the latest source checkout, then rerun `python -m pip install -e \".[dashboard]\"`.")
                     return
                 elif latest == current:
                     success(f"v{current} is the latest version on {source}")
@@ -2921,13 +2958,13 @@ def build_parser():
             "  Support:\n"
             "    gli-flow support-bundle      Generate debug archive\n\n"
             "See 'gli-flow <command> --help' for detailed command help.\n"
-            "Report issues: https://github.com/Jegadiswar-SM/gli-flow-asic/issues"
+            "Report issues: https://github.com/Jegadiswar-SM/gli-flow-1.0/issues"
         ),
         formatter_class=TieredHelpFormatter,
     )
     parser.add_argument("-h", "--help", action=TieredHelpAction, nargs=0, help="Show this help message")
     parser.add_argument("--all", action="store_true", help="Include advanced commands in top-level help")
-    parser.add_argument("--non-interactive", "--yes", action="store_true", help="Never prompt; use persisted settings or full sanitized telemetry by default")
+    parser.add_argument("--non-interactive", "--yes", action="store_true", help="Never prompt; use persisted settings or local-only telemetry by default")
     parser.add_argument("--telemetry", choices=["full", "atlas", "local", "disabled"], help="Persist telemetry mode for this invocation")
 
     subparsers = parser.add_subparsers(dest="command", metavar="COMMAND")

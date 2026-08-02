@@ -79,7 +79,7 @@ setup(
             "gli-flow=gli_flow.cli.main:main",
         ],
     },
-    python_requires=">=3.9",
+    python_requires=">=3.9,<3.13",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",

@@ -26,13 +26,13 @@ def run_telemetry_wizard():
     console.print()
 
     console.print("[bold]Choose your Telemetry Mode:[/bold]")
-    console.print("  [bold green]1. Full Sanitized Telemetry[/bold green] [Recommended]")
+    console.print("  [bold white]1. Local Only[/bold white] [Recommended]")
+    console.print("     Nothing ever leaves your machine.")
+    console.print("  [bold green]2. Full Sanitized Telemetry[/bold green]")
     console.print("     Uploads runtime metrics, failure signatures, root causes,\n"
                   "     resolution outcomes, and design fingerprints.")
-    console.print("  [bold yellow]2. Failure Atlas Only[/bold yellow]")
+    console.print("  [bold yellow]3. Failure Atlas Only[/bold yellow]")
     console.print("     Uploads only failure fingerprints and root causes.")
-    console.print("  [bold white]3. Local Only[/bold white]")
-    console.print("     Nothing ever leaves your machine.")
     console.print()
 
     choice = Prompt.ask(
@@ -44,16 +44,19 @@ def run_telemetry_wizard():
     settings = get_telemetry_settings()
     
     if choice == "1":
-        settings.mode = TelemetryMode.FULL
-        console.print("[green]Full Telemetry enabled.[/green]")
-    elif choice == "2":
-        settings.mode = TelemetryMode.ATLAS
-        console.print("[yellow]Failure Atlas Only mode enabled.[/yellow]")
-    else:
         settings.mode = TelemetryMode.LOCAL
         console.print("Local Only mode enabled. No data will be uploaded.")
+    elif choice == "2":
+        settings.mode = TelemetryMode.FULL
+        settings.consent_given = True
+        console.print("[green]Full Telemetry enabled.[/green]")
+    elif choice == "3":
+        settings.mode = TelemetryMode.ATLAS
+        settings.consent_given = True
+        console.print("[yellow]Failure Atlas Only mode enabled.[/yellow]")
 
-    settings.consent_given = True
+    if choice == "1":
+        settings.consent_given = False
     settings.save()
 
     console.print("\n[bold green]✓ Settings saved.[/bold green] Change or revoke with [bold]gli-flow telemetry disable[/bold] or [bold]gli-flow config[/bold].\n")

@@ -13,19 +13,19 @@ validates your design config in seconds without any EDA tools installed.
 - **Built-in diagnostics.** Automated failure detection, root-cause analysis, and support bundles.
 - **Dashboard.** Web UI for run history, timing/area/power, DRC/LVS, and telemetry.
 - **Desktop shell.** Optional Electron app with native file access and the RTL Workbench.
-- **Transparent telemetry.** Default is full sanitized telemetry upload; RTL, IP, netlists, and GDS are never collected. Opt out with `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled`.
+- **Transparent telemetry.** Default is local-only collection; nothing leaves your machine until you explicitly choose sanitized uploads. RTL, IP, netlists, and GDS are never collected. Change the mode with `gli-flow telemetry mode ...` or `--telemetry local`/`--telemetry disabled`.
 
 ## Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash
 ```
 
 Then activate the environment using the command the installer prints and try
 `gli-flow quickstart`. For a visible, manual setup, clone the repository and
 follow [docs/INSTALL.md](docs/INSTALL.md).
 
-Python 3.9+. Linux (Ubuntu 22.04+ / Debian 12+ / WSL2).
+Python 3.9–3.12. Linux (Ubuntu 22.04+ / Debian 12+ / WSL2).
 
 Windows beginners: follow the [Windows + WSL2 setup guide](docs/WINDOWS_WSL2_SETUP.md).
 
@@ -107,7 +107,7 @@ Use `--backend-only` for API at `http://127.0.0.1:8000`.
 - Open-source ASIC implementation flow (Yosys + OpenROAD + Magic + KLayout)
 - Mock mode for config validation
 - Execution observability and Failure Atlas
-- Full sanitized telemetry upload by default; opt out with `gli-flow telemetry disable`
+- Local-only telemetry by default; explicitly opt in to sanitized uploads with `gli-flow telemetry mode full`
 - Web dashboard
 
 **Not included:**
@@ -117,7 +117,7 @@ Use `--backend-only` for API at `http://127.0.0.1:8000`.
 - Enterprise collaboration features
 - Multi-user cloud platform
 
-GLI-FLOW is v1.1.0-beta. Report issues at https://github.com/Jegadiswar-SM/gli-flow-asic/issues.
+GLI-FLOW is v1.1.0-beta. Report issues at https://github.com/Jegadiswar-SM/gli-flow-1.0/issues.
 
 ## License
 

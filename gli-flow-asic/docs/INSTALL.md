@@ -12,7 +12,7 @@ environment, installs GLI-FLOW with dashboard support, and verifies the mock
 path:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash
 ```
 
 At the end, activate the environment using the command it prints, then try
@@ -56,6 +56,17 @@ For reproducible dashboard development, install constraints after the package:
 For offline use, populate a wheel cache first and add `--no-index --find-links
 PATH/TO/CACHE` to pip. A mock run normally takes less than one minute; real EDA
 tool installation requires substantially more disk and time.
+
+To remove the user-local installer directory later, preview first and then run
+the confirmed uninstall script:
+
+```bash
+bash scripts/uninstall.sh --dry-run
+bash scripts/uninstall.sh
+```
+
+This removes only `~/.gli-flow` (or `$GLI_FLOW_HOME`); it never removes a
+repository checkout, designs, or system packages.
 
 Before any signoff-adjacent conclusion: mock output is simulated and does not
 prove synthesis quality, STA closure, DRC cleanliness, LVS equivalence, or

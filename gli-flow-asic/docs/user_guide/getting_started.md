@@ -9,7 +9,8 @@ Clone to dashboard. Mock mode requires no EDA tools.
 ## 1. Clone and Install
 
 ```bash
-git clone https://github.com/Jegadiswar-SM/gli-flow-asic.git
+git clone https://github.com/Jegadiswar-SM/gli-flow-1.0.git
+cd gli-flow-1.0/gli-flow-asic
 cd gli-flow-asic
 python3 -m venv venv
 source venv/bin/activate

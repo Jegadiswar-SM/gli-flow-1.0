@@ -43,7 +43,10 @@ class TelemetrySettings:
 
     @property
     def mode(self) -> str:
-        return self.settings.get("telemetry_mode", TelemetryMode.FULL)
+        # A new installation is local-only. Uploading requires an explicit
+        # choice so a first run never sends data before the user understands
+        # what leaves the machine.
+        return self.settings.get("telemetry_mode", TelemetryMode.LOCAL)
 
     @mode.setter
     def mode(self, value: str):
@@ -53,11 +56,10 @@ class TelemetrySettings:
 
     @property
     def consent_given(self) -> bool:
-        # A fresh/unconfigured installation starts in FULL mode. An explicit
-        # LOCAL or DISABLED mode remains opt-out even before it is persisted
-        # with a consent flag.
+        # Local-only is safe without a consent prompt. Upload modes require
+        # explicit consent and a persisted timestamp.
         if "consent_given" not in self.settings:
-            return self.mode in (TelemetryMode.FULL, TelemetryMode.ATLAS)
+            return False
         return self.settings["consent_given"]
 
     @consent_given.setter

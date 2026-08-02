@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-25
 **Version:** v1.1.0-beta
-**Repository:** https://github.com/Jegadiswar-SM/gli-flow-asic
+**Repository:** https://github.com/Jegadiswar-SM/gli-flow-1.0
 
 ---
 

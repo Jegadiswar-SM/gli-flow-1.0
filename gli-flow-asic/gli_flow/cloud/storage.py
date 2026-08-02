@@ -83,7 +83,7 @@ class CloudStorageManager:
             logger.info("Uploaded %d files to s3://%s/%s", uploaded, self.config.bucket, dest_key)
             return f"s3://{self.config.bucket}/{dest_key}"
         except ImportError:
-            logger.error("boto3 not installed — install with: pip install gli-flow[cloud]")
+            logger.error('boto3 not installed — from a source checkout run: python -m pip install -e ".[cloud]"')
             return ""
         except Exception as e:
             logger.error("S3 upload failed: %s", e)
@@ -155,7 +155,7 @@ class CloudStorageManager:
             logger.info("Uploaded %d files to gs://%s/%s", uploaded, self.config.bucket, dest_key)
             return f"gs://{self.config.bucket}/{dest_key}"
         except ImportError:
-            logger.error("google-cloud-storage not installed — install with: pip install gli-flow[cloud]")
+            logger.error('google-cloud-storage not installed — from a source checkout run: python -m pip install -e ".[cloud]"')
             return ""
         except Exception as e:
             logger.error("GCS upload failed: %s", e)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # GLI-FLOW one-command installer for Linux and WSL2.
-# Usage: curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-asic/main/scripts/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash
 
 set -Eeuo pipefail
 
