@@ -110,11 +110,11 @@ function Breadcrumbs({ path, onJump }) {
 }
 
 function EditorPanel({ params }) {
-  const { activeFile, tabs, onSelect, onClose, onChange, onSave, onCommandPalette, onRevealLine, minimapEnabled, onToggleMinimap, onJump } = params
+  const { activeFile, tabs, onSelect, onClose, onChange, onSave, onCommandPalette, onSearch, onRevealLine, minimapEnabled, onToggleMinimap, onJump } = params
   const editorRef = useRef(null)
-  const callbacks = useRef({ onSave, onCommandPalette, onToggleMinimap })
+  const callbacks = useRef({ onSave, onCommandPalette, onSearch, onToggleMinimap })
   const [position, setPosition] = useState({ line: 1, column: 1 })
-  useEffect(() => { callbacks.current = { onSave, onCommandPalette, onToggleMinimap } }, [onSave, onCommandPalette, onToggleMinimap])
+  useEffect(() => { callbacks.current = { onSave, onCommandPalette, onSearch, onToggleMinimap } }, [onSave, onCommandPalette, onSearch, onToggleMinimap])
   const configure = useCallback(monacoApi => {
     monacoApi.languages.register({ id: "verilog" })
     monacoApi.languages.setMonarchTokensProvider("verilog", { tokenizer: { root: [[/\/\/.*$/, "comment"], [/\/\*/, "comment", "@comment"], [/[0-9]+('[bodhBODH][0-9a-fA-F_xXzZ?]+)/, "number"], [/[a-zA-Z_][\w$]*/, { cases: { "@keywords": "keyword", "@default": "identifier" } }], [/[{}()[\];,.]/, "delimiter"], [/".*?"/, "string"]], comment: [[/[^*]+/, "comment"], [/\*\//, "comment", "@pop"], [/[*]/, "comment"]] }, keywords: ["module", "endmodule", "input", "output", "inout", "wire", "reg", "logic", "always", "always_ff", "always_comb", "assign", "begin", "end", "if", "else", "case", "endcase", "parameter", "localparam", "posedge", "negedge", "generate", "genvar", "for"] })
@@ -128,6 +128,7 @@ function EditorPanel({ params }) {
     editor.onDidChangeCursorPosition(event => setPosition({ line: event.position.lineNumber, column: event.position.column }))
     registerAction(editor, monacoApi, "gli-flow-save", "Save RTL", [monacoApi.KeyMod.CtrlCmd | monacoApi.KeyCode.KeyS], () => callbacks.current.onSave())
     registerAction(editor, monacoApi, "gli-flow-palette", "Command Palette", [monacoApi.KeyMod.CtrlCmd | monacoApi.KeyMod.Shift | monacoApi.KeyCode.KeyP], () => callbacks.current.onCommandPalette())
+    registerAction(editor, monacoApi, "gli-flow-search", "Search in Files", [monacoApi.KeyMod.CtrlCmd | monacoApi.KeyMod.Shift | monacoApi.KeyCode.KeyF], () => callbacks.current.onSearch())
     registerAction(editor, monacoApi, "gli-flow-minimap", "Toggle Minimap", [], () => callbacks.current.onToggleMinimap())
     registerAction(editor, monacoApi, "gli-flow-comment", "Toggle Line Comment", [monacoApi.KeyMod.CtrlCmd | monacoApi.KeyCode.Slash], (instance) => instance.trigger("keyboard", "editor.action.commentLine", null))
     registerAction(editor, monacoApi, "gli-flow-duplicate", "Duplicate Line", [monacoApi.KeyMod.Shift | monacoApi.KeyMod.Alt | monacoApi.KeyCode.DownArrow], (instance) => instance.trigger("keyboard", "editor.action.duplicateSelection", null))
@@ -277,7 +278,7 @@ export default function WorkbenchPage() {
   ], [activePath, closeAll, closeTab, createEntry, designPath, runDesign, saveAll, saveFile, tree?.root])
   const panelParams = useMemo(() => ({
     files: { tree, onOpen: openFile, onRefresh: refreshTree, onCreate: createEntry, onRename: renameEntry, onDelete: deleteEntry, focusPath: focusPath, includeAll },
-    editor: { activeFile, tabs: Object.values(openFiles), onSelect: setActivePath, onClose: closeTab, onChange: changeFile, onSave: () => saveFile(), onCommandPalette: () => setPaletteOpen(true), onRevealLine: setRevealLine, revealLine, minimapEnabled, onToggleMinimap: () => setMinimapEnabled(value => !value), onJump: focusTreePath },
+    editor: { activeFile, tabs: Object.values(openFiles), onSelect: setActivePath, onClose: closeTab, onChange: changeFile, onSave: () => saveFile(), onCommandPalette: () => setPaletteOpen(true), onSearch: () => setSearchOpen(true), onRevealLine: setRevealLine, revealLine, minimapEnabled, onToggleMinimap: () => setMinimapEnabled(value => !value), onJump: focusTreePath },
     logs: { run, logs },
     metrics: { run },
   }), [activeFile, changeFile, closeTab, createEntry, deleteEntry, focusPath, includeAll, openFile, openFiles, refreshTree, renameEntry, run, logs, saveFile, revealLine, minimapEnabled, tree])

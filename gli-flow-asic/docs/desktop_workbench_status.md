@@ -9,7 +9,8 @@ Implemented in the desktop feature track:
 - `/version` is sourced from `gli_flow/version.py`, and the dashboard fetches
   it at load time.
 - Dockview RTL Workbench with file tree, Monaco editor, Verilog/SystemVerilog
-  tokenizer, run action, live status polling, and metrics panel.
+  tokenizer, multi-file tabs, run action, live status polling, and metrics
+  panel.
 - Backend filesystem tree/read endpoints restricted to configured project
   roots. Save is limited to Electron sessions with a per-launch token; the
   browser dashboard is read-only.
@@ -36,9 +37,9 @@ The bundle budget was rebaselined from 650 KiB per asset / 1,500 KiB total to
 3,200 KiB per asset / 4,750 KiB total. The post-fix measured build is:
 
 ```text
-WorkbenchPage-*.js   2,989,008 bytes
+WorkbenchPage-*.js   3,004,383 bytes
 editor.worker-*.js     300,367 bytes
-bundle total         4,403,274 bytes
+bundle total         4,423,758 bytes
 budget               4,864,000 bytes
 ```
 
@@ -126,7 +127,7 @@ Verification performed:
 ```text
 dashboard npm run lint       PASS (0 errors, 0 warnings)
 dashboard npm run build      PASS
-dashboard npm run check:bundle PASS (4,403,274 bytes / 4,864,000-byte self-hosted Monaco budget)
+dashboard npm run check:bundle PASS (4,423,758 bytes / 4,864,000-byte self-hosted Monaco budget)
 dashboard npm audit          PASS (0 vulnerabilities)
 backend version/tree/read    PASS
 backend unauthenticated save 403 (expected)
@@ -143,3 +144,82 @@ verification requires a graphical Linux session; the headless environment can
 still validate JavaScript syntax, packaging configuration, backend APIs, and
 the browser build. Bundling Python is deferred; the packaged app requires an
 existing GLI-FLOW Python installation.
+
+## VS Code-style Workbench implementation
+
+The earlier status description that implied tabs was inaccurate for the
+single-file implementation being replaced. The current Workbench has the
+following completed tiers.
+
+### Tier 1 — foundational editing
+
+1. **Multi-file tabs:** open files are keyed by path, duplicate opens select
+   the existing tab, and every tab shows its own dirty dot. Closing a dirty tab
+   offers save-before-close or discard; `beforeunload` warns when any tab is
+   dirty. Dockview state continues through `props.params` and
+   `panel.api.updateParameters(...)`.
+2. **Monaco editing:** the minimap is enabled by default and can be toggled;
+   multi-cursor editing, bracket-pair coloring, current-line highlighting,
+   comment toggle, duplicate/move line, find, replace, and save are explicitly
+   configured. Ctrl/Cmd+Shift+P opens the application palette.
+3. **Tree operations:** Electron exposes context menus and visible overflow
+   buttons for New File, New Folder, Rename, and Delete, including root-level
+   creation. Browser mode hides these controls and remains read-only. The new
+   backend create/move/delete endpoints reuse configured-root path safety and
+   the per-launch `X-GLI-FLOW-DESKTOP-TOKEN` gate used by save. The tree
+   refreshes in place.
+4. **Breadcrumbs:** the active tab path appears above the editor; each segment
+   focuses and expands the corresponding tree path.
+
+### Tier 2 — complete editor workflow
+
+5. **Command palette:** fuzzy filtering covers Save, Save All, Close Tab, Close
+   All Tabs, Run This Design, New File, New Folder, Toggle Minimap, and Search
+   in Files.
+6. **Global search:** `GET /api/fs/search` searches the loaded design root,
+   skips hidden/generated directories, returns file/line matches, and opens
+   and reveals the selected result. Replace-all is intentionally not included.
+7. **Status bar:** the editor shows live line/column, `Verilog` language mode,
+   and `UTF-8` encoding.
+
+### Tier 3 — RTL outline
+
+The lightweight outline recognizes module, always, and assign declarations
+using the same vocabulary as the hand-written Monarch Verilog tokenizer. It
+lists source lines and jumps to the selected line. This is not a language
+server or semantic symbol table.
+
+## Verification evidence for this implementation
+
+```text
+dashboard: npm run lint                         PASS (0 errors, 0 warnings)
+dashboard: npm run build                        PASS (3,045 modules)
+dashboard: npm run check:bundle                 PASS (4,423,758 / 4,864,000 bytes)
+dashboard Workbench chunk                      3,004,383 bytes
+python3 -m py_compile backend/server.py         PASS
+node --check desktop/main.js                    PASS
+node --check desktop/preload.js                 PASS
+git diff --check                                PASS
+```
+
+The focused backend test file covers token-gated create/search/rename/delete
+and unauthenticated denial. In this headless environment its TestClient run
+entered the existing application startup/database path and hung during the
+first request after the existing missing `BHARATCODE_API_KEY` notice; it did
+not produce a test assertion result. Normal CI should run
+`pytest -q tests/test_desktop_workbench_backend.py --timeout=60`.
+
+The production build verifies browser compatibility at compile time: CRUD
+controls are gated by `isElectron`, while read/tree/open/search remain
+available in a plain browser. A graphical Electron walkthrough of multiple
+dirty tabs and right-click CRUD was not available in this headless session and
+remains a release-validation step.
+
+## Explicitly deferred
+
+- Real Verilog/SystemVerilog language-server features: semantic completion,
+  go-to-definition, references, and diagnostics.
+- Split or side-by-side editors.
+- An extension/plugin system.
+- Git integration UI; a git-backed student workflow is not established.
+- Multi-file replace-all; safe atomic replacement needs a separate design.
