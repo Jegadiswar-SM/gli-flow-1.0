@@ -27,6 +27,31 @@ request.
   language, version consistency checks, clean-environment CLI/backend checks,
   frontend lint/build/bundle/test/audit checks, and Python test execution.
 
+## Subsequent Workbench and desktop-install additions
+
+The following work was completed after the original corrections audit and is
+now part of the current repository state:
+
+- Electron/Monaco RTL Workbench: multi-file tabs with dirty indicators and
+  close protection, Monaco minimap and editing actions, breadcrumbs, outline
+  navigation, command palette, global search, status bar, and Electron-only
+  file CRUD.
+- Secure EDA access: the Electron Workbench provides one-click Yosys,
+  OpenROAD, and KLayout availability checks. The backend accepts only those
+  allowlisted tools through the existing per-launch desktop token; browser
+  mode cannot execute tools or file mutations.
+- One-command desktop setup: `scripts/install.sh --desktop` installs the
+  Python environment, dashboard dependencies, self-hosted Monaco build, and
+  Electron dependencies, then prints the launch command. The normal installer
+  remains the lighter CLI/browser path. System EDA tools remain an explicit
+  optional install step.
+- Status and verification evidence: see
+  [`docs/desktop_workbench_status.md`](../desktop_workbench_status.md) for the
+  tier-by-tier implementation, bundle measurements, and deferred scope.
+
+The explicit P2-4 exclusion remains unchanged. Supabase remains unchanged by
+request.
+
 ## Verification commands
 
 ```bash
