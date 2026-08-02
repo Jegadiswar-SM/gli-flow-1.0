@@ -37,9 +37,9 @@ The bundle budget was rebaselined from 650 KiB per asset / 1,500 KiB total to
 3,200 KiB per asset / 4,750 KiB total. The post-fix measured build is:
 
 ```text
-WorkbenchPage-*.js   3,004,383 bytes
+WorkbenchPage-*.js   3,006,176 bytes
 editor.worker-*.js     300,367 bytes
-bundle total         4,423,758 bytes
+bundle total         4,425,677 bytes
 budget               4,864,000 bytes
 ```
 
@@ -127,7 +127,7 @@ Verification performed:
 ```text
 dashboard npm run lint       PASS (0 errors, 0 warnings)
 dashboard npm run build      PASS
-dashboard npm run check:bundle PASS (4,423,758 bytes / 4,864,000-byte self-hosted Monaco budget)
+dashboard npm run check:bundle PASS (4,425,677 bytes / 4,864,000-byte self-hosted Monaco budget)
 dashboard npm audit          PASS (0 vulnerabilities)
 backend version/tree/read    PASS
 backend unauthenticated save 403 (expected)
@@ -194,8 +194,8 @@ server or semantic symbol table.
 ```text
 dashboard: npm run lint                         PASS (0 errors, 0 warnings)
 dashboard: npm run build                        PASS (3,045 modules)
-dashboard: npm run check:bundle                 PASS (4,423,758 / 4,864,000 bytes)
-dashboard Workbench chunk                      3,004,383 bytes
+dashboard: npm run check:bundle                 PASS (4,425,677 / 4,864,000 bytes)
+dashboard Workbench chunk                      3,006,176 bytes
 python3 -m py_compile backend/server.py         PASS
 node --check desktop/main.js                    PASS
 node --check desktop/preload.js                 PASS
@@ -223,3 +223,19 @@ remains a release-validation step.
 - An extension/plugin system.
 - Git integration UI; a git-backed student workflow is not established.
 - Multi-file replace-all; safe atomic replacement needs a separate design.
+
+## EDA tool access from the Workbench
+
+The Electron Workbench now includes an **EDA Tools** panel with one-click
+checks for Yosys, OpenROAD, and KLayout. Each action runs the tool's version
+probe and displays the exact command and captured output in the panel. This is
+intended as the simplest way for a beginner to confirm that the installed
+toolchain is usable without leaving the editor.
+
+The implementation is intentionally constrained: the browser cannot execute
+tools, the Electron preload exposes only the named `runTool` action, and the
+backend accepts only the three allowlisted tools through the existing
+per-launch desktop token. It is not an arbitrary shell or terminal. Full
+interactive tool consoles and custom scripts remain future work; normal
+design runs already invoke the tools through GLI-FLOW and continue to show
+their logs and reports in the Workbench.

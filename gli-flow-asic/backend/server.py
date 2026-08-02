@@ -675,6 +675,37 @@ def search_filesystem(path: str = Query("examples"), q: str = Query(..., min_len
     return {"query": q, "root": str(root), "results": results, "truncated": len(results) >= limit}
 
 
+@app.post("/api/tools/run")
+def run_workbench_tool(payload: dict, request: Request):
+    """Run a read-only, allowlisted EDA tool probe from the Electron Workbench."""
+    _require_desktop_write(request)
+    tool = str(payload.get("tool", "")).lower()
+    commands = {
+        "yosys": ["yosys", "-V"],
+        "openroad": ["openroad", "-version"],
+        "klayout": ["klayout", "-b", "-v"],
+    }
+    if tool not in commands:
+        raise HTTPException(status_code=400, detail="Only Yosys, OpenROAD, and KLayout are available from the Workbench toolbox")
+    command = commands[tool]
+    try:
+        import subprocess
+        result = subprocess.run(
+            command,
+            cwd=_PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            env={**os.environ, "LC_ALL": "C", "LANG": "C"},
+        )
+    except FileNotFoundError:
+        return {"tool": tool, "command": " ".join(command), "available": False, "exit_code": 127, "output": f"{tool} is not installed or is not on PATH."}
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail=f"{tool} did not finish its version check within 15 seconds")
+    output = (result.stdout + result.stderr).strip()
+    return {"tool": tool, "command": " ".join(command), "available": result.returncode == 0, "exit_code": result.returncode, "output": output or "No output returned."}
+
+
 @app.get("/runs/{run_id}")
 def get_run(run_id: str):
     conn = get_connection()

@@ -23,6 +23,12 @@ def test_workbench_write_requires_desktop_token():
     assert response.status_code == 403
 
 
+def test_workbench_tool_access_requires_desktop_token():
+    client = TestClient(app)
+    response = client.post("/api/tools/run", json={"tool": "yosys"})
+    assert response.status_code == 403
+
+
 def test_workbench_file_operations_are_token_gated_and_safe(tmp_path, monkeypatch):
     design_root = tmp_path / "design"
     design_root.mkdir()

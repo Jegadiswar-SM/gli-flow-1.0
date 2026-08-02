@@ -156,6 +156,12 @@ function LogPanel({ params }) {
   return <div className="h-full bg-[#0B1220] text-[#CBD5E1] font-mono text-[11px] p-3 overflow-auto"><div className="flex items-center gap-2 text-[#D4AF37] mb-2"><TerminalSquare size={13} aria-hidden="true" />Run output</div>{run ? <><p>{run.run_id} · {run.current_stage} · {run.progress || 0}%</p>{logs.length ? logs.map((line, index) => <p key={index} className="text-[#94A3B8]">{line}</p>) : <p className="text-[#64748B]">Waiting for live stage output…</p>}</> : <p className="text-[#64748B]">Start a run to attach live status here.</p>}</div>
 }
 
+function ToolPanel({ params }) {
+  const { onRunTool, toolBusy, toolOutput } = params
+  const tools = [["yosys", "Yosys", "Synthesis and RTL checks"], ["openroad", "OpenROAD", "Floorplan, place, route and timing"], ["klayout", "KLayout", "Layout viewing and DRC"]]
+  return <div className="h-full bg-[#0B1220] text-[#CBD5E1] p-3 overflow-auto"><div className="text-[11px] font-semibold text-[#D4AF37] mb-1">EDA tools</div><p className="text-[10px] text-[#94A3B8] mb-3">Run a safe availability check from the Electron desktop shell.</p><div className="space-y-2">{tools.map(([id, label, description]) => <button key={id} type="button" disabled={Boolean(toolBusy)} onClick={() => onRunTool(id)} className="w-full text-left rounded border border-[#334155] px-2 py-2 hover:bg-[#1E293B] disabled:opacity-50"><span className="block text-[11px] text-white">{toolBusy === id ? "Checking…" : label}</span><span className="block text-[9px] text-[#94A3B8]">{description}</span></button>)}</div>{toolOutput && <pre className="mt-3 whitespace-pre-wrap break-words border-t border-[#334155] pt-2 text-[10px] text-[#86EFAC]">{toolOutput}</pre>}</div>
+}
+
 function MetricsPanel({ params }) {
   const { run } = params
   return <div className="h-full bg-[#FAFAF8] p-3 text-[11px] text-abyss-ink"><h3 className="font-semibold border-b border-stone-ridge pb-2 mb-2">Properties & metrics</h3>{run ? <dl className="space-y-2">{[["Status", run.status], ["Stage", run.current_stage], ["WNS", run.wns ?? "—"], ["Utilization", run.utilization == null ? "—" : run.utilization + "%"], ["QoR", run.qor_score ?? "—"]].map(([label, value]) => <div key={label} className="flex justify-between gap-2"><dt className="text-[#6B7280]">{label}</dt><dd className="font-medium">{value}</dd></div>)}</dl> : <p className="text-[#6B7280]">Run metrics appear here.</p>}</div>
@@ -198,6 +204,8 @@ export default function WorkbenchPage() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState([])
+  const [toolBusy, setToolBusy] = useState("")
+  const [toolOutput, setToolOutput] = useState("")
   const [includeAll, setIncludeAll] = useState(false)
   const panelsRef = useRef({})
   const dirtyRef = useRef({})
@@ -261,6 +269,15 @@ export default function WorkbenchPage() {
     try { await window.gliFlowDesktop.deleteFile({ path: node.path }); if (openFiles[node.path]) { setOpenFiles(previous => { const next = { ...previous }; delete next[node.path]; return next }); if (activePath === node.path) setActivePath("") } fetchTree(); setMessage("Deleted " + node.name) } catch (error) { setMessage(error.message) }
   }, [activePath, fetchTree, openFiles])
   const runDesign = useCallback(async () => { setMessage(""); const response = await fetch(API_BASE + "/api/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ design_path: designPath, mock: true }) }); const data = await response.json(); if (!response.ok) setMessage(data.detail || "Run failed to start"); else { setRun(data); setMessage("Started " + data.run_id) } }, [designPath])
+  const runTool = useCallback(async tool => {
+    if (!isElectron) { setMessage("EDA tool access is available from the Electron desktop shell only."); return }
+    setToolBusy(tool)
+    try {
+      const result = await window.gliFlowDesktop.runTool(tool)
+      setToolOutput(`${result.command}\n\n${result.output}`)
+      setMessage(result.available ? `${tool} is available.` : `${tool} is not available.`)
+    } catch (error) { setToolOutput(error.message); setMessage(error.message) } finally { setToolBusy("") }
+  }, [])
   const activeFile = openFiles[activePath] || null
   const focusTreePath = path => { setFocusPath(path); setMessage("Tree focused on " + baseName(path)) }
   const searchFiles = useCallback(query => { setSearchQuery(query); if (query.trim().length < 2) { setSearchResults([]); return } fetch(API_BASE + "/api/fs/search?path=" + encodeURIComponent(designPath) + "&q=" + encodeURIComponent(query.trim())).then(response => response.ok ? response.json() : response.json().then(data => Promise.reject(new Error(data.detail || "Search failed")))).then(data => setSearchResults(data.results || [])).catch(error => setMessage(error.message)) }, [designPath])
@@ -275,16 +292,20 @@ export default function WorkbenchPage() {
     { label: "New Folder", run: () => createEntry(tree?.root || designPath, "directory") },
     { label: "Toggle Minimap", run: () => setMinimapEnabled(value => !value) },
     { label: "Search in Files", run: () => setSearchOpen(true) },
-  ], [activePath, closeAll, closeTab, createEntry, designPath, runDesign, saveAll, saveFile, tree?.root])
+    { label: "Check Yosys", run: () => runTool("yosys") },
+    { label: "Check OpenROAD", run: () => runTool("openroad") },
+    { label: "Check KLayout", run: () => runTool("klayout") },
+  ], [activePath, closeAll, closeTab, createEntry, designPath, runDesign, runTool, saveAll, saveFile, tree?.root])
   const panelParams = useMemo(() => ({
     files: { tree, onOpen: openFile, onRefresh: refreshTree, onCreate: createEntry, onRename: renameEntry, onDelete: deleteEntry, focusPath: focusPath, includeAll },
     editor: { activeFile, tabs: Object.values(openFiles), onSelect: setActivePath, onClose: closeTab, onChange: changeFile, onSave: () => saveFile(), onCommandPalette: () => setPaletteOpen(true), onSearch: () => setSearchOpen(true), onRevealLine: setRevealLine, revealLine, minimapEnabled, onToggleMinimap: () => setMinimapEnabled(value => !value), onJump: focusTreePath },
     logs: { run, logs },
     metrics: { run },
-  }), [activeFile, changeFile, closeTab, createEntry, deleteEntry, focusPath, includeAll, openFile, openFiles, refreshTree, renameEntry, run, logs, saveFile, revealLine, minimapEnabled, tree])
-  const components = useMemo(() => ({ files: props => <FileTreePanel {...props} />, editor: props => <EditorPanel {...props} />, logs: props => <LogPanel {...props} />, metrics: props => <MetricsPanel {...props} /> }), [])
+    tools: { onRunTool: runTool, toolBusy, toolOutput },
+  }), [activeFile, changeFile, closeTab, createEntry, deleteEntry, focusPath, includeAll, openFile, openFiles, refreshTree, renameEntry, run, logs, saveFile, revealLine, minimapEnabled, tree, runTool, toolBusy, toolOutput])
+  const components = useMemo(() => ({ files: props => <FileTreePanel {...props} />, editor: props => <EditorPanel {...props} />, logs: props => <LogPanel {...props} />, metrics: props => <MetricsPanel {...props} />, tools: props => <ToolPanel {...props} /> }), [])
   useEffect(() => { Object.entries(panelParams).forEach(([id, params]) => panelsRef.current[id]?.api.updateParameters(params)) }, [panelParams])
-  const handleReady = useCallback(event => { const addPanel = (id, title, position) => { const panel = event.api.addPanel({ id, component: id, title, position, params: panelParams[id] }); panelsRef.current[id] = panel }; addPanel("files", "Design Files", { direction: "left" }); addPanel("editor", "RTL Editor", { direction: "right" }); addPanel("logs", "Run Output", { direction: "below", referencePanel: "editor" }); addPanel("metrics", "Metrics", { direction: "right", referencePanel: "editor" }) }, [panelParams])
+  const handleReady = useCallback(event => { const addPanel = (id, title, position) => { const panel = event.api.addPanel({ id, component: id, title, position, params: panelParams[id] }); panelsRef.current[id] = panel }; addPanel("files", "Design Files", { direction: "left" }); addPanel("editor", "RTL Editor", { direction: "right" }); addPanel("logs", "Run Output", { direction: "below", referencePanel: "editor" }); addPanel("metrics", "Metrics", { direction: "right", referencePanel: "editor" }); addPanel("tools", "EDA Tools", { direction: "below", referencePanel: "metrics" }) }, [panelParams])
   return <main className="relative h-[calc(100vh-120px)] min-h-[620px] flex flex-col gap-3" aria-labelledby="workbench-title">
     <div className="flex flex-wrap items-center gap-2"><div className="flex-1"><h1 id="workbench-title" className="font-[Playfair_Display] text-[20px] text-abyss-ink">RTL Workbench</h1><p className="text-[11px] text-[#6B7280]">VS Code-like tabs, Monaco editing, outline navigation, live run output, and metrics.</p></div><input value={designPath} onChange={event => setDesignPath(event.target.value)} aria-label="Design folder path" className="border border-stone-ridge rounded px-2 py-1 text-xs w-64 focus-visible:outline-2 focus-visible:outline-blue-600" /><button type="button" onClick={() => fetchTree()} className="rounded border px-2 py-1 text-xs focus-visible:outline-2 focus-visible:outline-blue-600">Load</button><button type="button" onClick={() => setSearchOpen(value => !value)} title="Search in files" aria-label="Search in files" className="rounded border p-1.5 focus-visible:outline-2 focus-visible:outline-blue-600"><Search size={14} /></button><button type="button" onClick={() => setPaletteOpen(true)} title="Command palette (Ctrl+Shift+P)" aria-label="Open command palette" className="rounded border p-1.5 focus-visible:outline-2 focus-visible:outline-blue-600"><PanelTop size={14} /></button><button type="button" onClick={runDesign} className="inline-flex items-center gap-1 rounded bg-abyss-ink text-white px-3 py-1 text-xs focus-visible:outline-2 focus-visible:outline-blue-600"><Play size={12} aria-hidden="true" />Run this design</button></div>
     {message && <p role="status" className="text-xs text-[#2563EB]">{message}</p>}

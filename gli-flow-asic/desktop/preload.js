@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld("gliFlowDesktop", {
   createFile: (payload) => ipcRenderer.invoke("create-file", payload),
   renameFile: (payload) => ipcRenderer.invoke("rename-file", payload),
   deleteFile: (payload) => ipcRenderer.invoke("delete-file", payload),
+  runTool: (tool) => ipcRenderer.invoke("run-tool", tool),
 })
