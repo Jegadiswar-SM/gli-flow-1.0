@@ -11,6 +11,15 @@ The full dashboard opens at `http://127.0.0.1:5173`. The backend-only mode serve
 
 ## Electron desktop shell
 
+For the easiest complete installation, install Node.js 24.18.0 and run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash -s -- --desktop
+```
+
+The installer builds the local Monaco dashboard and installs Electron. It
+prints the exact command needed to launch the desktop shell.
+
 The native shell serves the same built dashboard from the same FastAPI backend:
 
 ```bash
@@ -44,7 +53,7 @@ to jsDelivr or Google Fonts is not required.
 | Page | Description |
 |------|-------------|
 | **Run Design** | CLI command reference for running designs |
-| **RTL Workbench** | Docked RTL file tree, locally bundled Monaco editor, runs, logs, and metrics |
+| **RTL Workbench** | Docked RTL file tree, Monaco editor, multi-file tabs, EDA tool checks, runs, logs, and metrics |
 | **Run Matrix** | Design × Stage grid showing execution progress per stage |
 | **Run Monitor** | Live run monitor with recent activity feed |
 | **Important Runs** | Filtered view of starred/bookmarked runs |

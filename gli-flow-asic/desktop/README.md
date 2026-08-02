@@ -3,6 +3,19 @@
 The desktop shell is a thin Electron host around the existing FastAPI-served
 dashboard. It does not duplicate the React app or the flow engine.
 
+## One-command installation
+
+On Linux or WSL2, install Node.js 24.18.0 first, then run the hosted desktop
+installer from any directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash -s -- --desktop
+```
+
+This creates the Python environment, installs GLI-FLOW, builds the local
+Monaco dashboard, installs Electron, and prints the launch command. It does
+not bundle Python or automatically install system EDA tools.
+
 ## Development prerequisites
 
 From the repository root, create/use the supported Python environment and
@@ -83,8 +96,9 @@ deferred.
 
 The RTL Workbench is a new Dockview page. It provides an RTL-filtered file
 tree, locally bundled Monaco editing with a lightweight
-Verilog/SystemVerilog tokenizer, run status/log output, and metrics. Browser
-mode is read-only; Electron mode can save `.v`, `.sv`, `.vh`, and `.svh` files
-through the token-gated backend. Monaco and the application fonts do not
-require runtime CDN access, so the Workbench also works in offline/air-gapped
-environments.
+Verilog/SystemVerilog tokenizer, multi-file tabs, command palette, global
+search, breadcrumbs, outline navigation, run status/log output, metrics, and
+one-click Yosys/OpenROAD/KLayout checks. Browser mode is read-only; Electron
+mode can save and manage `.v`, `.sv`, `.vh`, and `.svh` files through the
+token-gated backend. Monaco and the application fonts do not require runtime
+CDN access, so the Workbench also works in offline/air-gapped environments.
