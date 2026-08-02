@@ -2,15 +2,10 @@
 
 ## First-Time Setup
 ```bash
-git clone https://github.com/Jegadiswar-SM/gli-flow-1.0.git
-cd gli-flow-1.0/gli-flow-asic
-cd gli-flow-asic
-python3 -m venv venv
-source venv/bin/activate
-pip install -e ".[dashboard]"
-gli-flow install
-gli-flow doctor
-gli-flow run examples/counter --mock
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash
+# Activate the environment using the command printed by the installer.
+gli-flow quickstart
+gli-flow run --example counter --mock --non-interactive
 ```
 
 ## Run a Custom Design

@@ -1,6 +1,8 @@
 # Telemetry and Privacy Guide
 
-GLI-FLOW collects anonymized execution telemetry to improve failure detection, resolution intelligence, and toolchain reliability.
+GLI-FLOW can collect anonymized execution telemetry to improve failure detection,
+resolution intelligence, and toolchain reliability. The default is local-only;
+the core flow does not depend on uploads or an online account.
 
 ## Telemetry Modes
 
@@ -17,7 +19,7 @@ Default: `LOCAL` collection with no upload. Use `gli-flow telemetry mode full` o
 
 1. Inspection commands never trigger the wizard.
 2. Interactive execution commands disclose the payload, destination, retention, and exclusions before asking.
-3. Non-interactive (`--non-interactive`) never reads stdin and uses the persisted mode or FULL.
+3. Non-interactive (`--non-interactive`) never reads stdin and remains local-only unless an upload mode was explicitly persisted.
 4. Saved under the OS user config directory.
 
 ## Managing Telemetry
@@ -32,8 +34,8 @@ GLI-FLOW telemetry service and retained for up to 24 months.
 # View current status
 gli-flow telemetry status
 
-# Enable collection + upload
-gli-flow telemetry enable
+# Choose an upload mode explicitly
+gli-flow telemetry mode full
 
 # Disable upload (local only)
 gli-flow telemetry disable

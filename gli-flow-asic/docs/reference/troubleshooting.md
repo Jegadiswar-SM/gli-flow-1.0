@@ -132,7 +132,7 @@ docker run -it --rm gli-flow:local
 When reporting an issue, generate a diagnostic archive:
 
 ```bash
-gli-flow support-bundle
+gli-flow support-bundle --output support-bundle.zip
 ```
 
 Attach the generated `support-bundle.zip` to your GitHub issue. The archive contains version info, run summaries, system info, and configuration — no design data.

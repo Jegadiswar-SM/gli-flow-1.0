@@ -1,22 +1,26 @@
 # CLI Reference
 
-Generated from `gli_flow/cli/main.py` — every documented command.
+Derived from `gli_flow/cli/main.py`. Use the installed CLI's `--help` output as
+the final authority when a flag is added.
 
 ## Global Flags
 
 | Flag | Description |
 |------|-------------|
-| `--non-interactive` | Run in non-interactive mode (telemetry defaults to FULL sanitized upload until changed) |
+| `-h`, `--help` | Show help without starting services or changing state |
+| `--all` | Include advanced commands in top-level help |
+| `--non-interactive` | Run in non-interactive mode without prompts; telemetry remains local-only unless an upload mode was explicitly persisted |
+| `--telemetry {full,atlas,local,disabled}` | Persist a telemetry mode for this invocation |
 
 ## Production Commands
 
-### `gli-flow run <design>`
+### `gli-flow run [design]`
 
 Run a design through the full RTL-to-GDS pipeline.
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `design` | positional | required | Path to design directory with `gli_manifest.yaml` |
+| `design` | positional | optional | Path to design directory with `gli_manifest.yaml`; use `--example NAME` for a built-in example |
 | `--verbose`, `-v` | flag | false | Show full traceback on error |
 | `--threads`, `-j` | int | — | Number of parallel threads |
 | `--memory`, `-m` | int | — | Memory limit in MB |
@@ -26,9 +30,9 @@ Run a design through the full RTL-to-GDS pipeline.
 
 **Examples:**
 ```bash
-gli-flow run examples/counter
+gli-flow run --example counter
 gli-flow run designs/my_chip --threads 4
-gli-flow run . --mock    # dry run without real tools
+gli-flow run --example counter --mock    # dry run without real tools
 ```
 
 ### `gli-flow history`
@@ -333,6 +337,41 @@ Telemetry Intelligence Warehouse.
 ### `gli-flow predict <run_id>`
 
 Predict execution risk and tapeout readiness.
+
+## Additional commands
+
+These commands are registered in the current parser but were previously omitted
+from the reference sections above:
+
+### `gli-flow commands`
+
+Print the full alphabetical top-level command list. This is equivalent to the
+advanced listing in `gli-flow --help --all`.
+
+### `gli-flow examples list`
+
+List built-in designs and expected runtime information.
+
+### `gli-flow validate <design>`
+
+Validate a design directory or manifest without running EDA.
+
+### `gli-flow rerun <run_id> --from <stage>`
+
+Create a new run linked to an earlier run and resume from a named checkpointed
+stage. Add `--mock` to resume with the mock adapter.
+
+### `gli-flow export [--output DIR]`
+
+Export local runs, telemetry, and Failure Atlas data for backup or migration.
+
+### `gli-flow import <PATH>`
+
+Import an export directory created by `gli-flow export` into the local database.
+
+### `gli-flow db {status|migrate|repair|path}`
+
+Inspect or update database migration state.
 
 ## Custom Help Epilog
 

@@ -2,30 +2,41 @@
 
 Clone to dashboard. Mock mode requires no EDA tools.
 
-**Prerequisites:** Python 3.9+, Linux (Ubuntu 22.04+ / Debian 12+ / WSL2), git
+**Prerequisites:** Python 3.9–3.12, Linux (Ubuntu 22.04+ / Debian 12+ / WSL2), git
 
 ---
 
 ## 1. Clone and Install
 
+For Linux or WSL2, the recommended path is the hosted installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash
+```
+
+Activate the environment using the command it prints, then run
+`gli-flow quickstart`. The manual path below is useful when you want to see
+and control each installation step.
+
 ```bash
 git clone https://github.com/Jegadiswar-SM/gli-flow-1.0.git
 cd gli-flow-1.0/gli-flow-asic
-cd gli-flow-asic
-python3 -m venv venv
-source venv/bin/activate
-pip install -e ".[dashboard]"
-gli-flow install
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e "[dashboard]"
+gli-flow smoke-test --non-interactive
+gli-flow run --example counter --mock --non-interactive
 ```
 
-`gli-flow install` installs the PDK (sky130A), OpenROAD-flow-scripts (ORFS), and dashboard
-dependencies. EDA tools (Yosys, OpenROAD, Magic, Netgen, KLayout) must be pre-installed
+`gli-flow install` is the optional real-tool/PDK installation path. EDA tools
+(Yosys, OpenROAD, Magic, Netgen, KLayout) must be pre-installed or installed
 — see `gli-flow doctor` to check. On Ubuntu: `apt install yosys openroad magic netgen klayout`.
 
 ## 2. Verify
 
 ```bash
-gli-flow smoke-test
+gli-flow doctor --for mock --non-interactive
+gli-flow smoke-test --non-interactive
 ```
 
 Checks Python version, EDA tools, database schema, telemetry config, and the example
@@ -36,7 +47,7 @@ For detailed environment info: `gli-flow doctor`
 ## 3. Run Your First Design
 
 ```bash
-gli-flow run examples/counter --mock
+gli-flow run --example counter --mock --non-interactive
 ```
 
 This runs the full pipeline in mock mode — no EDA tools needed. Expect:
@@ -69,8 +80,10 @@ telemetry. Use `gli-flow dashboard --backend-only` for the API server only at
 ---
 
 **RTL/IP never collected:** GLI-FLOW's telemetry explicitly excludes RTL source code,
-GDS, netlists, and constraints. Verified in the telemetry collection code. Default
-mode uploads sanitized telemetry by default. RTL/IP/netlists/GDS are never collected; opt out with `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled`. See [Telemetry & Privacy](../privacy/telemetry_and_privacy.md).
+GDS, netlists, and constraints. The default mode is local-only and sends nothing.
+Choose an upload mode explicitly with `gli-flow telemetry mode full` or
+`gli-flow telemetry mode atlas`; use `gli-flow telemetry mode disabled` for no
+collection. See [Telemetry & Privacy](../privacy/telemetry_and_privacy.md).
 
 ## Beta Scope
 

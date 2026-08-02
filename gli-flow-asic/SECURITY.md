@@ -2,9 +2,9 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-|---------|--------------------|
-| 0.1.x   | :white_check_mark: |
+| Version | Supported |
+|---------|-----------|
+| 1.1.x beta | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
@@ -24,7 +24,7 @@ GLI-FLOW takes security seriously. If you discover a vulnerability, please repor
 ## Security Best Practices
 
 ### For Users
-- **Set `GLI_ENCRYPTION_SECRET`** — Always configure a strong, unique secret via environment variable in production. Never rely on the default.
+- **Set `GLI_ENCRYPTION_SECRET`** — Configure a strong, unique secret via environment variable when using encrypted file-protection paths. The implementation does not provide a safe fallback secret.
 - **Use KMS when possible** — Set `GLI_KMS_KEY_ID` to integrate AWS KMS for key management instead of the environment-variable fallback.
 - **Validate design paths** — Only run GLI-FLOW with trusted design directories and manifest files.
 - **Pin dependencies** — Use locked environments (Docker, Conda, pip freeze) to avoid unexpected dependency changes.
@@ -33,7 +33,7 @@ GLI-FLOW takes security seriously. If you discover a vulnerability, please repor
 
 ### For Deployments
 - **Run EDA tools in sandboxed environments** — Use containers or user namespaces to limit the blast radius of tool exploits.
-- **Monitor subprocess execution** — Log all spawned EDA commands and watch for unexpected arguments.
+- **Monitor subprocess execution** — Review stage logs and watch for unexpected arguments. Subprocesses are bounded by stage timeout and optional resource limits.
 - **Keep dependencies updated** — Run `pip-audit` regularly and monitor advisory databases.
 - **Use read-only PDK paths** — Mount PDK directories read-only to prevent tampering.
 - **Enable CI security scanning** — Integrate Bandit (SAST), CodeQL, and Gitleaks (secrets) into your pipeline.

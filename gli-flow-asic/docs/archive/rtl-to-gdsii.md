@@ -134,7 +134,7 @@ corners:
 
 ## 2. Timing Constraints (SDC)
 
-See [constraints.md](../developer/constraints.md) for the full SDC tutorial. Here's the minimal summary:
+See [constraints.md](developer/constraints.md) for the full SDC tutorial. Here's the minimal summary:
 
 ### What
 

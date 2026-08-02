@@ -11,7 +11,7 @@ One explicit real-tool follow-up remains: `sv2v` is not installed, so an indepen
 | Item | Status | Commit(s) | Evidence |
 |---|---|---|---|
 | P0 logging fallback | Fixed | `2170cc9` | Read-only-home paths produce friendly output without raw tracebacks. |
-| P0 telemetry/mock honesty and packaging/docs | Fixed | `2170cc9`, `c984a66`, `65beb04` | Mock output is `SIMULATED/DEMO`; fresh settings default to full sanitized upload until changed. |
+| P0 telemetry/mock honesty and packaging/docs | Fixed | `2170cc9`, `c984a66`, `65beb04` | Mock output is `SIMULATED/DEMO`; fresh settings default to local-only telemetry and uploads require explicit opt-in. |
 | P1-5 imports/catches/lint | Fixed | `3bf7bb8`, `c0439a7`, `9898e3f` | npm lint exits 0 with zero warnings. |
 | P1-5 route splitting/bundle budget | Fixed | `3bf7bb8` | Bundle remains below the 1,024,000-byte budget. |
 | P1-5 npm audit | Fixed | `08e31fd` | `npm audit`: `found 0 vulnerabilities`; CI runs `npm audit --audit-level=high`. |

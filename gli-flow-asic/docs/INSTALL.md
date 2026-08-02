@@ -19,6 +19,11 @@ At the end, activate the environment using the command it prints, then try
 `gli-flow quickstart`. In WSL2, the installer asks once whether to install the
 optional system-level EDA prerequisites.
 
+The installer is safe to re-run after an interrupted install. It does not
+remove a checkout or system packages. GLI-FLOW's default telemetry mode is
+local-only; core runs do not require cloud services, AI, Supabase, or telemetry
+uploads.
+
 ## Manual install
 
 ```bash
@@ -32,6 +37,33 @@ gli-flow run --example counter --mock --non-interactive
 The dashboard backend is included by the supported source install. Frontend
 development dependencies are separate: `cd dashboard && npm ci`; start with
 `gli-flow dashboard --backend-only` to verify `GET /health` without Node.
+
+## Verify and continue
+
+After activating the environment, the smallest beginner verification is:
+
+```bash
+gli-flow doctor --for mock --non-interactive
+gli-flow smoke-test --non-interactive
+gli-flow run --example counter --mock --non-interactive
+gli-flow quickstart
+```
+
+Start the browser dashboard with `gli-flow dashboard`. If it does not open a
+browser, visit `http://127.0.0.1:5173`. To run only the API server, use
+`gli-flow dashboard --backend-only` and check
+`http://127.0.0.1:8000/health`.
+
+When a run fails, keep the run ID and use the local recovery tools:
+
+```bash
+gli-flow history
+gli-flow diagnose <run_id>
+gli-flow support-bundle --run-id <run_id>
+gli-flow rerun <run_id> --from <stage>
+```
+
+These commands work without an account or network connection.
 
 The optional Electron desktop shell uses the same backend and requires the
 same Python environment. Build the browser dashboard first, then launch it
@@ -72,3 +104,16 @@ Before any signoff-adjacent conclusion: mock output is simulated and does not
 prove synthesis quality, STA closure, DRC cleanliness, LVS equivalence, or
 functional correctness. Real readiness requires real tool evidence, required
 artifacts, and an explicit signoff checklist.
+
+## Supported baseline
+
+| Component | Supported baseline |
+|---|---|
+| GLI-FLOW | v1.1.0-beta |
+| Python | 3.9 through 3.12 |
+| Linux | Ubuntu 22.04/24.04, Debian 12, or WSL2 |
+| Dashboard frontend | Versions declared in `dashboard/.nvmrc` and `dashboard/package.json` |
+
+Mock verification normally completes in under a minute. Real EDA tools and
+PDKs require substantially more disk space, installation time, and system
+configuration.

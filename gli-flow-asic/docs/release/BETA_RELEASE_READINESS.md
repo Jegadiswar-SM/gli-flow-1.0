@@ -80,7 +80,7 @@
 | Opt-in consent flow | ✅ PASS | `_ensure_telemetry_consent()` blocks before first upload |
 | Privacy validator excludes RTL/GDS | ✅ PASS | `EXCLUDED_FIELDS` and `EXCLUDED_EXTENSIONS` verified in `export.py` |
 | No secrets in payloads | ✅ PASS | Auth keys are headers, not payload fields |
-| Local-only default mode | ✅ PASS | Default `mode: atlas` is local-only |
+| Local-only default mode | ✅ PASS | Fresh configuration defaults to `mode: local`; uploads require explicit opt-in |
 | Telemetry export command | ✅ PASS | `gli-flow telemetry export` with JSON/CSV, date and run-id filters |
 
 **Score: ✅ PASS**

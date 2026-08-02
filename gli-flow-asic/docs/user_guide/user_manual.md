@@ -8,14 +8,21 @@ generate support bundles, and how telemetry works.
 
 ## How Do I Install?
 
+Recommended for Linux and WSL2:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash
+```
+
+For a step-by-step install, use the manual commands below.
+
 ```bash
 git clone https://github.com/Jegadiswar-SM/gli-flow-1.0.git
 cd gli-flow-1.0/gli-flow-asic
-cd gli-flow-asic
-python3 -m venv venv
-source venv/bin/activate
-pip install -e ".[dashboard]"
-gli-flow install
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e "[dashboard]"
+gli-flow smoke-test --non-interactive
 ```
 
 Dashboard dependencies are installed automatically by `gli-flow install`.
@@ -155,8 +162,9 @@ gli-flow support-bundle --run-id run_abc123
 
 ```bash
 gli-flow telemetry status       # View current settings
-gli-flow telemetry enable       # Enable full collection + upload
-gli-flow telemetry disable      # Disable uploads
+gli-flow telemetry mode full    # Explicitly enable sanitized upload
+gli-flow telemetry mode atlas   # Explicitly upload failure events
+gli-flow telemetry disable      # Keep collection local
 gli-flow telemetry mode local   # Keep everything local
 gli-flow telemetry preview      # View what would be uploaded
 gli-flow show-telemetry <id>    # Payload for a specific run

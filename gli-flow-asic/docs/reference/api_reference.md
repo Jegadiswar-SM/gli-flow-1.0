@@ -1,6 +1,13 @@
 # API Reference
 
-All 79 endpoints defined in `backend/server.py`. Base URL: `http://127.0.0.1:8000`
+The FastAPI application in `backend/server.py` exposes the local dashboard API.
+The current implementation defines the endpoint groups listed below. Base URL:
+`http://127.0.0.1:8000`.
+
+The paths are rooted directly at `/`; there is no required `/api` prefix. The
+browser dashboard uses the same-origin base by default. The backend is
+unauthenticated and should remain bound to loopback unless an external access
+control layer is configured.
 
 ## Runs
 
@@ -23,8 +30,8 @@ All 79 endpoints defined in `backend/server.py`. Base URL: `http://127.0.0.1:800
 | GET | `/runs/{run_id}/diff/{previous_run_id}` | Field-by-field run comparison |
 | GET | `/runs/{run_id}/compare/{other_run_id}` | Full run comparison with failure diffs |
 | GET | `/runs/{run_id}/trust-score` | Run trust score |
-| GET | `/runs/{run_id}/investigation` | Get LLM investigation result |
-| POST | `/runs/{run_id}/investigation` | Trigger LLM investigation |
+| GET | `/runs/{run_id}/investigation` | Get experimental investigation result |
+| POST | `/runs/{run_id}/investigation` | Trigger experimental investigation |
 
 ## Failures
 

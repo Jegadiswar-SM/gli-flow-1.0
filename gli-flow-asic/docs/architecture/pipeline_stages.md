@@ -1,6 +1,8 @@
 # Pipeline Stages
 
-The full RTL-to-GDS pipeline executes approximately 29 stages. Major groups:
+The current orchestrator processes 30 ordered stages. The exact list and
+resume/checkpoint behavior are maintained in [Execution flow](execution-flow.md).
+The major groups are:
 
 1. **Synthesis** (Yosys) — Verilog to gate-level netlist
 2. **Floorplanning** — die area, I/O pin placement
@@ -12,5 +14,7 @@ The full RTL-to-GDS pipeline executes approximately 29 stages. Major groups:
 8. **STA** (Static Timing Analysis) — verify all paths meet timing constraints (OpenSTA)
 9. **GDS Export** — final layout file for tapeout
 
-Some stages (fill, decap, antenna check, ATPG) run in parallel. Each stage runs
-through OpenROAD Flow Scripts (ORFS) and reports results to the database.
+Stages are processed in orchestrator order. Some optional stage methods may be
+skipped when the selected adapter does not implement them; certification mode
+turns stage errors into blocking failures. Each stage updates the database,
+event log, and checkpoint evidence where applicable.

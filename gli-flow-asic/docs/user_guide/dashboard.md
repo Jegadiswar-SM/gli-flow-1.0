@@ -105,14 +105,16 @@ Click any run to open its detail page with 10 tabs:
 
 ## API
 
-The backend serves a REST API at `http://127.0.0.1:8000/api/`. Key endpoints:
+The backend serves a REST API at `http://127.0.0.1:8000`. Paths are rooted at
+`/`, not `/api/`. Key endpoints:
 
-- `GET /api/runs` — list runs
-- `GET /api/runs/<id>` — run details
-- `GET /api/designs` — list designs
-- `GET /api/health` — infrastructure health
+- `GET /runs` — list runs
+- `GET /runs/<id>` — run details
+- `GET /health` — infrastructure health
 
-The frontend dev server proxies `/api/*` to the backend.
+The frontend uses the same-origin API by default. Set `VITE_API_URL` when the
+backend is hosted at another origin. The backend's allowed origins are
+controlled by `CORS_ORIGINS`.
 
 ## Common Tasks
 

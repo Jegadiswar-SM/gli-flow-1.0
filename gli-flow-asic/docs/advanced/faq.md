@@ -13,7 +13,10 @@ counter (~500 cells), uart (~2,000 cells), gcd (~500 cells), systolic array (~15
 No. RTL, netlists, GDS, and constraints are never uploaded regardless of telemetry mode.
 
 **Can I use GLI-FLOW offline?**
-Yes, with `gli-flow telemetry disable` or `--telemetry local`/`--telemetry disabled`. The default is full sanitized telemetry upload; RTL, IP, netlists, constraints, and GDS are never collected.
+Yes. The default telemetry mode is local-only, and core flow usage does not
+require an account or network. Use `gli-flow telemetry mode disabled` or
+`--telemetry disabled` for zero telemetry; RTL, IP, netlists, constraints, and
+GDS are never collected.
 
 **How do I report a bug?**
 Run `gli-flow support-bundle` and attach the `.zip` to https://github.com/Jegadiswar-SM/gli-flow-1.0/issues.
