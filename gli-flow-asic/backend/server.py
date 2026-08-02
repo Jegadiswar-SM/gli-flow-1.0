@@ -515,6 +515,8 @@ def get_trends():
 _OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs" / "runs"
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _DESIGN_ROOTS = [Path(item).expanduser().resolve() for item in os.environ.get("GLI_FLOW_DESIGN_ROOTS", str(_PROJECT_ROOT)).split(os.pathsep) if item]
+_WORKBENCH_TEXT_EXTENSIONS = {".v", ".sv", ".vh", ".svh", ".sdc", ".md", ".yaml", ".yml", ".tcl", ".txt", ".json"}
+_WORKBENCH_SOURCE_EXTENSIONS = {".v", ".sv", ".vh", ".svh"}
 
 
 def _safe_workspace_path(raw_path: str, *, must_exist: bool = True) -> Path:
@@ -527,6 +529,20 @@ def _safe_workspace_path(raw_path: str, *, must_exist: bool = True) -> Path:
     if must_exist and not candidate.exists():
         raise HTTPException(status_code=404, detail="Path not found")
     return candidate
+
+
+def _require_desktop_write(request: Request) -> None:
+    expected = os.environ.get("GLI_FLOW_DESKTOP_WRITE_TOKEN", "")
+    supplied = request.headers.get("X-GLI-FLOW-DESKTOP-TOKEN", "")
+    if not expected or not supplied or not secrets.compare_digest(expected, supplied):
+        raise HTTPException(status_code=403, detail="File operations require the Electron desktop session token")
+
+
+def _validate_workbench_target(raw_path: str, *, must_exist: bool = True) -> Path:
+    target = _safe_workspace_path(raw_path, must_exist=must_exist)
+    if target.name.startswith(".") or any(part in {"node_modules", "dist", "__pycache__"} for part in target.parts):
+        raise HTTPException(status_code=400, detail="Hidden and generated paths are not editable in the Workbench")
+    return target
 
 
 @app.get("/version")
@@ -562,7 +578,7 @@ def get_filesystem_tree(path: str = Query("examples"), include_all: bool = Query
 @app.get("/api/fs/file")
 def read_filesystem_file(path: str):
     target = _safe_workspace_path(path)
-    if not target.is_file() or target.suffix.lower() not in {".v", ".sv", ".vh", ".svh", ".sdc", ".md", ".yaml", ".yml", ".tcl", ".txt", ".json"}:
+    if not target.is_file() or target.suffix.lower() not in _WORKBENCH_TEXT_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Only text design files can be opened")
     if target.stat().st_size > 2_000_000:
         raise HTTPException(status_code=413, detail="File is too large for the workbench")
@@ -571,18 +587,92 @@ def read_filesystem_file(path: str):
 
 @app.post("/api/fs/file")
 def write_filesystem_file(payload: dict, request: Request):
-    expected = os.environ.get("GLI_FLOW_DESKTOP_WRITE_TOKEN", "")
-    supplied = request.headers.get("X-GLI-FLOW-DESKTOP-TOKEN", "")
-    if not expected or not supplied or not secrets.compare_digest(expected, supplied):
-        raise HTTPException(status_code=403, detail="File writes require the Electron desktop session token")
-    target = _safe_workspace_path(str(payload.get("path", "")))
-    if target.is_dir() or target.suffix.lower() not in {".v", ".sv", ".vh", ".svh"}:
+    _require_desktop_write(request)
+    target = _validate_workbench_target(str(payload.get("path", "")))
+    if target.is_dir() or target.suffix.lower() not in _WORKBENCH_SOURCE_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Only Verilog/SystemVerilog files can be saved")
     content = payload.get("content")
     if not isinstance(content, str) or len(content.encode("utf-8")) > 2_000_000:
         raise HTTPException(status_code=400, detail="Invalid or oversized file content")
     target.write_text(content)
     return {"path": str(target), "saved": True}
+
+
+@app.post("/api/fs/create")
+def create_filesystem_entry(payload: dict, request: Request):
+    _require_desktop_write(request)
+    raw_path = str(payload.get("path", "")).strip()
+    entry_type = str(payload.get("type", "file")).lower()
+    if entry_type not in {"file", "directory"} or not raw_path:
+        raise HTTPException(status_code=400, detail="Create requires a path and type of file or directory")
+    target = _validate_workbench_target(raw_path, must_exist=False)
+    if target.exists():
+        raise HTTPException(status_code=409, detail="A file or folder already exists at that path")
+    if not target.parent.is_dir():
+        raise HTTPException(status_code=400, detail="Parent directory does not exist")
+    if entry_type == "file":
+        if target.suffix.lower() not in _WORKBENCH_TEXT_EXTENSIONS:
+            raise HTTPException(status_code=400, detail="New files must use a supported text/design extension")
+        target.write_text(str(payload.get("content", "")))
+    else:
+        target.mkdir()
+    return {"path": str(target), "type": entry_type, "created": True}
+
+
+@app.post("/api/fs/move")
+def move_filesystem_entry(payload: dict, request: Request):
+    _require_desktop_write(request)
+    source = _validate_workbench_target(str(payload.get("path", "")))
+    destination = _validate_workbench_target(str(payload.get("new_path", "")), must_exist=False)
+    if source == destination:
+        return {"path": str(destination), "moved": False}
+    if destination.exists() or not destination.parent.is_dir():
+        raise HTTPException(status_code=409, detail="Destination already exists or its parent is missing")
+    if source.is_file() and destination.suffix.lower() not in _WORKBENCH_TEXT_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Renamed files must keep a supported text/design extension")
+    if source.is_dir() and (destination == source or source in destination.parents):
+        raise HTTPException(status_code=400, detail="A folder cannot be moved inside itself")
+    source.rename(destination)
+    return {"path": str(source), "new_path": str(destination), "moved": True}
+
+
+@app.post("/api/fs/delete")
+def delete_filesystem_entry(payload: dict, request: Request):
+    _require_desktop_write(request)
+    target = _validate_workbench_target(str(payload.get("path", "")))
+    if any(target == root for root in _DESIGN_ROOTS):
+        raise HTTPException(status_code=400, detail="Configured design roots cannot be deleted")
+    if target.is_dir():
+        shutil.rmtree(target)
+    else:
+        target.unlink()
+    return {"path": str(target), "deleted": True}
+
+
+@app.get("/api/fs/search")
+def search_filesystem(path: str = Query("examples"), q: str = Query(..., min_length=1), limit: int = Query(200, ge=1, le=1000)):
+    root = _safe_workspace_path(path)
+    if not root.is_dir():
+        raise HTTPException(status_code=400, detail="Search path must be a directory")
+    needle = q.casefold()
+    results = []
+    for candidate in root.rglob("*"):
+        if len(results) >= limit:
+            break
+        if not candidate.is_file() or candidate.suffix.lower() not in _WORKBENCH_TEXT_EXTENSIONS:
+            continue
+        if any(part.startswith(".") or part in {"node_modules", "dist", "__pycache__"} for part in candidate.relative_to(root).parts):
+            continue
+        try:
+            lines = candidate.read_text(errors="replace").splitlines()
+        except OSError:
+            continue
+        for line_number, line in enumerate(lines, 1):
+            if needle in line.casefold():
+                results.append({"path": str(candidate), "line": line_number, "text": line.strip()[:240]})
+                if len(results) >= limit:
+                    break
+    return {"query": q, "root": str(root), "results": results, "truncated": len(results) >= limit}
 
 
 @app.get("/runs/{run_id}")

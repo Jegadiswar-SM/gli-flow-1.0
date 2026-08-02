@@ -77,6 +77,22 @@ ipcMain.handle("write-file", async (_, payload) => {
   return data
 })
 
+async function desktopFileOperation(path, operation, payload = {}) {
+  if (!desktopWriteToken) throw new Error("This Electron session is attached to an existing backend; file operations are disabled.")
+  const response = await fetch(`${backendUrl}/api/fs/${operation}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-gli-flow-desktop-token": desktopWriteToken },
+    body: JSON.stringify({ path, ...payload }),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.detail || `File ${operation} failed`)
+  return data
+}
+
+ipcMain.handle("create-file", async (_, payload) => desktopFileOperation(payload.path, "create", { type: payload.type, content: payload.content || "" }))
+ipcMain.handle("rename-file", async (_, payload) => desktopFileOperation(payload.path, "move", { new_path: payload.newPath }))
+ipcMain.handle("delete-file", async (_, payload) => desktopFileOperation(payload.path, "delete"))
+
 app.whenReady().then(createWindow).catch(error => { dialog.showErrorBox("GLI-FLOW Desktop could not start", error.message); app.quit() })
 app.on("before-quit", () => { if (backendProcess && !backendProcess.killed) backendProcess.kill() })
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit() })
