@@ -129,6 +129,17 @@ prerequisites. After activation, try:
 gli-flow quickstart
 ```
 
+If you want the complete Electron + Monaco Workbench in the same install,
+install Node.js 24.18.0 first, then use:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash -s -- --desktop
+```
+
+This builds the dashboard and installs the Electron shell, then prints the
+exact command to launch it. The normal one-liner remains the lighter CLI and
+browser-dashboard path.
+
 ### Manual path (if you want to see each step)
 
 1. Get the GLI-FLOW source code. If you have a specific location it was

@@ -19,6 +19,19 @@ At the end, activate the environment using the command it prints, then try
 `gli-flow quickstart`. In WSL2, the installer asks once whether to install the
 optional system-level EDA prerequisites.
 
+To install the complete Electron + Monaco Workbench in the same command, use
+the desktop variant. It requires the exact Node.js version in
+`dashboard/.nvmrc` (currently 24.18.0):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash -s -- --desktop
+```
+
+That path installs the frontend packages, builds the self-hosted Monaco UI,
+installs Electron, validates the desktop process, and prints the launch
+command. It does not install system EDA tools unless you accept the separate
+WSL2 prompt.
+
 The installer is safe to re-run after an interrupted install. It does not
 remove a checkout or system packages. GLI-FLOW's default telemetry mode is
 local-only; core runs do not require cloud services, AI, Supabase, or telemetry
@@ -65,9 +78,10 @@ gli-flow rerun <run_id> --from <stage>
 
 These commands work without an account or network connection.
 
-The optional Electron desktop shell uses the same backend and requires the
-same Python environment. Build the browser dashboard first, then launch it
-with an absolute interpreter path:
+The Electron desktop shell uses the same backend and requires the same Python
+environment. The `--desktop` one-liner above is the beginner path. To perform
+the steps manually, build the browser dashboard first, then launch it with an
+absolute interpreter path:
 
 ```bash
 cd dashboard && npm ci && npm run build

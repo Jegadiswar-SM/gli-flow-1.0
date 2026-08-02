@@ -4,6 +4,14 @@
 
 set -Eeuo pipefail
 
+INSTALL_DESKTOP=0
+if [[ "${1:-}" == "--desktop" ]]; then
+    INSTALL_DESKTOP=1
+elif [[ -n "${1:-}" ]]; then
+    printf '✗ Unknown installer option: %s (use --desktop or no option)\n' "$1" >&2
+    exit 2
+fi
+
 REPO_URL="https://github.com/Jegadiswar-SM/gli-flow-1.0.git"
 GLI_FLOW_HOME="${GLI_FLOW_HOME:-${HOME}/.gli-flow}"
 SOURCE_DIR="${GLI_FLOW_HOME}/source"
@@ -46,7 +54,11 @@ trap 'on_error "$LINENO"' ERR
 
 print_logo
 info "This will create or reuse ${GLI_FLOW_HOME}, a Python virtual environment, and a source checkout."
-info "It will install the GLI-FLOW dashboard dependencies and run a mock smoke test."
+if [[ "$INSTALL_DESKTOP" == "1" ]]; then
+    info "It will also install the Monaco dashboard frontend and Electron desktop shell."
+else
+    info "It will install the GLI-FLOW dashboard backend dependencies and run a mock smoke test."
+fi
 
 python_cmd=""
 for candidate in python3 python; do
@@ -118,6 +130,22 @@ info "Running the mock smoke test..."
 "${venv_dir}/bin/gli-flow" smoke-test --non-interactive || fail "smoke-test failed; the installation is not ready"
 pass "Mock smoke test passed"
 
+if [[ "$INSTALL_DESKTOP" == "1" ]]; then
+    command -v node >/dev/null 2>&1 || fail "Node.js is required for --desktop; install the version from dashboard/.nvmrc and re-run"
+    command -v npm >/dev/null 2>&1 || fail "npm is required for --desktop; install it with Node.js and re-run"
+    node_version="$(node -p 'process.versions.node')"
+    required_node="$(tr -d '[:space:]' < "${SOURCE_DIR}/dashboard/.nvmrc")"
+    [[ "$node_version" == "$required_node" ]] || fail "Node.js ${required_node} is required for --desktop; found ${node_version}"
+    info "Installing Monaco dashboard dependencies and building the Workbench..."
+    npm --prefix "${SOURCE_DIR}/dashboard" ci || fail "dashboard dependencies failed to install"
+    npm --prefix "${SOURCE_DIR}/dashboard" run build || fail "dashboard build failed"
+    pass "Monaco Workbench built"
+    info "Installing the Electron desktop shell..."
+    npm --prefix "${SOURCE_DIR}/desktop" ci || fail "Electron dependencies failed to install"
+    node --check "${SOURCE_DIR}/desktop/main.js" || fail "Electron main process validation failed"
+    pass "Electron desktop shell installed"
+fi
+
 if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
     printf '\nWSL2 detected. Install the optional system-level EDA prerequisites now? [y/N] '
     answer="n"
@@ -134,5 +162,10 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
     fi
 fi
 
-printf "\nYou're ready — try \`gli-flow quickstart\`\n"
+if [[ "$INSTALL_DESKTOP" == "1" ]]; then
+    printf "\nYou're ready — try \`gli-flow quickstart\`, then launch the Workbench with:\n"
+    printf '  GLI_FLOW_PROJECT_ROOT="%s" GLI_FLOW_PYTHON="%s/bin/python" npm --prefix "%s/desktop" run start\n' "$SOURCE_DIR" "$venv_dir" "$SOURCE_DIR"
+else
+    printf "\nYou're ready — try \`gli-flow quickstart\`\n"
+fi
 printf 'Activate the environment first in a new shell:\n  source "%s/bin/activate"\n\n' "$venv_dir"

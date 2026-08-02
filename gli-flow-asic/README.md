@@ -107,6 +107,17 @@ runs a non-interactive mock smoke test, and prints the activation command:
 curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash
 ```
 
+For the complete Electron desktop app and Monaco RTL Workbench, install
+Node.js 24.18.0 first, then use the desktop variant:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jegadiswar-SM/gli-flow-1.0/main/gli-flow-asic/scripts/install.sh | bash -s -- --desktop
+```
+
+It installs the frontend dependencies, builds the self-hosted Monaco UI,
+installs Electron, and prints the launch command. System EDA tools remain a
+separate optional install step.
+
 The script is designed to be re-runnable. In WSL2 it asks once whether to run
 the optional system-level EDA installation. Read [Installation](docs/INSTALL.md)
 for manual setup, Docker, real-tool installation, and uninstall behavior.
